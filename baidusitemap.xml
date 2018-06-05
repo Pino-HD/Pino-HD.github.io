@@ -4,6 +4,54 @@
 
     
   <url>
+    <loc>https://pino-hd.github.io/2018/06/05/Python-Sandbox-Bypass/</loc>
+    <lastmod>2018-06-05T07:33:46.713Z</lastmod>
+    <data>
+        <display>
+        <title>Python_Sandbox_Bypass</title>
+        <pubTime>2018-06-05T07:31:25.000Z</pubTime>
+        
+        <tag>Python</tag>
+         
+        <tag>沙箱逃逸</tag>
+         
+        <tag>Pyhon安全</tag>
+         
+         
+           
+             
+              <breadCrumb title="Python安全" url="https://pino-hd.github.io/categories/Python%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/04/Python%E6%B2%99%E7%AE%B1%E9%80%83%E9%80%B8/</loc>
+    <lastmod>2018-06-05T07:30:24.198Z</lastmod>
+    <data>
+        <display>
+        <title>Python沙箱逃逸之基础篇</title>
+        <pubTime>2018-06-04T13:38:33.000Z</pubTime>
+        
+        <tag>Python</tag>
+         
+        <tag>沙箱逃逸</tag>
+         
+        <tag>Pyhon安全</tag>
+         
+         
+           
+             
+              <breadCrumb title="Python安全" url="https://pino-hd.github.io/categories/Python%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>https://pino-hd.github.io/2018/06/02/mac%E4%B8%8B%E5%8F%8C%E7%BD%91%E5%8D%A1%E5%90%8C%E6%97%B6%E4%B8%8A%E5%86%85%E7%BD%91%E5%92%8C%E5%A4%96%E7%BD%91/</loc>
     <lastmod>2018-06-02T15:10:43.460Z</lastmod>
     <data>
@@ -782,9 +830,9 @@
         <title>PHP反序列化漏洞与防御</title>
         <pubTime>2018-05-30T14:08:27.000Z</pubTime>
         
-        <tag>Web安全</tag>
-         
         <tag>反序列化</tag>
+         
+        <tag>Web安全</tag>
          
         <tag>PHP</tag>
          
@@ -810,9 +858,9 @@
          
         <tag>Java安全</tag>
          
-        <tag>Web安全</tag>
-         
         <tag>反序列化</tag>
+         
+        <tag>Web安全</tag>
          
          
            
@@ -832,9 +880,9 @@
         <title>Python反序列化之pickle篇</title>
         <pubTime>2018-05-30T14:05:56.000Z</pubTime>
         
-        <tag>Web安全</tag>
-         
         <tag>反序列化</tag>
+         
+        <tag>Web安全</tag>
          
         <tag>Python</tag>
          
