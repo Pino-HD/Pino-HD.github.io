@@ -4,8 +4,890 @@
 
     
   <url>
+    <loc>https://pino-hd.github.io/2018/06/10/Discuz%E5%B0%8F%E4%BA%8E3.3%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%88%A0%E9%99%A4%E6%BC%8F%E6%B4%9E/</loc>
+    <lastmod>2018-06-10T09:09:45.618Z</lastmod>
+    <data>
+        <display>
+        <title>Discuz小于3.3任意文件删除漏洞</title>
+        <pubTime>2018-06-10T07:56:36.000Z</pubTime>
+        
+        <tag>漏洞分析</tag>
+         
+        <tag>PHP</tag>
+         
+        <tag>漏洞复现</tag>
+         
+         
+           
+             
+              <breadCrumb title="漏洞分析" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAPHP%E4%B8%AD%E7%9A%84%E9%AD%94%E6%9C%AF%E6%96%B9%E6%B3%95/</loc>
+    <lastmod>2018-06-10T09:03:07.392Z</lastmod>
+    <data>
+        <display>
+        <title>深入浅出PHP中的魔术方法</title>
+        <pubTime>2018-06-10T08:57:53.000Z</pubTime>
+        
+        <tag>PHP安全</tag>
+         
+         
+           
+             
+              <breadCrumb title="PHP安全" url="https://pino-hd.github.io/categories/PHP%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAPHP%E4%B8%AD%E7%9A%84Static%E2%80%94%E2%80%94%E9%9D%99%E6%80%81/</loc>
+    <lastmod>2018-06-10T08:57:38.555Z</lastmod>
+    <data>
+        <display>
+        <title>深入浅出PHP中的Static——静态</title>
+        <pubTime>2018-06-10T08:54:56.000Z</pubTime>
+        
+        <tag>PHP安全</tag>
+         
+         
+           
+             
+              <breadCrumb title="PHP安全" url="https://pino-hd.github.io/categories/PHP%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/PHP%E5%86%85%E7%BD%AE%E8%BF%87%E6%BB%A4%E5%87%BD%E6%95%B0%E6%80%BB%E7%BB%93/</loc>
+    <lastmod>2018-06-10T08:54:33.644Z</lastmod>
+    <data>
+        <display>
+        <title>PHP内置过滤函数总结</title>
+        <pubTime>2018-06-10T08:50:42.000Z</pubTime>
+        
+        <tag>PHP安全</tag>
+         
+         
+           
+             
+              <breadCrumb title="PHP安全" url="https://pino-hd.github.io/categories/PHP%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/Dalvik%E7%9A%84%E4%B8%A4%E7%A7%8D%E4%B8%8D%E5%90%8C%E7%9A%84%E5%AF%84%E5%AD%98%E5%99%A8%E8%A1%A8%E7%A4%BA%E6%96%B9%E6%B3%95/</loc>
+    <lastmod>2018-06-10T08:49:12.119Z</lastmod>
+    <data>
+        <display>
+        <title>Dalvik的两种不同的寄存器表示方法</title>
+        <pubTime>2018-06-10T08:48:38.000Z</pubTime>
+        
+        <tag>移动安全</tag>
+         
+        <tag>安卓</tag>
+         
+         
+           
+             
+              <breadCrumb title="移动安全" url="https://pino-hd.github.io/categories/%E7%A7%BB%E5%8A%A8%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E7%94%A8Burpsuite%E6%8A%93%E5%8F%96%E6%89%8B%E6%9C%BA%E7%9A%84%E6%B5%81%E9%87%8F/</loc>
+    <lastmod>2018-06-10T08:48:16.431Z</lastmod>
+    <data>
+        <display>
+        <title>用Burpsuite抓取手机的流量</title>
+        <pubTime>2018-06-10T08:42:29.000Z</pubTime>
+        
+        <tag>移动安全</tag>
+         
+        <tag>工具使用</tag>
+         
+         
+           
+             
+              <breadCrumb title="移动安全" url="https://pino-hd.github.io/categories/%E7%A7%BB%E5%8A%A8%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/Smali/</loc>
+    <lastmod>2018-06-10T08:45:26.029Z</lastmod>
+    <data>
+        <display>
+        <title>Smali</title>
+        <pubTime>2018-06-10T08:41:17.000Z</pubTime>
+        
+        <tag>CTF</tag>
+         
+        <tag>移动安全</tag>
+         
+        <tag>安卓</tag>
+         
+         
+           
+             
+              <breadCrumb title="移动安全" url="https://pino-hd.github.io/categories/%E7%A7%BB%E5%8A%A8%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/DD-Android-Easy/</loc>
+    <lastmod>2018-06-10T08:40:50.035Z</lastmod>
+    <data>
+        <display>
+        <title>DD Android Easy</title>
+        <pubTime>2018-06-10T08:32:10.000Z</pubTime>
+        
+        <tag>CTF</tag>
+         
+        <tag>移动安全</tag>
+         
+        <tag>安卓</tag>
+         
+         
+           
+             
+              <breadCrumb title="移动安全" url="https://pino-hd.github.io/categories/%E7%A7%BB%E5%8A%A8%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/61dctf-androideasy/</loc>
+    <lastmod>2018-06-10T08:40:42.659Z</lastmod>
+    <data>
+        <display>
+        <title>61dctf - androideasy</title>
+        <pubTime>2018-06-10T08:35:58.000Z</pubTime>
+        
+        <tag>CTF</tag>
+         
+        <tag>移动安全</tag>
+         
+        <tag>安卓</tag>
+         
+         
+           
+             
+              <breadCrumb title="移动安全" url="https://pino-hd.github.io/categories/%E7%A7%BB%E5%8A%A8%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/FindPass/</loc>
+    <lastmod>2018-06-10T08:40:30.739Z</lastmod>
+    <data>
+        <display>
+        <title>FindPass</title>
+        <pubTime>2018-06-10T08:37:41.000Z</pubTime>
+        
+        <tag>CTF</tag>
+         
+        <tag>移动安全</tag>
+         
+        <tag>安卓</tag>
+         
+         
+           
+             
+              <breadCrumb title="移动安全" url="https://pino-hd.github.io/categories/%E7%A7%BB%E5%8A%A8%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/DD-Android-Normal/</loc>
+    <lastmod>2018-06-10T08:36:36.734Z</lastmod>
+    <data>
+        <display>
+        <title>DD Android Normal</title>
+        <pubTime>2018-06-10T08:34:04.000Z</pubTime>
+        
+        <tag>CTF</tag>
+         
+        <tag>移动安全</tag>
+         
+        <tag>安卓</tag>
+         
+         
+           
+             
+              <breadCrumb title="移动安全" url="https://pino-hd.github.io/categories/%E7%A7%BB%E5%8A%A8%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E5%B8%B8%E7%94%A8WINDOWS%E7%9A%84DOC%E5%91%BD%E4%BB%A4/</loc>
+    <lastmod>2018-06-10T08:30:50.677Z</lastmod>
+    <data>
+        <display>
+        <title>常用WINDOWS的DOC命令</title>
+        <pubTime>2018-06-10T08:30:21.000Z</pubTime>
+        
+        <tag>工具使用</tag>
+         
+        <tag>DOC命令</tag>
+         
+         
+           
+             
+              <breadCrumb title="工具使用" url="https://pino-hd.github.io/categories/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E5%B8%B8%E7%94%A8%E7%9A%84SQLMAP%E5%91%BD%E4%BB%A4/</loc>
+    <lastmod>2018-06-10T08:30:12.501Z</lastmod>
+    <data>
+        <display>
+        <title>常用的SQLMAP命令</title>
+        <pubTime>2018-06-10T08:29:45.000Z</pubTime>
+        
+        <tag>工具使用</tag>
+         
+        <tag>SQLMAP</tag>
+         
+         
+           
+             
+              <breadCrumb title="工具使用" url="https://pino-hd.github.io/categories/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E5%B8%B8%E8%A7%81%E7%9A%84NMAP%E5%91%BD%E4%BB%A4%E6%80%BB%E7%BB%93/</loc>
+    <lastmod>2018-06-10T08:29:22.373Z</lastmod>
+    <data>
+        <display>
+        <title>常见的NMAP命令总结</title>
+        <pubTime>2018-06-10T08:28:24.000Z</pubTime>
+        
+        <tag>工具使用</tag>
+         
+        <tag>NMAP</tag>
+         
+         
+           
+             
+              <breadCrumb title="工具使用" url="https://pino-hd.github.io/categories/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/DNS%E5%8A%AB%E6%8C%81%E4%B8%8EDNS%E6%B1%A1%E6%9F%93/</loc>
+    <lastmod>2018-06-10T08:27:53.756Z</lastmod>
+    <data>
+        <display>
+        <title>DNS劫持与DNS污染</title>
+        <pubTime>2018-06-10T08:26:39.000Z</pubTime>
+        
+        <tag>DNS</tag>
+         
+        <tag>Web安全</tag>
+         
+         
+           
+             
+              <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/centos%E5%AE%89%E8%A3%85nc/</loc>
+    <lastmod>2018-06-10T08:25:30.564Z</lastmod>
+    <data>
+        <display>
+        <title>centos安装nc</title>
+        <pubTime>2018-06-10T08:24:55.000Z</pubTime>
+        
+        <tag>小贴士</tag>
+         
+        <tag>centos</tag>
+         
+         
+           
+             
+              <breadCrumb title="Linux" url="https://pino-hd.github.io/categories/Linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/SSH%E5%85%8D%E5%AF%86%E7%A0%81%E7%99%BB%E9%99%86/</loc>
+    <lastmod>2018-06-10T08:24:41.730Z</lastmod>
+    <data>
+        <display>
+        <title>SSH免密码登陆</title>
+        <pubTime>2018-06-10T08:23:58.000Z</pubTime>
+        
+        <tag>小贴士</tag>
+         
+        <tag>SSH</tag>
+         
+         
+           
+             
+              <breadCrumb title="Linux" url="https://pino-hd.github.io/categories/Linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/Linux%E4%B8%8BPPPOE%E6%8B%A8%E5%8F%B7/</loc>
+    <lastmod>2018-06-10T08:23:42.304Z</lastmod>
+    <data>
+        <display>
+        <title>Linux下PPPOE拨号</title>
+        <pubTime>2018-06-10T08:23:21.000Z</pubTime>
+        
+        <tag>小贴士</tag>
+         
+        <tag>Linux</tag>
+         
+         
+           
+             
+              <breadCrumb title="Linux" url="https://pino-hd.github.io/categories/Linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/Linux%E4%B8%8B%E5%BC%80%E6%9C%BA%E8%87%AA%E5%8A%A8%E6%8C%82%E8%BD%BD%E7%A1%AC%E7%9B%98/</loc>
+    <lastmod>2018-06-10T08:23:10.481Z</lastmod>
+    <data>
+        <display>
+        <title>Linux下开机自动挂载硬盘</title>
+        <pubTime>2018-06-10T08:22:42.000Z</pubTime>
+        
+        <tag>小贴士</tag>
+         
+        <tag>Linux</tag>
+         
+         
+           
+             
+              <breadCrumb title="Linux" url="https://pino-hd.github.io/categories/Linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E5%AE%89%E8%A3%85ubuntu16-04%E4%B9%8B%E5%90%8E%E8%A6%81%E5%81%9A%E7%9A%84%E4%BA%8B/</loc>
+    <lastmod>2018-06-10T08:21:50.878Z</lastmod>
+    <data>
+        <display>
+        <title>安装ubuntu16.04之后要做的事</title>
+        <pubTime>2018-06-10T08:20:58.000Z</pubTime>
+        
+        <tag>小贴士</tag>
+         
+        <tag>Ubuntu</tag>
+         
+         
+           
+             
+              <breadCrumb title="Linux" url="https://pino-hd.github.io/categories/Linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/ubuntu16-04%E4%BF%AE%E6%94%B9%E6%88%90%E9%9D%99%E6%80%81IP/</loc>
+    <lastmod>2018-06-10T08:21:34.450Z</lastmod>
+    <data>
+        <display>
+        <title>ubuntu16.04修改成静态IP</title>
+        <pubTime>2018-06-10T08:20:10.000Z</pubTime>
+        
+        <tag>小贴士</tag>
+         
+        <tag>Ubuntu</tag>
+         
+         
+           
+             
+              <breadCrumb title="Linux" url="https://pino-hd.github.io/categories/Linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/xshell5%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E9%80%80%E6%A0%BC%E9%94%AE%E5%92%8CDelete%E5%BB%BA/</loc>
+    <lastmod>2018-06-10T08:19:58.184Z</lastmod>
+    <data>
+        <display>
+        <title>xshell 5 不能使用退格键和Delete建</title>
+        <pubTime>2018-06-10T08:18:57.000Z</pubTime>
+        
+        <tag>小贴士</tag>
+         
+        <tag>Linux</tag>
+         
+         
+           
+             
+              <breadCrumb title="Linux" url="https://pino-hd.github.io/categories/Linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/ZZCMSV8-2SQL%E6%B3%A8%E5%85%A5/</loc>
+    <lastmod>2018-06-10T08:17:26.782Z</lastmod>
+    <data>
+        <display>
+        <title>ZZCMS V8.2 SQL注入</title>
+        <pubTime>2018-06-10T08:15:16.000Z</pubTime>
+        
+        <tag>漏洞分析</tag>
+         
+        <tag>PHP</tag>
+         
+        <tag>漏洞复现</tag>
+         
+         
+           
+             
+              <breadCrumb title="漏洞分析" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E7%86%8A%E6%B5%B7CMSv1-0/</loc>
+    <lastmod>2018-06-10T08:14:50.050Z</lastmod>
+    <data>
+        <display>
+        <title>代码审计-熊海CMSv1.0</title>
+        <pubTime>2018-06-10T08:01:02.000Z</pubTime>
+        
+        <tag>PHP</tag>
+         
+        <tag>代码审计</tag>
+         
+         
+           
+             
+              <breadCrumb title="代码审计" url="https://pino-hd.github.io/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/9/</loc>
+    <lastmod>2018-06-10T08:14:29.824Z</lastmod>
+    <data>
+        <display>
+        <title>PHPCMS v9.6.1任意文件读取漏洞</title>
+        <pubTime>2018-06-10T08:08:38.000Z</pubTime>
+        
+        <tag>漏洞分析</tag>
+         
+        <tag>PHP</tag>
+         
+        <tag>漏洞复现</tag>
+         
+         
+           
+             
+              <breadCrumb title="漏洞分析" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/Linux%E7%9A%84SUID%E6%8F%90%E6%9D%83/</loc>
+    <lastmod>2018-06-10T07:54:05.272Z</lastmod>
+    <data>
+        <display>
+        <title>Linux的SUID提权</title>
+        <pubTime>2018-06-10T07:53:20.000Z</pubTime>
+        
+        <tag>Linux</tag>
+         
+        <tag>提权</tag>
+         
+        <tag>后渗透</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/</loc>
+    <lastmod>2018-06-10T07:53:05.323Z</lastmod>
+    <data>
+        <display>
+        <title>记录一次内网渗透</title>
+        <pubTime>2018-06-10T07:50:38.000Z</pubTime>
+        
+        <tag>内网渗透</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/MSSQL%E6%8F%90%E6%9D%83%E4%B9%8Bsp-oacreate/</loc>
+    <lastmod>2018-06-10T07:50:20.007Z</lastmod>
+    <data>
+        <display>
+        <title>MSSQL提权之sp_oacreate</title>
+        <pubTime>2018-06-10T07:48:47.000Z</pubTime>
+        
+        <tag>提权</tag>
+         
+        <tag>后渗透</tag>
+         
+        <tag>Mssql</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/MSSQL%E6%8F%90%E6%9D%83%E4%B9%8Bxp-cmdshell/</loc>
+    <lastmod>2018-06-10T07:48:53.649Z</lastmod>
+    <data>
+        <display>
+        <title>MSSQL提权之xp_cmdshell</title>
+        <pubTime>2018-06-10T07:47:39.000Z</pubTime>
+        
+        <tag>提权</tag>
+         
+        <tag>后渗透</tag>
+         
+        <tag>Mssql</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/MySQL%E6%8F%90%E6%9D%83%E4%B9%8BUDF/</loc>
+    <lastmod>2018-06-10T07:47:13.021Z</lastmod>
+    <data>
+        <display>
+        <title>MySQL提权之UDF</title>
+        <pubTime>2018-06-10T07:45:13.000Z</pubTime>
+        
+        <tag>提权</tag>
+         
+        <tag>后渗透</tag>
+         
+        <tag>Mysql</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/MySQL%E6%8F%90%E6%9D%83%E4%B9%8BMOF/</loc>
+    <lastmod>2018-06-10T07:45:34.828Z</lastmod>
+    <data>
+        <display>
+        <title>MySQL提权之MOF</title>
+        <pubTime>2018-06-10T07:43:30.000Z</pubTime>
+        
+        <tag>提权</tag>
+         
+        <tag>后渗透</tag>
+         
+        <tag>Mysql</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E6%9D%83%E9%99%90%E7%BB%B4%E6%8C%81%E4%B9%8B%E4%BB%8E%E9%9A%90%E8%97%8F%E8%B4%A6%E6%88%B7%E5%88%B0%E5%BD%B1%E5%AD%90%E8%B4%A6%E6%88%B7/</loc>
+    <lastmod>2018-06-10T07:42:24.135Z</lastmod>
+    <data>
+        <display>
+        <title>权限维持之从隐藏账户到影子账户</title>
+        <pubTime>2018-06-10T07:38:58.000Z</pubTime>
+        
+        <tag>后渗透</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/Windows7%E5%8D%87%E7%BA%A7powershell2%E5%88%B0powershell3/</loc>
+    <lastmod>2018-06-10T07:38:40.234Z</lastmod>
+    <data>
+        <display>
+        <title>Windows7升级powershell2到powershell3</title>
+        <pubTime>2018-06-10T07:36:52.000Z</pubTime>
+        
+        <tag>后渗透</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E6%B8%97%E9%80%8F%E4%B8%AD15%E7%A7%8D%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%E7%9A%84%E6%96%B9%E6%B3%95/</loc>
+    <lastmod>2018-06-10T07:36:15.064Z</lastmod>
+    <data>
+        <display>
+        <title>渗透中15种文件下载的方法</title>
+        <pubTime>2018-06-10T07:33:34.000Z</pubTime>
+        
+        <tag>后渗透</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E7%BB%95%E8%BF%87CDN%E8%8E%B7%E5%8F%96%E7%9C%9F%E5%AE%9EIP/</loc>
+    <lastmod>2018-06-10T07:33:09.073Z</lastmod>
+    <data>
+        <display>
+        <title>绕过CDN获取真实IP</title>
+        <pubTime>2018-06-10T07:32:30.000Z</pubTime>
+        
+        <tag>CDN</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E5%88%A9%E7%94%A8VMware%E8%BF%9B%E8%A1%8C%E7%AB%AF%E5%8F%A3%E6%98%A0%E5%B0%84%EF%BC%88%E6%A8%A1%E6%8B%9F%E5%A4%96%E7%BD%91%E8%AE%BF%E9%97%AE%E5%86%85%E7%BD%91%EF%BC%89/</loc>
+    <lastmod>2018-06-10T07:31:59.666Z</lastmod>
+    <data>
+        <display>
+        <title>利用VMware进行端口映射（模拟外网访问内网）</title>
+        <pubTime>2018-06-10T07:29:44.000Z</pubTime>
+        
+        <tag>端口映射</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E7%AB%AF%E5%8F%A3%E6%98%A0%E5%B0%84/</loc>
+    <lastmod>2018-06-10T07:29:19.357Z</lastmod>
+    <data>
+        <display>
+        <title>端口映射</title>
+        <pubTime>2018-06-10T07:27:28.000Z</pubTime>
+        
+        <tag>端口映射</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E5%88%A9%E7%94%A8lcx%E8%BF%9B%E8%A1%8C%E8%AE%BF%E9%97%AE%E5%86%85%E7%BD%91/</loc>
+    <lastmod>2018-06-10T07:25:41.166Z</lastmod>
+    <data>
+        <display>
+        <title>利用lcx进行访问内网</title>
+        <pubTime>2018-06-10T07:24:57.000Z</pubTime>
+        
+        <tag>内网渗透</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E5%88%A9%E7%94%A8netsh%E8%BF%9B%E8%A1%8C%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91/</loc>
+    <lastmod>2018-06-10T07:25:38.324Z</lastmod>
+    <data>
+        <display>
+        <title>利用netsh进行端口转发</title>
+        <pubTime>2018-06-10T07:23:43.000Z</pubTime>
+        
+        <tag>内网渗透</tag>
+         
+        <tag>端口转发</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E5%88%A9%E7%94%A8reGeog%E5%92%8Cproxifier%E8%BF%9B%E8%A1%8C%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/</loc>
+    <lastmod>2018-06-10T07:23:29.033Z</lastmod>
+    <data>
+        <display>
+        <title>利用reGeog和proxifier进行内网渗透</title>
+        <pubTime>2018-06-10T07:18:35.000Z</pubTime>
+        
+        <tag>内网渗透</tag>
+         
+         
+           
+             
+              <breadCrumb title="渗透测试" url="https://pino-hd.github.io/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>https://pino-hd.github.io/2018/06/05/Python-Sandbox-Bypass/</loc>
-    <lastmod>2018-06-05T07:33:46.713Z</lastmod>
+    <lastmod>2018-06-10T07:16:36.116Z</lastmod>
     <data>
         <display>
         <title>Python_Sandbox_Bypass</title>
@@ -28,8 +910,28 @@
 
     
   <url>
+    <loc>https://pino-hd.github.io/2018/05/30/Hello/</loc>
+    <lastmod>2018-06-10T07:14:59.009Z</lastmod>
+    <data>
+        <display>
+        <title>Hello</title>
+        <pubTime>2018-05-30T04:43:25.000Z</pubTime>
+        
+        <tag>Hello</tag>
+         
+         
+           
+             
+              <breadCrumb title="Hello" url="https://pino-hd.github.io/categories/Hello/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>https://pino-hd.github.io/2018/06/04/Python%E6%B2%99%E7%AE%B1%E9%80%83%E9%80%B8/</loc>
-    <lastmod>2018-06-05T07:30:24.198Z</lastmod>
+    <lastmod>2018-06-05T08:15:11.608Z</lastmod>
     <data>
         <display>
         <title>Python沙箱逃逸之基础篇</title>
@@ -59,9 +961,9 @@
         <title>mac下双网卡同时上内网和外网</title>
         <pubTime>2018-06-02T14:54:13.000Z</pubTime>
         
-        <tag>Mac OS</tag>
-         
         <tag>小贴士</tag>
+         
+        <tag>Mac OS</tag>
          
          
            
@@ -103,13 +1005,13 @@
         <title>SSH端口转发</title>
         <pubTime>2018-05-31T10:27:09.000Z</pubTime>
         
+        <tag>SSH</tag>
+         
         <tag>内网渗透</tag>
          
         <tag>内网穿透</tag>
          
         <tag>端口转发</tag>
-         
-        <tag>SSH</tag>
          
          
            
@@ -830,11 +1732,11 @@
         <title>PHP反序列化漏洞与防御</title>
         <pubTime>2018-05-30T14:08:27.000Z</pubTime>
         
-        <tag>反序列化</tag>
-         
         <tag>Web安全</tag>
          
         <tag>PHP</tag>
+         
+        <tag>反序列化</tag>
          
          
            
@@ -854,13 +1756,13 @@
         <title>Java序列化与反序列化基础</title>
         <pubTime>2018-05-30T10:34:00.000Z</pubTime>
         
+        <tag>Web安全</tag>
+         
         <tag>Java</tag>
          
         <tag>Java安全</tag>
          
         <tag>反序列化</tag>
-         
-        <tag>Web安全</tag>
          
          
            
@@ -880,9 +1782,9 @@
         <title>Python反序列化之pickle篇</title>
         <pubTime>2018-05-30T14:05:56.000Z</pubTime>
         
-        <tag>反序列化</tag>
-         
         <tag>Web安全</tag>
+         
+        <tag>反序列化</tag>
          
         <tag>Python</tag>
          
@@ -890,26 +1792,6 @@
            
              
               <breadCrumb title="Web安全" url="https://pino-hd.github.io/categories/Web%E5%AE%89%E5%85%A8/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>https://pino-hd.github.io/2018/05/30/1/</loc>
-    <lastmod>2018-05-30T14:04:36.142Z</lastmod>
-    <data>
-        <display>
-        <title>Hello</title>
-        <pubTime>2018-05-30T04:43:25.000Z</pubTime>
-        
-        <tag>Hello</tag>
-         
-         
-           
-             
-              <breadCrumb title="Hello" url="https://pino-hd.github.io/categories/Hello/"/>
           
         </display>
     </data>

