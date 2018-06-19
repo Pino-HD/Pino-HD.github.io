@@ -4,21 +4,233 @@
 
     
   <url>
-    <loc>https://pino-hd.github.io/2018/06/10/%E5%AE%89%E8%A3%85ubuntu16-04%E4%B9%8B%E5%90%8E%E8%A6%81%E5%81%9A%E7%9A%84%E4%BA%8B/</loc>
-    <lastmod>2018-06-10T09:27:36.226Z</lastmod>
+    <loc>https://pino-hd.github.io/2018/06/19/%E7%94%B1%E4%B8%80%E6%AC%A1CTF%E5%BC%95%E5%8F%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8BPHP%E7%9A%84sprintf%E5%87%BD%E6%95%B0/</loc>
+    <lastmod>2018-06-19T12:00:45.442Z</lastmod>
     <data>
         <display>
-        <title>安装ubuntu16.04之后要做的事</title>
-        <pubTime>2018-06-10T08:20:58.000Z</pubTime>
+        <title>由一次CTF引发的学习笔记之PHP的sprintf函数</title>
+        <pubTime>2018-06-19T11:58:14.000Z</pubTime>
         
-        <tag>小贴士</tag>
-         
-        <tag>Ubuntu</tag>
+        <tag>PHP</tag>
          
          
            
              
-              <breadCrumb title="Linux" url="https://pino-hd.github.io/categories/Linux/"/>
+              <breadCrumb title="PHP安全" url="https://pino-hd.github.io/categories/PHP%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/19/S2-045%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/</loc>
+    <lastmod>2018-06-19T11:57:23.560Z</lastmod>
+    <data>
+        <display>
+        <title>S2-045远程代码执行漏洞分析</title>
+        <pubTime>2018-06-19T11:52:18.000Z</pubTime>
+        
+        <tag>漏洞分析</tag>
+         
+        <tag>Struts2</tag>
+         
+        <tag>远程代码执行</tag>
+         
+         
+           
+             
+              <breadCrumb title="漏洞分析" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/19/S2-032%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/</loc>
+    <lastmod>2018-06-19T11:51:47.248Z</lastmod>
+    <data>
+        <display>
+        <title>S2-032远程代码执行漏洞分析</title>
+        <pubTime>2018-06-19T11:44:01.000Z</pubTime>
+        
+        <tag>漏洞分析</tag>
+         
+        <tag>Struts2</tag>
+         
+        <tag>远程代码执行</tag>
+         
+         
+           
+             
+              <breadCrumb title="漏洞分析与复现" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/19/S2-016%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/</loc>
+    <lastmod>2018-06-19T11:43:29.744Z</lastmod>
+    <data>
+        <display>
+        <title>S2-016远程代码执行漏洞分析</title>
+        <pubTime>2018-06-19T11:36:19.000Z</pubTime>
+        
+        <tag>漏洞分析</tag>
+         
+        <tag>Struts2</tag>
+         
+        <tag>远程代码执行</tag>
+         
+         
+           
+             
+              <breadCrumb title="漏洞分析与复现" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/19/CVE-2017-16995Ubuntu%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/</loc>
+    <lastmod>2018-06-19T11:35:51.182Z</lastmod>
+    <data>
+        <display>
+        <title>CVE-2017-16995 Ubuntu本地提权</title>
+        <pubTime>2018-06-19T11:33:42.000Z</pubTime>
+        
+        <tag>Ubuntu</tag>
+         
+        <tag>提权</tag>
+         
+         
+           
+             
+              <breadCrumb title="漏洞分析与复现" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/19/zzcms8-2%E4%BB%BB%E6%84%8F%E7%94%A8%E6%88%B7%E5%AF%86%E7%A0%81%E9%87%8D%E7%BD%AE/</loc>
+    <lastmod>2018-06-19T11:32:59.241Z</lastmod>
+    <data>
+        <display>
+        <title>zzcms v8.2 任意用户密码重置</title>
+        <pubTime>2018-06-19T11:30:22.000Z</pubTime>
+        
+        <tag>漏洞复现</tag>
+         
+        <tag>漏洞分析</tag>
+         
+        <tag>ZZCMS</tag>
+         
+         
+           
+             
+              <breadCrumb title="漏洞分析与复现" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/19/Redis%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</loc>
+    <lastmod>2018-06-19T11:29:43.000Z</lastmod>
+    <data>
+        <display>
+        <title>Redis未授权访问漏洞</title>
+        <pubTime>2018-06-19T11:28:00.000Z</pubTime>
+        
+        <tag>漏洞复现</tag>
+         
+        <tag>Redis</tag>
+         
+        <tag>未授权访问</tag>
+         
+         
+           
+             
+              <breadCrumb title="漏洞分析与复现" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/19/FFMPEG%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E6%BC%8F%E6%B4%9E/</loc>
+    <lastmod>2018-06-19T11:27:43.662Z</lastmod>
+    <data>
+        <display>
+        <title>FFMPEG 任意文件读取漏洞</title>
+        <pubTime>2018-06-19T11:26:07.000Z</pubTime>
+        
+        <tag>漏洞复现</tag>
+         
+        <tag>FFMPEG</tag>
+         
+         
+           
+             
+              <breadCrumb title="漏洞分析与复现" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/19/%E5%88%A9%E7%94%A8WebLogic-SSRF%E6%BC%8F%E6%B4%9E%E6%94%BB%E5%87%BB%E5%86%85%E7%BD%91Redis%E5%8F%8D%E5%BC%B9shell/</loc>
+    <lastmod>2018-06-19T11:25:33.992Z</lastmod>
+    <data>
+        <display>
+        <title>利用WebLogic SSRF漏洞攻击内网Redis反弹shell</title>
+        <pubTime>2018-06-19T11:16:43.000Z</pubTime>
+        
+        <tag>漏洞复现</tag>
+         
+        <tag>Redis</tag>
+         
+        <tag>SSRF</tag>
+         
+        <tag>WebLogic</tag>
+         
+         
+           
+             
+              <breadCrumb title="漏洞分析与复现" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/19/CVE-2017-12615-Tomcat%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E/</loc>
+    <lastmod>2018-06-19T11:25:11.551Z</lastmod>
+    <data>
+        <display>
+        <title>CVE-2017-12615 Tomcat任意文件上传漏洞</title>
+        <pubTime>2018-06-19T11:21:54.000Z</pubTime>
+        
+        <tag>漏洞复现</tag>
+         
+        <tag>Tomcat</tag>
+         
+        <tag>任意文件上传</tag>
+         
+         
+           
+             
+              <breadCrumb title="漏洞分析与复现" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/"/>
           
         </display>
     </data>
@@ -27,22 +239,92 @@
     
   <url>
     <loc>https://pino-hd.github.io/2018/06/10/Discuz%E5%B0%8F%E4%BA%8E3.3%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%88%A0%E9%99%A4%E6%BC%8F%E6%B4%9E/</loc>
-    <lastmod>2018-06-10T09:09:45.618Z</lastmod>
+    <lastmod>2018-06-19T11:15:52.628Z</lastmod>
     <data>
         <display>
         <title>Discuz小于3.3任意文件删除漏洞</title>
         <pubTime>2018-06-10T07:56:36.000Z</pubTime>
         
+        <tag>漏洞复现</tag>
+         
         <tag>漏洞分析</tag>
          
         <tag>PHP</tag>
          
+         
+           
+             
+              <breadCrumb title="漏洞分析与复现" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/9/</loc>
+    <lastmod>2018-06-19T11:15:37.430Z</lastmod>
+    <data>
+        <display>
+        <title>PHPCMS v9.6.1任意文件读取漏洞</title>
+        <pubTime>2018-06-10T08:08:38.000Z</pubTime>
+        
         <tag>漏洞复现</tag>
+         
+        <tag>漏洞分析</tag>
+         
+        <tag>PHP</tag>
          
          
            
              
-              <breadCrumb title="漏洞分析" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
+              <breadCrumb title="漏洞分析与复现" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/ZZCMSV8-2SQL%E6%B3%A8%E5%85%A5/</loc>
+    <lastmod>2018-06-19T11:15:18.714Z</lastmod>
+    <data>
+        <display>
+        <title>ZZCMS V8.2 SQL注入</title>
+        <pubTime>2018-06-10T08:15:16.000Z</pubTime>
+        
+        <tag>漏洞复现</tag>
+         
+        <tag>漏洞分析</tag>
+         
+        <tag>PHP</tag>
+         
+         
+           
+             
+              <breadCrumb title="漏洞分析与复现" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/06/10/%E5%AE%89%E8%A3%85ubuntu16-04%E4%B9%8B%E5%90%8E%E8%A6%81%E5%81%9A%E7%9A%84%E4%BA%8B/</loc>
+    <lastmod>2018-06-10T09:27:36.226Z</lastmod>
+    <data>
+        <display>
+        <title>安装ubuntu16.04之后要做的事</title>
+        <pubTime>2018-06-10T08:20:58.000Z</pubTime>
+        
+        <tag>Ubuntu</tag>
+         
+        <tag>小贴士</tag>
+         
+         
+           
+             
+              <breadCrumb title="Linux" url="https://pino-hd.github.io/categories/Linux/"/>
           
         </display>
     </data>
@@ -457,9 +739,9 @@
         <title>ubuntu16.04修改成静态IP</title>
         <pubTime>2018-06-10T08:20:10.000Z</pubTime>
         
-        <tag>小贴士</tag>
-         
         <tag>Ubuntu</tag>
+         
+        <tag>小贴士</tag>
          
          
            
@@ -494,30 +776,6 @@
 
     
   <url>
-    <loc>https://pino-hd.github.io/2018/06/10/ZZCMSV8-2SQL%E6%B3%A8%E5%85%A5/</loc>
-    <lastmod>2018-06-10T08:17:26.782Z</lastmod>
-    <data>
-        <display>
-        <title>ZZCMS V8.2 SQL注入</title>
-        <pubTime>2018-06-10T08:15:16.000Z</pubTime>
-        
-        <tag>漏洞分析</tag>
-         
-        <tag>PHP</tag>
-         
-        <tag>漏洞复现</tag>
-         
-         
-           
-             
-              <breadCrumb title="漏洞分析" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>https://pino-hd.github.io/2018/06/10/%E7%86%8A%E6%B5%B7CMSv1-0/</loc>
     <lastmod>2018-06-10T08:14:50.050Z</lastmod>
     <data>
@@ -540,30 +798,6 @@
 
     
   <url>
-    <loc>https://pino-hd.github.io/2018/06/10/9/</loc>
-    <lastmod>2018-06-10T08:14:29.824Z</lastmod>
-    <data>
-        <display>
-        <title>PHPCMS v9.6.1任意文件读取漏洞</title>
-        <pubTime>2018-06-10T08:08:38.000Z</pubTime>
-        
-        <tag>漏洞分析</tag>
-         
-        <tag>PHP</tag>
-         
-        <tag>漏洞复现</tag>
-         
-         
-           
-             
-              <breadCrumb title="漏洞分析" url="https://pino-hd.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>https://pino-hd.github.io/2018/06/10/Linux%E7%9A%84SUID%E6%8F%90%E6%9D%83/</loc>
     <lastmod>2018-06-10T07:54:05.272Z</lastmod>
     <data>
@@ -571,9 +805,9 @@
         <title>Linux的SUID提权</title>
         <pubTime>2018-06-10T07:53:20.000Z</pubTime>
         
-        <tag>Linux</tag>
-         
         <tag>提权</tag>
+         
+        <tag>Linux</tag>
          
         <tag>后渗透</tag>
          

