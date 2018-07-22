@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[Android如何修改classes.dex文件后重新放入apk中]]></title>
+    <url>%2F2018%2F07%2F22%2FAndroid%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9classes-dex%E6%96%87%E4%BB%B6%E5%90%8E%E9%87%8D%E6%96%B0%E6%94%BE%E5%85%A5apk%E4%B8%AD%2F</url>
+    <content type="text"><![CDATA[提取classes.dex文件 使用安卓逆向助手直接提取classes.dex文件 将apk的后缀名改为zip，然后解压zip压缩包，得到classes.dex文件 修改classes.dex文件 通过IDA PRO进行文件的分析，在IDA View-A标签中鼠标点击需要修改的一行上 选择Hex View-1标签，可以得到需要修改的地方的文件偏移地址 使用winhex打开classes.dex文件，然后快捷键Alt+G，输入上一步获取的偏移，修改机器码为自己想要修改的，保存 classes.dex文件重新校验 使用非虫大大写的Dexfix工具，完成dex修复 classes.dex重新放入apk中 删除原apk中的classes.dex文件 1aapt r source.apk classes.dex 添加修改后的classes.dex到apk中 1aapt a source.apk classes.dex 重新签名apk1signapk.bat source.apk result.apk]]></content>
+      <categories>
+        <category>移动安全</category>
+      </categories>
+      <tags>
+        <tag>移动安全</tag>
+        <tag>安卓</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[Dalvik虚拟机与Java虚拟机的区别]]></title>
     <url>%2F2018%2F07%2F19%2FDalvik%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%8EJava%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E5%8C%BA%E5%88%AB%2F</url>
     <content type="text"><![CDATA[Java虚拟机运行的是Java字节码，Dalvik虚拟机运行的是Dalvik字节码传统的Java程序经过编译，生成Java字节码，保存在class文件中，Java虚拟机通过解码class文件中的内容来运行程序。而Dalvik虚拟机运行的是Dalvik字节码，所有的Dalvik字节码由Java字节码转换而来，并被打包到一个DEX可执行文件中，Dalvik虚拟机通过解释DEX文件来执行这些字节码。 Dalvik可执行文件体积更小一般情况下，Java类文件中包含多个不同的方法签名，如果其他的类文件引用该类文件中的方法，那么方法签名也会被复制到其类文件中，那么就会造成多个不同的类会同时包含相同的方法签名，同样的，大量的字符串常量在多个类文件中也被重复使用，这些冗余的信息会直接增加文件的体积，同时也会严重影响虚拟机解析文件的效率。 在Android SDK中有一个叫做dx的工具，它负责将Java字节码转换为Dalvik字节码。dx工具会对Java类文件重新排列，消除在类文件中出现的所有冗余信息，避免虚拟机在初始化时出现反复的文件加载和解析过程。dx工具会将所有的Java类文件中的常量池进行分解，消除其中的冗余信息，重新组合形成一个常量池，所有类文件共享一个常量池。 Java虚拟机与Dalvik虚拟机架构不同Java虚拟机是基于栈架构。程序在运行时虚拟机需要频繁的从栈上读取或者写入数据，这个活动需要更多的指令分配与内存访问次数，会消耗不少CPU时间。 Dalvik虚拟机基于寄存器架构，数据的访问通过寄存器间直接传递，这样的访问方式比基于栈方式要快很多。 Dalvik虚拟机运行时为每个线程维护一个PC计数器与调用栈，这个调用栈维护一份寄存器列表，寄存器的数量在方法结构体的registers字段中给出，Dalvik虚拟机会根据这个值来创建一份虚拟的寄存器列表。]]></content>
@@ -230,9 +242,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
-        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
+        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -243,9 +255,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
-        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
+        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -256,9 +268,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
-        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
+        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -269,9 +281,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
-        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
+        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -282,9 +294,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
-        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
+        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -367,8 +379,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Linux</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -379,8 +391,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Linux</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -415,8 +427,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Linux</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -479,8 +491,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>Linux</tag>
         <tag>后渗透</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -503,8 +515,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>Mssql</tag>
         <tag>后渗透</tag>
+        <tag>Mssql</tag>
       </tags>
   </entry>
   <entry>
@@ -516,8 +528,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>Mssql</tag>
         <tag>后渗透</tag>
+        <tag>Mssql</tag>
       </tags>
   </entry>
   <entry>

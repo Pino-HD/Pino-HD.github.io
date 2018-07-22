@@ -4,6 +4,28 @@
 
     
   <url>
+    <loc>https://pino-hd.github.io/2018/07/22/Android%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9classes-dex%E6%96%87%E4%BB%B6%E5%90%8E%E9%87%8D%E6%96%B0%E6%94%BE%E5%85%A5apk%E4%B8%AD/</loc>
+    <lastmod>2018-07-22T06:37:00.346Z</lastmod>
+    <data>
+        <display>
+        <title>Android如何修改classes.dex文件后重新放入apk中</title>
+        <pubTime>2018-07-22T06:25:41.000Z</pubTime>
+        
+        <tag>移动安全</tag>
+         
+        <tag>安卓</tag>
+         
+         
+           
+             
+              <breadCrumb title="移动安全" url="https://pino-hd.github.io/categories/%E7%A7%BB%E5%8A%A8%E5%AE%89%E5%85%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>https://pino-hd.github.io/2018/07/19/Dalvik%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%8EJava%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E5%8C%BA%E5%88%AB/</loc>
     <lastmod>2018-07-18T16:12:20.454Z</lastmod>
     <data>
@@ -83,9 +105,9 @@
         
         <tag>提权</tag>
          
-        <tag>Mssql</tag>
-         
         <tag>后渗透</tag>
+         
+        <tag>Mssql</tag>
          
          
            
@@ -107,9 +129,9 @@
         
         <tag>提权</tag>
          
-        <tag>Mssql</tag>
-         
         <tag>后渗透</tag>
+         
+        <tag>Mssql</tag>
          
          
            
@@ -561,11 +583,11 @@
         <title>Smali</title>
         <pubTime>2018-06-10T08:41:17.000Z</pubTime>
         
-        <tag>CTF</tag>
-         
         <tag>移动安全</tag>
          
         <tag>安卓</tag>
+         
+        <tag>CTF</tag>
          
          
            
@@ -585,11 +607,11 @@
         <title>DD Android Easy</title>
         <pubTime>2018-06-10T08:32:10.000Z</pubTime>
         
-        <tag>CTF</tag>
-         
         <tag>移动安全</tag>
          
         <tag>安卓</tag>
+         
+        <tag>CTF</tag>
          
          
            
@@ -609,11 +631,11 @@
         <title>61dctf - androideasy</title>
         <pubTime>2018-06-10T08:35:58.000Z</pubTime>
         
-        <tag>CTF</tag>
-         
         <tag>移动安全</tag>
          
         <tag>安卓</tag>
+         
+        <tag>CTF</tag>
          
          
            
@@ -633,11 +655,11 @@
         <title>FindPass</title>
         <pubTime>2018-06-10T08:37:41.000Z</pubTime>
         
-        <tag>CTF</tag>
-         
         <tag>移动安全</tag>
          
         <tag>安卓</tag>
+         
+        <tag>CTF</tag>
          
          
            
@@ -657,11 +679,11 @@
         <title>DD Android Normal</title>
         <pubTime>2018-06-10T08:34:04.000Z</pubTime>
         
-        <tag>CTF</tag>
-         
         <tag>移动安全</tag>
          
         <tag>安卓</tag>
+         
+        <tag>CTF</tag>
          
          
            
@@ -813,9 +835,9 @@
         <title>Linux下PPPOE拨号</title>
         <pubTime>2018-06-10T08:23:21.000Z</pubTime>
         
-        <tag>小贴士</tag>
-         
         <tag>Linux</tag>
+         
+        <tag>小贴士</tag>
          
          
            
@@ -835,9 +857,9 @@
         <title>Linux下开机自动挂载硬盘</title>
         <pubTime>2018-06-10T08:22:42.000Z</pubTime>
         
-        <tag>小贴士</tag>
-         
         <tag>Linux</tag>
+         
+        <tag>小贴士</tag>
          
          
            
@@ -879,9 +901,9 @@
         <title>xshell 5 不能使用退格键和Delete建</title>
         <pubTime>2018-06-10T08:18:57.000Z</pubTime>
         
-        <tag>小贴士</tag>
-         
         <tag>Linux</tag>
+         
+        <tag>小贴士</tag>
          
          
            
@@ -925,9 +947,9 @@
         
         <tag>提权</tag>
          
-        <tag>Linux</tag>
-         
         <tag>后渗透</tag>
+         
+        <tag>Linux</tag>
          
          
            
