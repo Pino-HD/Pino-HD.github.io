@@ -1,6 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[获取Android App的网络流量]]></title>
+    <url>%2F2018%2F08%2F01%2F%E8%8E%B7%E5%8F%96Android-App%E7%9A%84%E7%BD%91%E7%BB%9C%E6%B5%81%E9%87%8F%2F</url>
+    <content type="text"><![CDATA[运行环境 手机端 Android版本的tcpdump 已经root好的手机一枚 Android版本的nc PC端 wireshark PC版本的nc 检测流量首先连接好我们的手机到PC端上1adb device 然后，将下载好的tcpdump上传到Android手机上12adb push tcpdump /data/local/tmpadb shell chmod 755 /data/local/tmp/tcpdump 然后执行su，将权限提升至root用户，运行tcpdump开始抓包1./tcpdump -w - | nc -l -p 31337 这里的-w选项是指定一个输出文件，-表示输出是写到终端屏幕上的合起来就是将tcpdump抓取到的流量输出的Android端的31337端口上 之后，另起一个终端12adb forward tcp:12345 tcp:31337nc 127.0.0.1 12345 | wireshark -k -S -i - 这里首先将PC端的12345端口和Android端的31337端口就可以相互通信了，然后nc连接到PC端本地的12345端口，将获得的流量（也就是tcpdump抓到的流量即手机app的Web流量）输出到wireshark中，从而实现wireshark抓到Android的流量了。]]></content>
+      <categories>
+        <category>移动安全</category>
+      </categories>
+      <tags>
+        <tag>移动安全</tag>
+        <tag>安卓</tag>
+        <tag>网络流量</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Dex文件结构分析]]></title>
+    <url>%2F2018%2F08%2F01%2FDex%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E5%88%86%E6%9E%90%2F</url>
+    <content type="text"><![CDATA[构造Dex文件Dex文件就是Dalvik可执行文件，实际上它就是一个优化后的java字节码文件，因此构造这类文件需要先写个java文件Pino.java12345public class Pino &#123; public static void main(String args[]) &#123; System.out.println(&quot;Hello World&quot;); &#125;&#125; 然后编译1javac Pino.java 之后得到了Pino.class文件，之后我们用dx工具，该工具需要安装Android SDK才能有的工具1dex --dex --output=Pino.dex Pino.class 这样就得到了一个dex文件了，之后我们利用010editor工具来进行分析。 Dex文件整体结构 那我们从头开始分析 Dex文件分析首先，我们来看一下Dex文件头的结构体12345678910111213141516171819202122232425struct DexHeader &#123; u1 magic[8]; /* dex的魔数 */ u4 checksum; /* 校验和 */ u1 signature[kSHA1DigestLen]; /* SHA-1哈希值*/ u4 fileSize; /* dex文件的大小 */ u4 headerSize; /* dex文件头的大小 */ u4 endianTag; /* 字节序标记 */ u4 linkSize; /* 链接段大小 */ u4 linkOff; /* 链接段偏移 */ u4 mapOff; /* DexMapList的文件偏移 */ u4 stringIdsSize; /* DexStringId的个数 */ u4 stringIdsOff; /* DexStringId的偏移 */ u4 typeIdsSize; /* DexTypeId的个数 */ u4 typeIdsOff; /* DexTypeId的偏移 */ u4 protoIdsSize; /* DexProtoId的个数 */ u4 protoIdsOff; /* DexStringId的偏移 */ u4 fieldIdsSize; /* DexFieldId的个数 */ u4 fieldIdsOff; /* DexFieldId的偏移 */ u4 methodIdsSize; /* DexMethodId的个数 */ u4 methodIdsOff; /* DexMethodId的偏移 */ u4 classDefsSize; /* DexClassDef的个数 */ u4 classDefsOff; /* DexClassDef的偏移 */ u4 dataSize; /* 数据段的大小 */ u4 dataOff; /* 数据段的偏移 */&#125;; magic[8] 由8个u1类型的数据，内容是“64 65 78 0A 30 33 35 00”，u1就是1个字节的无符号数，这个是dex文件的标志，用来识别dex文件的。 checksum 没什么好说的，就是dex文件的校验和 signature[kSHA1DigestLen]，就是整个dex文件进行SHA-1哈希计算得到的字符串，一般来说20个字节 fileSize， 整个dex文件的大小 headerSize， dex文件的头的大小 endianTag， dex文件的字节序标记，用于指定dex文件运行环境的cpu，预设值为0x12345678，在010editor的话就是“78 56 34 12”（小端序） linkSize和linkOff， 链接段的大小和文件偏移，通常为0，linkSize为0表示静态链接 mapOff， DexMapList的文件偏移 stringIdsSize和stringIdsOff，这两个是DexStringId的个数和文件偏移 这里stringIdSize的值为0E，10进制就是14，也就是说这个dex文件的字符串的个数为14个，文件偏移是70，我们到70的位置看一下蓝色部分就是DexStringId的内容了，每个字符串4字节，总共14个，我们先看一下第一组“76 01 00 00”，这个值并不是字符串的具体内容，而是字符串所在位置的文件偏移，我们去看一下176h这个位置 蓝色部分我一共选中了8个字节，其中第一个字节06代表的是之后多少个字节属于字符串，也就是“3C 69 6E 69 74 3E”，而最后一个字节的00其实是字符串结尾的空字节，但是计数的时候并没有算上而已，总结一下这个dex文件中所有的字符串如下：序号|字符串-|-0|1|Hello World2|LPino;3|Ljava/io/PrintStream;4|Ljava/lang/Object;5|Ljava/lang/String;6|Ljava/lang/System;7|Pino.java8|V9|VL10|[Ljava/lang/String;11|main12|out13|println typeIdSize和typeIdOff，就是类的类型个数和文件偏移，可以根据之前字符串的进行类比typeIdSize的值为07，也就是说由7个类型，typeIdOff的值是A8h，我们到A8的位置看一下蓝色选中的部分都是类型，但是这个一种数据结构123struct DexTypeId &#123; u4 descriptorIdx; //指向DexStringId列表的索引&#125; 先看一下第一个4字节的值“02 00 00 00 ”，对照之前我们整理的字符串的表格，就是LPino；即Pino类型的，整理一下所有的类型，如下序号|类的类型-|-0|LPino;1|Ljava/io/PrintStream;2|Ljava/lang/Object;3|Ljava/lang/String;4|Ljava/lang/System;5|V6|[Ljava/lang/String; protoIdSize和protoIdOff，这两个是方法原型的个数和位置偏移 这里数量就是3，位置偏移为C4，跟过去看下 蓝色选中的部分就是所有的方法原型的结构了，这里又涉及到了一个新的数据结构12345struct DexProtoId &#123; u4 shortyIdx; //指向DexStringId列表的索引 u4 returntypeIdx; //指向DexTypeId列表的索引 u4 parameterOff; //指向DexTypeList列表的位置偏移&#125; 这三个属性分别是第一个是方法声明的字符串，第二个是方法的返回类型，第三个是方法的参数列表，其中DexTypeList是新的数据结构1234struct DexTypeList &#123; u4 size; //DexTypeItem的个数 DexTypeItem list[1];&#125; 123struct DexTypeItem &#123; u2 typeIdx; //指向DexTypeId列表的索引&#125; 回过头来看一下蓝色部分，12个字节，第一个4字节为8，说明DexStringId列表的索引是8，也就是V，第二个4字节是5，也就是V，最后一个是0，也就是没有参数，第一个方法就是void ()，整理一下其他的如下：序号|方法原型-|-0|void()1|void (java.lang.String)2|void (java.lang.String[]) fieldIdSize和fieldIdOff这两个是字段的数量和位置偏移这里字段数是1，位置偏移为E8，字段也有新的数据结构12345struct DexFieldId&#123; u2 classIdx; /*类的类型，指向DexTypeId列表的索引*/ u2 typeIdx; /*字段类型，指向DexTypeId列表的索引*/ u4 nameIdx; /*字段名，指向DexStringId列表的索引*/&#125; 也就是一个DexFieldId是8个字节classIdx的值是4，也就是Ljava/lang/System;，typeIdx的值是1，也就是Ljava/io/PrintStream;，nameIdx的值是C，也就是out，总结一下字段如下：序号|字段-|-0|java.io.PrintStream java.lang.System.out methodIdSize和methodIdOff这两个分别是方法的数量和位置偏移fieldIdSize的值是4，也就是有4个方法，fieldIdOff是F0，跟过去看下新的数据结构如下：12345struct DexMethodId&#123; u2 classIdx; /*类的类型，指向DexTypeId列表的索引*/ u2 protoIdx; /*声明类型，指向DexProtoId列表的索引*/ u4 nameIdx; /*方法名，指向DexStringId列表的索引*/&#125; 也就是说每个DexMethodId占8个字节，第一个8字节中的classIdx的值是0，也就是LPino;，protoIdx的值也是0，也就是void()，第三nameIdx也是0，也就是，综合起来就是void Pino.(),整理一下所有的方法如下：序号|方法-|-0|void Pino.()1|void Pino.main(java.lang.String[])2|void java.io.PrintStream.println(java.lang.String)3|void java.lang.Object.() classDefsSize和classDefsOff是类的定义的数量和位置偏移classDefsSize的值为1，说明就定义了一个类，然后在到110h的位置看看，但是这里还是有新的结构体12345678910struct DexClassDef&#123; u4 classIdx; /*类的类型，指向DexTypeId列表的索引*/ u4 accessFlags; /*访问标志，就是表示是public还是private等等*/ u4 superclassIdx; /*父类类型，指向DexTypeId列表的索引*/ u4 interfacesOff; /*接口，指向DexTypeList的偏移*/ u4 sourceFileIdx; /*源文件名，指向DexStringId列表的索引*/ u4 annotationsOff; /*注解，指向DexAnnotationsDirectoryItem结构*/ u4 classDataOff; /*指向DexClassData结构的偏移*/ u4 staticValuesOff; /*指向DexEncodedArray结构的偏移*/&#125; 上面的数据结构28个字节，内容的话看注释也能看懂，我们直接上实例，在这里，classIdx是1，也就是LPino;，第二个accessFlags是1，也就是public，第三个superclassIdx是2，也就是父类是java.lang.Object，第四个interfacesOff是0，就是没有，第五个是sourceFileIdx是7，也就是Pino.java，第六个是annotationOff，是0，没有，第七个classData是22D，也就是DexClassData的偏移是22D，我们先来看看DexClassData的结构体1234567struct DexClassData&#123; DexClassDataHeader header; /*指定字段与方法的个数*/ DexField* staticFields; /*静态字段，DexField结构*/ DexField* instanceFields； /*实例字段，DexField结构*/ DexMethod* directMethods; /*直接方法，DexMethod结构*/ DexMethod* virtualMethods; /*虚方法，DexMethod结构*/&#125; 这里面又涉及到了其他三种结构体1234567891011121314151617struct DexClassDataHeader&#123; u4 staticFieldsSize; /*静态字段个数*/ u4 instanceFieldsSize; /*实例字段个数*/ u4 directMethodsSize; /*直接方法个数*/ u4 virtualMethodsSize; /*虚方法个数*/&#125; struct DexField&#123; u4 fieldIdx; /*指向DexFieldId的索引*/ u4 accessFlags; /*访问标志*/&#125; struct DexMethod&#123; u4 methodIdx; /*指向DexMethodId的索引*/ u4 accessFlags; /*访问标志*/ u4 codeOff; /*指向DexCode结构的偏移*/&#125; 这里需要注意的一点的就是这里的u4并不是值4字节，而是值uleb128的类型，具体是什么可以自行百度。 现在我们再去22D的位置看看从这里可以判断姿态字段0个，实例字段0个，直接方法2个，虚方法0个。因为staticFields和instanceFields都是0个，所以直接从directMethods来看了，methodIdx为0，也就是void Pino.()，accessFlags的值为“81 80 04”，这个是uleb128编码的，转换为16进制的话就是10001h，对照一下DexFile.h文件，知道方法是ACC_PUBLIC和ACC_CONSTRUCTOR表示这个方法是public的并且是构造方法，然后是codeOff的值是“B0 02”，转换为16进制就是130h。第二个函数的methodIdx的值是1，也就是void Pino.main(java.lang.String[])，accessFlags的值是09h，也就是ACC_PUBLIC和ACC_STATIC，codeOff的值是“CB 02”，转换为16进制就是14Bh，也就是位置偏移在14Bh处。]]></content>
+      <categories>
+        <category>移动安全</category>
+      </categories>
+      <tags>
+        <tag>移动安全</tag>
+        <tag>安卓</tag>
+        <tag>Dex文件</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[Android如何修改classes.dex文件后重新放入apk中]]></title>
     <url>%2F2018%2F07%2F22%2FAndroid%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9classes-dex%E6%96%87%E4%BB%B6%E5%90%8E%E9%87%8D%E6%96%B0%E6%94%BE%E5%85%A5apk%E4%B8%AD%2F</url>
     <content type="text"><![CDATA[提取classes.dex文件 使用安卓逆向助手直接提取classes.dex文件 将apk的后缀名改为zip，然后解压zip压缩包，得到classes.dex文件 修改classes.dex文件 通过IDA PRO进行文件的分析，在IDA View-A标签中鼠标点击需要修改的一行上 选择Hex View-1标签，可以得到需要修改的地方的文件偏移地址 使用winhex打开classes.dex文件，然后快捷键Alt+G，输入上一步获取的偏移，修改机器码为自己想要修改的，保存 classes.dex文件重新校验 使用非虫大大写的Dexfix工具，完成dex修复 classes.dex重新放入apk中 删除原apk中的classes.dex文件 1aapt r source.apk classes.dex 添加修改后的classes.dex到apk中 1aapt a source.apk classes.dex 重新签名apk1signapk.bat source.apk result.apk]]></content>
@@ -242,9 +268,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -255,9 +281,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -268,9 +294,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -281,9 +307,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -294,9 +320,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -379,8 +405,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>Linux</tag>
         <tag>小贴士</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -391,8 +417,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>Linux</tag>
         <tag>小贴士</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -427,8 +453,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>Linux</tag>
         <tag>小贴士</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -491,8 +517,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>后渗透</tag>
         <tag>Linux</tag>
+        <tag>后渗透</tag>
       </tags>
   </entry>
   <entry>
