@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[Mac下更改pip2/pip3国内源]]></title>
+    <url>%2F2018%2F08%2F13%2FMac%E4%B8%8B%E6%9B%B4%E6%94%B9pip2-pip3%E5%9B%BD%E5%86%85%E6%BA%90%2F</url>
+    <content type="text"><![CDATA[在使用Python的时候，经常会用到pip来安装模块，但是默认的下载源实在是特别慢，经常install的时候还会因为速度的原因直接报错，因此我们可以选择将下载源更改为国内的，这样就可以提高我们的下载速度了。 国内的知名下载源1234阿里云 ：http://mirrors.aliyun.com/pypi/simple/中国科学技术大学：https://pypi.mirrors.ustc.edu.cn/simple/清华大学：https://pypi.tuna.tsinghua.edu.cn/simple/豆瓣：http://pypi.douban.com/simple/ Mac下启动终端，输入如下命令123cd ~mkdir .piptouch pip.conf 创建pip.conf文件 然后我们打开pip.conf文件，输入以下内容：1234[global]index-url = https://pypi.tuna.tsinghua.edu.cn/simple/[install]trusted-host=pypi.tuna.tsinghua.edu.cn 然后python2的用户直接pip install xxxx，python3的用户直接pip3 install xxxx，可以看到速度真的是特别的快。]]></content>
+      <categories>
+        <category>Mac Os</category>
+      </categories>
+      <tags>
+        <tag>小贴士</tag>
+        <tag>Mac Os</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[获取Android App的网络流量]]></title>
     <url>%2F2018%2F08%2F01%2F%E8%8E%B7%E5%8F%96Android-App%E7%9A%84%E7%BD%91%E7%BB%9C%E6%B5%81%E9%87%8F%2F</url>
     <content type="text"><![CDATA[运行环境 手机端 Android版本的tcpdump 已经root好的手机一枚 Android版本的nc PC端 wireshark PC版本的nc 检测流量首先连接好我们的手机到PC端上1adb device 然后，将下载好的tcpdump上传到Android手机上12adb push tcpdump /data/local/tmpadb shell chmod 755 /data/local/tmp/tcpdump 然后执行su，将权限提升至root用户，运行tcpdump开始抓包1./tcpdump -w - | nc -l -p 31337 这里的-w选项是指定一个输出文件，-表示输出是写到终端屏幕上的合起来就是将tcpdump抓取到的流量输出的Android端的31337端口上 之后，另起一个终端12adb forward tcp:12345 tcp:31337nc 127.0.0.1 12345 | wireshark -k -S -i - 这里首先将PC端的12345端口和Android端的31337端口就可以相互通信了，然后nc连接到PC端本地的12345端口，将获得的流量（也就是tcpdump抓到的流量即手机app的Web流量）输出到wireshark中，从而实现wireshark抓到Android的流量了。]]></content>
@@ -268,9 +280,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
-        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
+        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -281,9 +293,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
-        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
+        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -294,9 +306,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
-        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
+        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -307,9 +319,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
-        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
+        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -320,9 +332,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
-        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
+        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -405,8 +417,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>Linux</tag>
         <tag>小贴士</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -417,8 +429,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>Linux</tag>
         <tag>小贴士</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -453,8 +465,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>Linux</tag>
         <tag>小贴士</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -517,8 +529,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>后渗透</tag>
         <tag>Linux</tag>
+        <tag>后渗透</tag>
       </tags>
   </entry>
   <entry>

