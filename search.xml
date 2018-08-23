@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[利用IPC进行渗透]]></title>
+    <url>%2F2018%2F08%2F23%2F%E5%88%A9%E7%94%A8IPC%E8%BF%9B%E8%A1%8C%E6%B8%97%E9%80%8F%2F</url>
+    <content type="text"><![CDATA[IPC什么是IPC？IPC（Internet Process Connect），直译过来就是网络进程连接，一般用来进行资源共享的。我们经常会说IPC空连接，就是连接的时候不用账户和密码，但是一般这种情况是没啥权限的，如果我们能有一个管理员的账户，那么就可以有管理员的权限来进行渗透了。 IPC入侵思路因为渗透的时候是需要灵活的技巧，因此这里只是记录一个渗透思路罢了。 IPC空连接1net use \\ip\ipc$ &quot;&quot; /user:&quot;&quot; 以某用户账户登陆1net use \\ip\ipc$ &quot;password&quot; /user:Administrator 之后，我们可以写一个批处理文件，里面包含这我们想执行的命令，然后copy到服务器上1copy 1.bat \\ip\c$ 这样，就会把它上传到c盘 之后我们可以利用windows的定时任务来执行这个文件首先我们看一下服务器上的时间1net time \\ip 之后利用at命令来设置定时任务1at \\ip 时间 文件名 渗透完毕后记得删掉记录1net use \\ip\ipc$ /del]]></content>
+      <categories>
+        <category>渗透测试</category>
+      </categories>
+      <tags>
+        <tag>内网渗透</tag>
+        <tag>渗透测试</tag>
+        <tag>IPC</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[Mac下更改pip2/pip3国内源]]></title>
     <url>%2F2018%2F08%2F13%2FMac%E4%B8%8B%E6%9B%B4%E6%94%B9pip2-pip3%E5%9B%BD%E5%86%85%E6%BA%90%2F</url>
     <content type="text"><![CDATA[在使用Python的时候，经常会用到pip来安装模块，但是默认的下载源实在是特别慢，经常install的时候还会因为速度的原因直接报错，因此我们可以选择将下载源更改为国内的，这样就可以提高我们的下载速度了。 国内的知名下载源1234阿里云 ：http://mirrors.aliyun.com/pypi/simple/中国科学技术大学：https://pypi.mirrors.ustc.edu.cn/simple/清华大学：https://pypi.tuna.tsinghua.edu.cn/simple/豆瓣：http://pypi.douban.com/simple/ Mac下启动终端，输入如下命令123cd ~mkdir .piptouch pip.conf 创建pip.conf文件 然后我们打开pip.conf文件，输入以下内容：1234[global]index-url = https://pypi.tuna.tsinghua.edu.cn/simple/[install]trusted-host=pypi.tuna.tsinghua.edu.cn 然后python2的用户直接pip install xxxx，python3的用户直接pip3 install xxxx，可以看到速度真的是特别的快。]]></content>
@@ -280,9 +293,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -293,9 +306,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -306,9 +319,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -319,9 +332,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -332,9 +345,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -417,8 +430,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Linux</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -429,8 +442,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Linux</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -465,8 +478,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Linux</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -529,8 +542,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>Linux</tag>
         <tag>后渗透</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
