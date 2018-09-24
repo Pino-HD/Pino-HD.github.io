@@ -4,6 +4,28 @@
 
     
   <url>
+    <loc>https://pino-hd.github.io/2018/09/24/Windows%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/</loc>
+    <lastmod>2018-09-24T07:04:02.194Z</lastmod>
+    <data>
+        <display>
+        <title>Windows网络编程</title>
+        <pubTime>2018-09-24T06:45:36.000Z</pubTime>
+        
+        <tag>Windows编程</tag>
+         
+        <tag>SOCKET编程</tag>
+         
+         
+           
+             
+              <breadCrumb title="Windows编程" url="https://pino-hd.github.io/categories/Windows%E7%BC%96%E7%A8%8B/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>https://pino-hd.github.io/2018/09/07/WarGame%E4%B9%8Bbandit%E9%80%9A%E5%85%B3%E6%97%A5%E5%BF%97/</loc>
     <lastmod>2018-09-07T05:28:03.452Z</lastmod>
     <data>
@@ -702,11 +724,11 @@
         <title>Smali</title>
         <pubTime>2018-06-10T08:41:17.000Z</pubTime>
         
-        <tag>CTF</tag>
-         
         <tag>移动安全</tag>
          
         <tag>安卓</tag>
+         
+        <tag>CTF</tag>
          
          
            
@@ -726,11 +748,11 @@
         <title>DD Android Easy</title>
         <pubTime>2018-06-10T08:32:10.000Z</pubTime>
         
-        <tag>CTF</tag>
-         
         <tag>移动安全</tag>
          
         <tag>安卓</tag>
+         
+        <tag>CTF</tag>
          
          
            
@@ -750,11 +772,11 @@
         <title>61dctf - androideasy</title>
         <pubTime>2018-06-10T08:35:58.000Z</pubTime>
         
-        <tag>CTF</tag>
-         
         <tag>移动安全</tag>
          
         <tag>安卓</tag>
+         
+        <tag>CTF</tag>
          
          
            
@@ -774,11 +796,11 @@
         <title>FindPass</title>
         <pubTime>2018-06-10T08:37:41.000Z</pubTime>
         
-        <tag>CTF</tag>
-         
         <tag>移动安全</tag>
          
         <tag>安卓</tag>
+         
+        <tag>CTF</tag>
          
          
            
@@ -798,11 +820,11 @@
         <title>DD Android Normal</title>
         <pubTime>2018-06-10T08:34:04.000Z</pubTime>
         
-        <tag>CTF</tag>
-         
         <tag>移动安全</tag>
          
         <tag>安卓</tag>
+         
+        <tag>CTF</tag>
          
          
            
@@ -954,9 +976,9 @@
         <title>Linux下PPPOE拨号</title>
         <pubTime>2018-06-10T08:23:21.000Z</pubTime>
         
-        <tag>Linux</tag>
-         
         <tag>小贴士</tag>
+         
+        <tag>Linux</tag>
          
          
            
@@ -976,9 +998,9 @@
         <title>Linux下开机自动挂载硬盘</title>
         <pubTime>2018-06-10T08:22:42.000Z</pubTime>
         
-        <tag>Linux</tag>
-         
         <tag>小贴士</tag>
+         
+        <tag>Linux</tag>
          
          
            
@@ -1020,9 +1042,9 @@
         <title>xshell 5 不能使用退格键和Delete建</title>
         <pubTime>2018-06-10T08:18:57.000Z</pubTime>
         
-        <tag>Linux</tag>
-         
         <tag>小贴士</tag>
+         
+        <tag>Linux</tag>
          
          
            
@@ -1066,9 +1088,9 @@
         
         <tag>提权</tag>
          
-        <tag>后渗透</tag>
-         
         <tag>Linux</tag>
+         
+        <tag>后渗透</tag>
          
          
            
@@ -1450,13 +1472,13 @@
         <title>SSH端口转发</title>
         <pubTime>2018-05-31T10:27:09.000Z</pubTime>
         
-        <tag>SSH</tag>
-         
         <tag>内网渗透</tag>
          
         <tag>内网穿透</tag>
          
         <tag>端口转发</tag>
+         
+        <tag>SSH</tag>
          
          
            
