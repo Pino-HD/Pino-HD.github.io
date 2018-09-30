@@ -1,4 +1,1282 @@
-<!DOCTYPE html><html class="theme-next mist use-motion" lang="zh-CN"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=2"><script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script><link href="//cdn.bootcss.com/pace/1.0.2/themes/pink/pace-theme-flash.css" rel="stylesheet"><style>.pace .pace-progress{background:#000;height:2px}.pace .pace-progress-inner{box-shadow:0 0 10px #1e92fb,0 0 5px #1e92fb}.pace .pace-activity{border-top-color:#1e92fb;border-left-color:#1e92fb}</style><meta name="theme-color" content="#222"><script></script><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css"><link href="/css/main.css?v=6.3.0" rel="stylesheet" type="text/css"><link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.3.0"><link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.3.0"><link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.3.0"><link rel="mask-icon" href="/images/logo.svg?v=6.3.0" color="#222"><script type="text/javascript" id="hexo.configurations">var NexT=window.NexT||{},CONFIG={root:"/",scheme:"Mist",version:"6.3.0",sidebar:{position:"left",display:"post",offset:12,b2t:!1,scrollpercent:!1,onmobile:!1},fancybox:!1,fastclick:!1,lazyload:!1,tabs:!0,motion:{enable:!0,async:!1,transition:{post_block:"fadeIn",post_header:"slideDownIn",post_body:"slideDownIn",coll_header:"slideLeftIn",sidebar:"slideUpIn"}},algolia:{applicationID:"",apiKey:"",indexName:"",hits:{per_page:10},labels:{input_placeholder:"Search for Posts",hits_empty:"We didn't find any results for the search: ${query}",hits_stats:"${hits} results found in ${time} ms"}}}</script><meta name="description" content="构造Dex文件Dex文件就是Dalvik可执行文件，实际上它就是一个优化后的java字节码文件，因此构造这类文件需要先写个java文件"><meta name="keywords" content="移动安全,安卓,Dex文件"><meta property="og:type" content="article"><meta property="og:title" content="Dex文件结构分析"><meta property="og:url" content="https://pino-hd.github.io/2018/08/01/Dex文件结构分析/index.html"><meta property="og:site_name" content="Pin0&#39;s Blog"><meta property="og:description" content="构造Dex文件Dex文件就是Dalvik可执行文件，实际上它就是一个优化后的java字节码文件，因此构造这类文件需要先写个java文件"><meta property="og:locale" content="zh-CN"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析1.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析2.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析3.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析4.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析5.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析6.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析7.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析8.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析9.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析10.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析11.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析12.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析13.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析14.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析15.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析16.png"><meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析17.png"><meta property="og:updated_time" content="2018-08-01T13:23:36.971Z"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="Dex文件结构分析"><meta name="twitter:description" content="构造Dex文件Dex文件就是Dalvik可执行文件，实际上它就是一个优化后的java字节码文件，因此构造这类文件需要先写个java文件"><meta name="twitter:image" content="https://pino-hd.github.io/images/Dex文件结构分析1.png"><link rel="canonical" href="https://pino-hd.github.io/2018/08/01/Dex文件结构分析/"><script type="text/javascript" id="page.configurations">CONFIG.page={sidebar:""}</script><title>Dex文件结构分析 | Pin0's Blog</title><noscript><style type="text/css">.sidebar-inner,.use-motion .brand,.use-motion .collection-title,.use-motion .comments,.use-motion .menu-item,.use-motion .motion-element,.use-motion .pagination,.use-motion .post-block,.use-motion .post-body,.use-motion .post-header{opacity:initial}.use-motion .logo,.use-motion .site-subtitle,.use-motion .site-title{opacity:initial;top:initial}.logo-line-after i{right:initial}</style></noscript></head><body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN"><div class="container sidebar-position-left page-post-detail"><div class="headband"></div><header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="header-inner"><div class="site-brand-wrapper"><div class="site-meta"><div class="custom-logo-site-title"><a href="/" class="brand" rel="start"><span class="logo-line-before"><i></i></span> <span class="site-title">Pin0's Blog</span><span class="logo-line-after"><i></i></span></a></div></div><div class="site-nav-toggle"> <button aria-label="切换导航栏"><span class="btn-bar"></span><span class="btn-bar"></span><span class="btn-bar"></span></button></div></div><nav class="site-nav"><ul id="menu" class="menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i><br>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i><br>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i><br>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i><br>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i><br>关于</a></li><li class="menu-item menu-item-search"><a href="javascript:;" class="popup-trigger"><i class="menu-item-icon fa fa-search fa-fw"></i><br>搜索</a></li></ul><div class="site-search"><div class="popup search-popup local-search-popup"><div class="local-search-header clearfix"><span class="search-icon"><i class="fa fa-search"></i></span><span class="popup-btn-close"><i class="fa fa-times-circle"></i></span><div class="local-search-input-wrapper"> <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input"></div></div><div id="local-search-result"></div></div></div></nav></div></header><main id="main" class="main"><div class="main-inner"><div class="content-wrap"><div id="content" class="content"><div id="posts" class="posts-expand"><article class="post post-type-normal" itemscope itemtype="http://schema.org/Article"><div class="post-block"><link itemprop="mainEntityOfPage" href="https://pino-hd.github.io/2018/08/01/Dex文件结构分析/"><span hidden itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="name" content="Pino-HD"><meta itemprop="description" content=""><meta itemprop="image" content="/images/avatar.jpg"></span><span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization"><meta itemprop="name" content="Pin0's Blog"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">Dex文件结构分析</h1><div class="post-meta"><span class="post-time"><span class="post-meta-item-icon"><i class="fa fa-calendar-o"></i></span> <span class="post-meta-item-text">发表于</span> <time title="创建时间：2018-08-01 21:19:57 / 修改时间：21:23:36" itemprop="dateCreated datePublished" datetime="2018-08-01T21:19:57+08:00">2018-08-01</time></span> <span class="post-category"><span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-folder-o"></i></span> <span class="post-meta-item-text">分类于</span> <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/移动安全/" itemprop="url" rel="index"><span itemprop="name">移动安全</span></a></span></span> <span id="/2018/08/01/Dex文件结构分析/" class="leancloud_visitors" data-flag-title="Dex文件结构分析"><span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-eye"></i></span> <span class="post-meta-item-text">热度：</span><span class="leancloud-visitors-count"></span> <span>℃</span></span><div class="post-symbolscount"><span class="post-meta-item-icon"><i class="fa fa-file-word-o"></i></span> <span class="post-meta-item-text">本文字数：</span> <span title="本文字数">6.5k</span> <span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-clock-o"></i></span> <span class="post-meta-item-text">阅读时长 &asymp;</span> <span title="阅读时长">11 分钟</span></div></div></header><div class="post-body" itemprop="articleBody"><h2 id="构造Dex文件"><a href="#构造Dex文件" class="headerlink" title="构造Dex文件"></a>构造Dex文件</h2><p>Dex文件就是Dalvik可执行文件，实际上它就是一个优化后的java字节码文件，因此构造这类文件需要先写个java文件<br><a id="more"></a><br>Pino.java<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public class Pino &#123;</span><br><span class="line">	public static void main(String args[]) &#123;</span><br><span class="line">		System.out.println(&quot;Hello World&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p></p><p>然后编译<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">javac Pino.java</span><br></pre></td></tr></table></figure><p></p><p>之后得到了Pino.class文件，之后我们用dx工具，该工具需要安装Android SDK才能有的工具<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dex --dex --output=Pino.dex Pino.class</span><br></pre></td></tr></table></figure><p></p><p>这样就得到了一个dex文件了，之后我们利用010editor工具来进行分析。<br><img src="/images/Dex文件结构分析1.png" alt="dex文件"></p><h2 id="Dex文件整体结构"><a href="#Dex文件整体结构" class="headerlink" title="Dex文件整体结构"></a>Dex文件整体结构</h2><p><img src="/images/Dex文件结构分析2.png" alt="Dex文件整体结构"></p><p>那我们从头开始分析</p><h2 id="Dex文件分析"><a href="#Dex文件分析" class="headerlink" title="Dex文件分析"></a>Dex文件分析</h2><p>首先，我们来看一下Dex文件头的结构体<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">struct DexHeader &#123;</span><br><span class="line">    u1  magic[8];           /* dex的魔数 */</span><br><span class="line">    u4  checksum;           /* 校验和 */</span><br><span class="line">    u1  signature[kSHA1DigestLen]; /* SHA-1哈希值*/</span><br><span class="line">    u4  fileSize;           /* dex文件的大小 */</span><br><span class="line">    u4  headerSize;         /* dex文件头的大小 */</span><br><span class="line">    u4  endianTag;          /* 字节序标记 */</span><br><span class="line">    u4  linkSize;            /* 链接段大小 */</span><br><span class="line">    u4  linkOff;            /* 链接段偏移 */</span><br><span class="line">    u4  mapOff;          /* DexMapList的文件偏移 */</span><br><span class="line">    u4  stringIdsSize;          /* DexStringId的个数 */</span><br><span class="line">    u4  stringIdsOff;           /* DexStringId的偏移 */</span><br><span class="line">    u4  typeIdsSize;           /* DexTypeId的个数 */</span><br><span class="line">    u4  typeIdsOff;           /* DexTypeId的偏移 */</span><br><span class="line">    u4  protoIdsSize;            /* DexProtoId的个数 */</span><br><span class="line">    u4  protoIdsOff;           /* DexStringId的偏移 */</span><br><span class="line">    u4  fieldIdsSize;           /* DexFieldId的个数 */</span><br><span class="line">    u4  fieldIdsOff;           /* DexFieldId的偏移 */</span><br><span class="line">    u4  methodIdsSize;           /* DexMethodId的个数 */</span><br><span class="line">    u4  methodIdsOff;           /* DexMethodId的偏移 */</span><br><span class="line">    u4  classDefsSize;           /* DexClassDef的个数 */</span><br><span class="line">    u4  classDefsOff;           /* DexClassDef的偏移 */</span><br><span class="line">    u4  dataSize;           /* 数据段的大小 */</span><br><span class="line">    u4  dataOff;           /* 数据段的偏移 */</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure><p></p><ol><li><p><strong>magic[8]</strong> 由8个u1类型的数据，内容是“64 65 78 0A 30 33 35 00”，u1就是1个字节的无符号数，这个是dex文件的标志，用来识别dex文件的。</p></li><li><p><strong>checksum</strong> 没什么好说的，就是dex文件的校验和</p></li><li><p><strong>signature[kSHA1DigestLen]</strong>，就是整个dex文件进行SHA-1哈希计算得到的字符串，一般来说20个字节</p></li><li><p><strong>fileSize</strong>， 整个dex文件的大小</p></li><li><p><strong>headerSize</strong>， dex文件的头的大小</p></li><li><p><strong>endianTag</strong>， dex文件的字节序标记，用于指定dex文件运行环境的cpu，预设值为0x12345678，在010editor的话就是“78 56 34 12”（小端序）</p></li><li><p><strong>linkSize</strong>和<strong>linkOff</strong>， 链接段的大小和文件偏移，通常为0，linkSize为0表示静态链接</p></li><li><p><strong>mapOff</strong>， DexMapList的文件偏移</p></li><li><p><strong>stringIdsSize</strong>和<strong>stringIdsOff</strong>，这两个是DexStringId的个数和文件偏移<br><img src="/images/Dex文件结构分析3.png" alt="stringid"></p></li></ol><p>这里stringIdSize的值为0E，10进制就是14，也就是说这个dex文件的字符串的个数为14个，文件偏移是70，我们到70的位置看一下<br><img src="/images/Dex文件结构分析4.png" alt=""><br>蓝色部分就是DexStringId的内容了，每个字符串4字节，总共14个，我们先看一下第一组“76 01 00 00”，这个值并不是字符串的具体内容，而是字符串所在位置的文件偏移，我们去看一下176h这个位置<br><img src="/images/Dex文件结构分析5.png" alt=""></p><p>蓝色部分我一共选中了8个字节，其中第一个字节06代表的是之后多少个字节属于字符串，也就是“3C 69 6E 69 74 3E”，而最后一个字节的00其实是字符串结尾的空字节，但是计数的时候并没有算上而已，总结一下这个dex文件中所有的字符串如下：<br>序号|字符串<br>-|-<br>0|<init><br>1|Hello World<br>2|LPino;<br>3|Ljava/io/PrintStream;<br>4|Ljava/lang/Object;<br>5|Ljava/lang/String;<br>6|Ljava/lang/System;<br>7|Pino.java<br>8|V<br>9|VL<br>10|[Ljava/lang/String;<br>11|main<br>12|out<br>13|println</init></p><ol start="10"><li><strong>typeIdSize</strong>和<strong>typeIdOff</strong>，就是类的类型个数和文件偏移，可以根据之前字符串的进行类比<br><img src="/images/Dex文件结构分析6.png" alt=""><br>typeIdSize的值为07，也就是说由7个类型，typeIdOff的值是A8h，我们到A8的位置看一下<br><img src="/images/Dex文件结构分析7.png" alt=""><br>蓝色选中的部分都是类型，但是这个一种数据结构<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">struct DexTypeId &#123;</span><br><span class="line">        u4 descriptorIdx;        //指向DexStringId列表的索引</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li></ol><p>先看一下第一个4字节的值“02 00 00 00 ”，对照之前我们整理的字符串的表格，就是LPino；即Pino类型的，整理一下所有的类型，如下<br>序号|类的类型<br>-|-<br>0|LPino;<br>1|Ljava/io/PrintStream;<br>2|Ljava/lang/Object;<br>3|Ljava/lang/String;<br>4|Ljava/lang/System;<br>5|V<br>6|[Ljava/lang/String;</p><ol start="11"><li><strong>protoIdSize</strong>和<strong>protoIdOff</strong>，这两个是方法原型的个数和位置偏移<br><img src="/images/Dex文件结构分析8.png" alt="proto"></li></ol><p>这里数量就是3，位置偏移为C4，跟过去看下<br><img src="/images/Dex文件结构分析9.png" alt=""></p><p>蓝色选中的部分就是所有的方法原型的结构了，这里又涉及到了一个新的数据结构<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">struct DexProtoId &#123;</span><br><span class="line">        u4 shortyIdx;          //指向DexStringId列表的索引</span><br><span class="line">        u4 returntypeIdx;          //指向DexTypeId列表的索引</span><br><span class="line">        u4 parameterOff;          //指向DexTypeList列表的位置偏移</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p></p><p>这三个属性分别是第一个是方法声明的字符串，第二个是方法的返回类型，第三个是方法的参数列表，其中DexTypeList是新的数据结构<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">struct DexTypeList &#123;</span><br><span class="line">        u4 size;          //DexTypeItem的个数</span><br><span class="line">        DexTypeItem list[1];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">struct DexTypeItem &#123;</span><br><span class="line">        u2 typeIdx;        //指向DexTypeId列表的索引</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>回过头来看一下蓝色部分，12个字节，第一个4字节为8，说明DexStringId列表的索引是8，也就是V，第二个4字节是5，也就是V，最后一个是0，也就是没有参数，第一个方法就是void ()，整理一下其他的如下：<br>序号|方法原型<br>-|-<br>0|void()<br>1|void (java.lang.String)<br>2|void (java.lang.String[])</p><ol start="12"><li><strong>fieldIdSize</strong>和<strong>fieldIdOff</strong>这两个是字段的数量和位置偏移<br><img src="/images/Dex文件结构分析10.png" alt=""><br>这里字段数是1，位置偏移为E8，字段也有新的数据结构<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">struct DexFieldId&#123;</span><br><span class="line">	u2 classIdx;		/*类的类型，指向DexTypeId列表的索引*/</span><br><span class="line">	u2 typeIdx;		/*字段类型，指向DexTypeId列表的索引*/</span><br><span class="line">	u4 nameIdx;		/*字段名，指向DexStringId列表的索引*/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li></ol><p>也就是一个DexFieldId是8个字节<br><img src="/images/Dex文件结构分析11.png" alt=""><br>classIdx的值是4，也就是Ljava/lang/System;，typeIdx的值是1，也就是Ljava/io/PrintStream;，nameIdx的值是C，也就是out，总结一下字段如下：<br>序号|字段<br>-|-<br>0|java.io.PrintStream java.lang.System.out</p><ol start="13"><li><strong>methodIdSize</strong>和<strong>methodIdOff</strong>这两个分别是方法的数量和位置偏移<br><img src="/images/Dex文件结构分析12.png" alt=""><br>fieldIdSize的值是4，也就是有4个方法，fieldIdOff是F0，跟过去看下<br><img src="/images/Dex文件结构分析13.png" alt=""><br>新的数据结构如下：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">struct DexMethodId&#123;</span><br><span class="line">	u2 classIdx;		/*类的类型，指向DexTypeId列表的索引*/</span><br><span class="line">	u2 protoIdx;		/*声明类型，指向DexProtoId列表的索引*/</span><br><span class="line">	u4 nameIdx;		/*方法名，指向DexStringId列表的索引*/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li></ol><p>也就是说每个DexMethodId占8个字节，第一个8字节中的classIdx的值是0，也就是LPino;，protoIdx的值也是0，也就是void()，第三nameIdx也是0，也就是<init>，综合起来就是void Pino.<init>(),整理一下所有的方法如下：<br>序号|方法<br>-|-<br>0|void Pino.<init>()<br>1|void Pino.main(java.lang.String[])<br>2|void java.io.PrintStream.println(java.lang.String)<br>3|void java.lang.Object.<init>()</init></init></init></init></p><ol start="14"><li><strong>classDefsSize</strong>和<strong>classDefsOff</strong>是类的定义的数量和位置偏移<br><img src="/images/Dex文件结构分析14.png" alt=""><br>classDefsSize的值为1，说明就定义了一个类，然后在到110h的位置看看，但是这里还是有新的结构体<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">struct DexClassDef&#123;</span><br><span class="line">	u4 classIdx;		/*类的类型，指向DexTypeId列表的索引*/</span><br><span class="line">	u4 accessFlags;		/*访问标志，就是表示是public还是private等等*/</span><br><span class="line">	u4 superclassIdx;	/*父类类型，指向DexTypeId列表的索引*/</span><br><span class="line">	u4 interfacesOff;	/*接口，指向DexTypeList的偏移*/</span><br><span class="line">	u4 sourceFileIdx;	/*源文件名，指向DexStringId列表的索引*/</span><br><span class="line">	u4 annotationsOff;	/*注解，指向DexAnnotationsDirectoryItem结构*/</span><br><span class="line">	u4 classDataOff;	/*指向DexClassData结构的偏移*/</span><br><span class="line">	u4 staticValuesOff;	/*指向DexEncodedArray结构的偏移*/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li></ol><p><img src="/images/Dex文件结构分析15.png" alt=""></p><p>上面的数据结构28个字节，内容的话看注释也能看懂，我们直接上实例，在这里，classIdx是1，也就是LPino;，第二个accessFlags是1，也就是public，第三个superclassIdx是2，也就是父类是java.lang.Object，第四个interfacesOff是0，就是没有，第五个是sourceFileIdx是7，也就是Pino.java，第六个是annotationOff，是0，没有，第七个classData是22D，也就是DexClassData的偏移是22D，我们先来看看DexClassData的结构体<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">struct DexClassData&#123;</span><br><span class="line">	DexClassDataHeader	        header;			/*指定字段与方法的个数*/</span><br><span class="line">	DexField* 			staticFields;		/*静态字段，DexField结构*/</span><br><span class="line">	DexField*			instanceFields；	/*实例字段，DexField结构*/</span><br><span class="line">	DexMethod*			directMethods;		/*直接方法，DexMethod结构*/</span><br><span class="line">	DexMethod*			virtualMethods;		/*虚方法，DexMethod结构*/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p></p><p>这里面又涉及到了其他三种结构体<br></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">struct DexClassDataHeader&#123;</span><br><span class="line">	u4 staticFieldsSize;	/*静态字段个数*/</span><br><span class="line">	u4 instanceFieldsSize;	/*实例字段个数*/</span><br><span class="line">	u4 directMethodsSize;	/*直接方法个数*/</span><br><span class="line">	u4 virtualMethodsSize;  /*虚方法个数*/</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">struct DexField&#123;</span><br><span class="line">	u4 fieldIdx;		/*指向DexFieldId的索引*/</span><br><span class="line">	u4 accessFlags;		/*访问标志*/</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">struct DexMethod&#123;</span><br><span class="line">	u4 methodIdx;		/*指向DexMethodId的索引*/</span><br><span class="line">	u4 accessFlags;		/*访问标志*/</span><br><span class="line">	u4 codeOff;		/*指向DexCode结构的偏移*/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p></p><p>这里需要注意的一点的就是这里的u4并不是值4字节，而是值uleb128的类型，具体是什么可以自行百度。</p><p>现在我们再去22D的位置看看<br><img src="/images/Dex文件结构分析16.png" alt=""><br>从这里可以判断姿态字段0个，实例字段0个，直接方法2个，虚方法0个。因为staticFields和instanceFields都是0个，所以直接从directMethods来看了，methodIdx为0，也就是void Pino.<init>()，accessFlags的值为“81 80 04”，这个是uleb128编码的，转换为16进制的话就是10001h，对照一下DexFile.h文件，知道方法是ACC_PUBLIC和ACC_CONSTRUCTOR<br><img src="/images/Dex文件结构分析17.png" alt=""><br>表示这个方法是public的并且是构造方法，然后是codeOff的值是“B0 02”，转换为16进制就是130h。第二个函数的methodIdx的值是1，也就是void Pino.main(java.lang.String[])，accessFlags的值是09h，也就是ACC_PUBLIC和ACC_STATIC，codeOff的值是“CB 02”，转换为16进制就是14Bh，也就是位置偏移在14Bh处。</init></p></div><div><div class="my_post_copyright"><script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script><script type="text/javascript" src="http://jslibs.wuxubj.cn/sweetalert_mini/jquery-1.7.1.min.js"></script><script src="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.min.js"></script><link rel="stylesheet" type="text/css" href="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.mini.css"><p><span>本文标题:</span><a href="/2018/08/01/Dex文件结构分析/">Dex文件结构分析</a></p><p><span>文章作者:</span><a href="/" title="访问 Pino-HD 的个人博客">Pino-HD</a></p><p><span>发布时间:</span>2018年08月01日 - 21:08</p><p><span>最后更新:</span>2018年08月01日 - 21:08</p><p><span>原始链接:</span><a href="/2018/08/01/Dex文件结构分析/" title="Dex文件结构分析">https://pino-hd.github.io/2018/08/01/Dex文件结构分析/</a><span class="copy-path" title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://pino-hd.github.io/2018/08/01/Dex文件结构分析/" aria-label="复制成功！"></i></span></p><p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">署名-非商业性使用-禁止演绎 4.0 国际</a> 转载请保留原文链接及作者。</p></div><script>var clipboard=new Clipboard(".fa-clipboard");clipboard.on("success",$(function(){$(".fa-clipboard").click(function(){swal({title:"",text:"复制成功",html:!1,timer:500,showConfirmButton:!1})})}))</script></div><div><div style="padding:10px 0;margin:20px auto;width:90%;text-align:center"><div>坚持原创技术分享，您的支持将鼓励我继续创作！</div> <button id="rewardButton" disable="enable" onclick='var qr=document.getElementById("QR");"none"===qr.style.display?qr.style.display="block":qr.style.display="none"'> <span>打赏</span></button><div id="QR" style="display:none"><div id="wechat" style="display:inline-block"> <img id="wechat_qr" src="/images/wechat.jpg" alt="Pino-HD 微信支付"><p>微信支付</p></div><div id="alipay" style="display:inline-block"> <img id="alipay_qr" src="/images/alipay.jpg" alt="Pino-HD 支付宝"><p>支付宝</p></div></div></div></div><footer class="post-footer"><div class="post-tags"><a href="/tags/移动安全/" rel="tag"><i class="fa fa-tag"></i> 移动安全</a><a href="/tags/安卓/" rel="tag"><i class="fa fa-tag"></i> 安卓</a><a href="/tags/Dex文件/" rel="tag"><i class="fa fa-tag"></i> Dex文件</a></div><div class="post-nav"><div class="post-nav-next post-nav-item"><a href="/2018/07/22/Android如何修改classes-dex文件后重新放入apk中/" rel="next" title="Android如何修改classes.dex文件后重新放入apk中"><i class="fa fa-chevron-left"></i> Android如何修改classes.dex文件后重新放入apk中</a></div><span class="post-nav-divider"></span><div class="post-nav-prev post-nav-item"> <a href="/2018/08/01/获取Android-App的网络流量/" rel="prev" title="获取Android App的网络流量">获取Android App的网络流量<i class="fa fa-chevron-right"></i></a></div></div></footer></div></article><div class="post-spread"></div></div></div></div><div class="sidebar-toggle"><div class="sidebar-toggle-line-wrap"><span class="sidebar-toggle-line sidebar-toggle-line-first"></span><span class="sidebar-toggle-line sidebar-toggle-line-middle"></span><span class="sidebar-toggle-line sidebar-toggle-line-last"></span></div></div><aside id="sidebar" class="sidebar"><div class="sidebar-inner"><ul class="sidebar-nav motion-element"><li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap"> 文章目录</li><li class="sidebar-nav-overview" data-target="site-overview-wrap"> 站点概览</li></ul><section class="site-overview-wrap sidebar-panel"><div class="site-overview"><div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person"> <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Pino-HD"><p class="site-author-name" itemprop="name">Pino-HD</p><p class="site-description motion-element" itemprop="description"></p></div><nav class="site-state motion-element"><div class="site-state-item site-state-posts"> <a href="/archives/"><span class="site-state-item-count">120</span> <span class="site-state-item-name">日志</span></a></div><div class="site-state-item site-state-categories"> <a href="/categories/index.html"><span class="site-state-item-count">17</span> <span class="site-state-item-name">分类</span></a></div><div class="site-state-item site-state-tags"> <a href="/tags/tags.html"><span class="site-state-item-count">84</span> <span class="site-state-item-name">标签</span></a></div></nav><div class="links-of-author motion-element"><span class="links-of-author-item"><a href="https://github.com/Pino-HD" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i> GitHub</a></span><span class="links-of-author-item"><a href="https://www.jianshu.com/u/256045bfc368" target="_blank" title="简书"><i class="fa fa-fw fa-heartbeat"></i> 简书</a></span><span class="links-of-author-item"><a href="https://weibo.com/u/2925327381/home?wvr=5" target="_blank" title="Weibo"><i class="fa fa-fw fa-weibo"></i> Weibo</a></span></div><div class="links-of-blogroll motion-element links-of-blogroll-inline"><div class="links-of-blogroll-title"><i class="fa fa-fw fa-link"></i> Links</div><ul class="links-of-blogroll-list"><li class="links-of-blogroll-item"> <a href="http://example.com/" title="Title" target="_blank">Title</a></li></ul></div></div></section><section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active"><div class="post-toc"><div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#构造Dex文件"><span class="nav-number">1.</span> <span class="nav-text">构造Dex文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dex文件整体结构"><span class="nav-number">2.</span> <span class="nav-text">Dex文件整体结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dex文件分析"><span class="nav-number">3.</span> <span class="nav-text">Dex文件分析</span></a></li></ol></div></div></section></div></aside></div></main><footer id="footer" class="footer"><div class="footer-inner"><script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script><div class="copyright">&copy; <span itemprop="copyrightYear">2018</span><span class="with-love" id="animate"><i class="fa fa-user"></i></span> <span class="author" itemprop="copyrightHolder">Pino-HD</span> <span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-area-chart"></i></span> <span class="post-meta-item-icon">站点总字数</span> <span title="站点总字数">194k</span> <span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-coffee"></i></span> <span class="post-meta-item-icon">站点阅读时长</span> <span title="站点阅读时长">5:false</span> <span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-user-md"></i></span> <span id="busuanzi_container_site_uv">本站访客数</span><span id="busuanzi_value_site_uv"></span></div></div></footer><div class="back-to-top"><i class="fa fa-arrow-up"></i></div></div><script type="text/javascript">"[object Function]"!==Object.prototype.toString.call(window.Promise)&&(window.Promise=null)</script><script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script><script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script><script type="text/javascript" src="/js/src/utils.js?v=6.3.0"></script><script type="text/javascript" src="/js/src/motion.js?v=6.3.0"></script><script type="text/javascript" src="/js/src/scrollspy.js?v=6.3.0"></script><script type="text/javascript" src="/js/src/post-details.js?v=6.3.0"></script><script type="text/javascript" src="/js/src/bootstrap.js?v=6.3.0"></script><script type="text/javascript">
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+<link href="//cdn.bootcss.com/pace/1.0.2/themes/pink/pace-theme-flash.css" rel="stylesheet">
+<style>
+    .pace .pace-progress {
+        background: #000000; /*进度条颜色*/
+        height: 2px;
+    }
+    .pace .pace-progress-inner {
+         box-shadow: 0 0 10px #1E92FB, 0 0 5px     #1E92FB; /*阴影颜色*/
+    }
+    .pace .pace-activity {
+        border-top-color: #1E92FB;    /*上边框颜色*/
+        border-left-color: #1E92FB;    /*左边框颜色*/
+    }
+</style>
+<meta name="theme-color" content="#222">
+<script>
+    (function(){
+        if(''){
+            if (prompt('请输入文章密码') !== ''){
+                alert('密码错误！');
+                history.back();
+            }
+        }
+    })();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.3.0" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.3.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.3.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.3.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="构造Dex文件Dex文件就是Dalvik可执行文件，实际上它就是一个优化后的java字节码文件，因此构造这类文件需要先写个java文件">
+<meta name="keywords" content="移动安全,安卓,Dex文件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dex文件结构分析">
+<meta property="og:url" content="https://pino-hd.github.io/2018/08/01/Dex文件结构分析/index.html">
+<meta property="og:site_name" content="Pin0&#39;s Blog">
+<meta property="og:description" content="构造Dex文件Dex文件就是Dalvik可执行文件，实际上它就是一个优化后的java字节码文件，因此构造这类文件需要先写个java文件">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析1.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析2.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析3.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析4.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析5.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析6.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析7.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析8.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析9.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析10.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析11.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析12.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析13.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析14.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析15.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析16.png">
+<meta property="og:image" content="https://pino-hd.github.io/images/Dex文件结构分析17.png">
+<meta property="og:updated_time" content="2018-08-01T13:23:36.971Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Dex文件结构分析">
+<meta name="twitter:description" content="构造Dex文件Dex文件就是Dalvik可执行文件，实际上它就是一个优化后的java字节码文件，因此构造这类文件需要先写个java文件">
+<meta name="twitter:image" content="https://pino-hd.github.io/images/Dex文件结构分析1.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://pino-hd.github.io/2018/08/01/Dex文件结构分析/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Dex文件结构分析 | Pin0's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Pin0's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://pino-hd.github.io/2018/08/01/Dex文件结构分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Pino-HD">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Pin0's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Dex文件结构分析
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-08-01 21:19:57 / 修改时间：21:23:36" itemprop="dateCreated datePublished" datetime="2018-08-01T21:19:57+08:00">2018-08-01</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/移动安全/" itemprop="url" rel="index"><span itemprop="name">移动安全</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/08/01/Dex文件结构分析/" class="leancloud_visitors" data-flag-title="Dex文件结构分析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">热度：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+                 <span>℃</span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-symbolscount">
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">本文字数：</span>
+                
+                <span title="本文字数">6.5k</span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">11 分钟</span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="构造Dex文件"><a href="#构造Dex文件" class="headerlink" title="构造Dex文件"></a>构造Dex文件</h2><p>Dex文件就是Dalvik可执行文件，实际上它就是一个优化后的java字节码文件，因此构造这类文件需要先写个java文件<br><a id="more"></a><br>Pino.java<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public class Pino &#123;</span><br><span class="line">	public static void main(String args[]) &#123;</span><br><span class="line">		System.out.println(&quot;Hello World&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>然后编译<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">javac Pino.java</span><br></pre></td></tr></table></figure></p>
+<p>之后得到了Pino.class文件，之后我们用dx工具，该工具需要安装Android SDK才能有的工具<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dex --dex --output=Pino.dex Pino.class</span><br></pre></td></tr></table></figure></p>
+<p>这样就得到了一个dex文件了，之后我们利用010editor工具来进行分析。<br><img src="/images/Dex文件结构分析1.png" alt="dex文件"></p>
+<h2 id="Dex文件整体结构"><a href="#Dex文件整体结构" class="headerlink" title="Dex文件整体结构"></a>Dex文件整体结构</h2><p><img src="/images/Dex文件结构分析2.png" alt="Dex文件整体结构"></p>
+<p>那我们从头开始分析</p>
+<h2 id="Dex文件分析"><a href="#Dex文件分析" class="headerlink" title="Dex文件分析"></a>Dex文件分析</h2><p>首先，我们来看一下Dex文件头的结构体<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">struct DexHeader &#123;</span><br><span class="line">    u1  magic[8];           /* dex的魔数 */</span><br><span class="line">    u4  checksum;           /* 校验和 */</span><br><span class="line">    u1  signature[kSHA1DigestLen]; /* SHA-1哈希值*/</span><br><span class="line">    u4  fileSize;           /* dex文件的大小 */</span><br><span class="line">    u4  headerSize;         /* dex文件头的大小 */</span><br><span class="line">    u4  endianTag;          /* 字节序标记 */</span><br><span class="line">    u4  linkSize;            /* 链接段大小 */</span><br><span class="line">    u4  linkOff;            /* 链接段偏移 */</span><br><span class="line">    u4  mapOff;          /* DexMapList的文件偏移 */</span><br><span class="line">    u4  stringIdsSize;          /* DexStringId的个数 */</span><br><span class="line">    u4  stringIdsOff;           /* DexStringId的偏移 */</span><br><span class="line">    u4  typeIdsSize;           /* DexTypeId的个数 */</span><br><span class="line">    u4  typeIdsOff;           /* DexTypeId的偏移 */</span><br><span class="line">    u4  protoIdsSize;            /* DexProtoId的个数 */</span><br><span class="line">    u4  protoIdsOff;           /* DexStringId的偏移 */</span><br><span class="line">    u4  fieldIdsSize;           /* DexFieldId的个数 */</span><br><span class="line">    u4  fieldIdsOff;           /* DexFieldId的偏移 */</span><br><span class="line">    u4  methodIdsSize;           /* DexMethodId的个数 */</span><br><span class="line">    u4  methodIdsOff;           /* DexMethodId的偏移 */</span><br><span class="line">    u4  classDefsSize;           /* DexClassDef的个数 */</span><br><span class="line">    u4  classDefsOff;           /* DexClassDef的偏移 */</span><br><span class="line">    u4  dataSize;           /* 数据段的大小 */</span><br><span class="line">    u4  dataOff;           /* 数据段的偏移 */</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<ol>
+<li><p><strong>magic[8]</strong> 由8个u1类型的数据，内容是“64 65 78 0A 30 33 35 00”，u1就是1个字节的无符号数，这个是dex文件的标志，用来识别dex文件的。</p>
+</li>
+<li><p><strong>checksum</strong> 没什么好说的，就是dex文件的校验和</p>
+</li>
+<li><p><strong>signature[kSHA1DigestLen]</strong>，就是整个dex文件进行SHA-1哈希计算得到的字符串，一般来说20个字节</p>
+</li>
+<li><p><strong>fileSize</strong>， 整个dex文件的大小</p>
+</li>
+<li><p><strong>headerSize</strong>， dex文件的头的大小</p>
+</li>
+<li><p><strong>endianTag</strong>， dex文件的字节序标记，用于指定dex文件运行环境的cpu，预设值为0x12345678，在010editor的话就是“78 56 34 12”（小端序）</p>
+</li>
+<li><p><strong>linkSize</strong>和<strong>linkOff</strong>， 链接段的大小和文件偏移，通常为0，linkSize为0表示静态链接</p>
+</li>
+<li><p><strong>mapOff</strong>， DexMapList的文件偏移</p>
+</li>
+<li><p><strong>stringIdsSize</strong>和<strong>stringIdsOff</strong>，这两个是DexStringId的个数和文件偏移<br><img src="/images/Dex文件结构分析3.png" alt="stringid"></p>
+</li>
+</ol>
+<p>这里stringIdSize的值为0E，10进制就是14，也就是说这个dex文件的字符串的个数为14个，文件偏移是70，我们到70的位置看一下<br><img src="/images/Dex文件结构分析4.png" alt=""><br>蓝色部分就是DexStringId的内容了，每个字符串4字节，总共14个，我们先看一下第一组“76 01 00 00”，这个值并不是字符串的具体内容，而是字符串所在位置的文件偏移，我们去看一下176h这个位置<br><img src="/images/Dex文件结构分析5.png" alt=""></p>
+<p>蓝色部分我一共选中了8个字节，其中第一个字节06代表的是之后多少个字节属于字符串，也就是“3C 69 6E 69 74 3E”，而最后一个字节的00其实是字符串结尾的空字节，但是计数的时候并没有算上而已，总结一下这个dex文件中所有的字符串如下：<br>序号|字符串<br>-|-<br>0|<init><br>1|Hello World<br>2|LPino;<br>3|Ljava/io/PrintStream;<br>4|Ljava/lang/Object;<br>5|Ljava/lang/String;<br>6|Ljava/lang/System;<br>7|Pino.java<br>8|V<br>9|VL<br>10|[Ljava/lang/String;<br>11|main<br>12|out<br>13|println</init></p>
+<ol start="10">
+<li><strong>typeIdSize</strong>和<strong>typeIdOff</strong>，就是类的类型个数和文件偏移，可以根据之前字符串的进行类比<br><img src="/images/Dex文件结构分析6.png" alt=""><br>typeIdSize的值为07，也就是说由7个类型，typeIdOff的值是A8h，我们到A8的位置看一下<br><img src="/images/Dex文件结构分析7.png" alt=""><br>蓝色选中的部分都是类型，但是这个一种数据结构<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">struct DexTypeId &#123;</span><br><span class="line">        u4 descriptorIdx;        //指向DexStringId列表的索引</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>先看一下第一个4字节的值“02 00 00 00 ”，对照之前我们整理的字符串的表格，就是LPino；即Pino类型的，整理一下所有的类型，如下<br>序号|类的类型<br>-|-<br>0|LPino;<br>1|Ljava/io/PrintStream;<br>2|Ljava/lang/Object;<br>3|Ljava/lang/String;<br>4|Ljava/lang/System;<br>5|V<br>6|[Ljava/lang/String;</p>
+<ol start="11">
+<li><strong>protoIdSize</strong>和<strong>protoIdOff</strong>，这两个是方法原型的个数和位置偏移<br><img src="/images/Dex文件结构分析8.png" alt="proto"></li>
+</ol>
+<p>这里数量就是3，位置偏移为C4，跟过去看下<br><img src="/images/Dex文件结构分析9.png" alt=""></p>
+<p>蓝色选中的部分就是所有的方法原型的结构了，这里又涉及到了一个新的数据结构<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">struct DexProtoId &#123;</span><br><span class="line">        u4 shortyIdx;          //指向DexStringId列表的索引</span><br><span class="line">        u4 returntypeIdx;          //指向DexTypeId列表的索引</span><br><span class="line">        u4 parameterOff;          //指向DexTypeList列表的位置偏移</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这三个属性分别是第一个是方法声明的字符串，第二个是方法的返回类型，第三个是方法的参数列表，其中DexTypeList是新的数据结构<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">struct DexTypeList &#123;</span><br><span class="line">        u4 size;          //DexTypeItem的个数</span><br><span class="line">        DexTypeItem list[1];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">struct DexTypeItem &#123;</span><br><span class="line">        u2 typeIdx;        //指向DexTypeId列表的索引</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>回过头来看一下蓝色部分，12个字节，第一个4字节为8，说明DexStringId列表的索引是8，也就是V，第二个4字节是5，也就是V，最后一个是0，也就是没有参数，第一个方法就是void ()，整理一下其他的如下：<br>序号|方法原型<br>-|-<br>0|void()<br>1|void (java.lang.String)<br>2|void (java.lang.String[])</p>
+<ol start="12">
+<li><strong>fieldIdSize</strong>和<strong>fieldIdOff</strong>这两个是字段的数量和位置偏移<br><img src="/images/Dex文件结构分析10.png" alt=""><br>这里字段数是1，位置偏移为E8，字段也有新的数据结构<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">struct DexFieldId&#123;</span><br><span class="line">	u2 classIdx;		/*类的类型，指向DexTypeId列表的索引*/</span><br><span class="line">	u2 typeIdx;		/*字段类型，指向DexTypeId列表的索引*/</span><br><span class="line">	u4 nameIdx;		/*字段名，指向DexStringId列表的索引*/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>也就是一个DexFieldId是8个字节<br><img src="/images/Dex文件结构分析11.png" alt=""><br>classIdx的值是4，也就是Ljava/lang/System;，typeIdx的值是1，也就是Ljava/io/PrintStream;，nameIdx的值是C，也就是out，总结一下字段如下：<br>序号|字段<br>-|-<br>0|java.io.PrintStream java.lang.System.out</p>
+<ol start="13">
+<li><strong>methodIdSize</strong>和<strong>methodIdOff</strong>这两个分别是方法的数量和位置偏移<br><img src="/images/Dex文件结构分析12.png" alt=""><br>fieldIdSize的值是4，也就是有4个方法，fieldIdOff是F0，跟过去看下<br><img src="/images/Dex文件结构分析13.png" alt=""><br>新的数据结构如下：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">struct DexMethodId&#123;</span><br><span class="line">	u2 classIdx;		/*类的类型，指向DexTypeId列表的索引*/</span><br><span class="line">	u2 protoIdx;		/*声明类型，指向DexProtoId列表的索引*/</span><br><span class="line">	u4 nameIdx;		/*方法名，指向DexStringId列表的索引*/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>也就是说每个DexMethodId占8个字节，第一个8字节中的classIdx的值是0，也就是LPino;，protoIdx的值也是0，也就是void()，第三nameIdx也是0，也就是<init>，综合起来就是void Pino.<init>(),整理一下所有的方法如下：<br>序号|方法<br>-|-<br>0|void Pino.<init>()<br>1|void Pino.main(java.lang.String[])<br>2|void java.io.PrintStream.println(java.lang.String)<br>3|void java.lang.Object.<init>()</init></init></init></init></p>
+<ol start="14">
+<li><strong>classDefsSize</strong>和<strong>classDefsOff</strong>是类的定义的数量和位置偏移<br><img src="/images/Dex文件结构分析14.png" alt=""><br>classDefsSize的值为1，说明就定义了一个类，然后在到110h的位置看看，但是这里还是有新的结构体<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">struct DexClassDef&#123;</span><br><span class="line">	u4 classIdx;		/*类的类型，指向DexTypeId列表的索引*/</span><br><span class="line">	u4 accessFlags;		/*访问标志，就是表示是public还是private等等*/</span><br><span class="line">	u4 superclassIdx;	/*父类类型，指向DexTypeId列表的索引*/</span><br><span class="line">	u4 interfacesOff;	/*接口，指向DexTypeList的偏移*/</span><br><span class="line">	u4 sourceFileIdx;	/*源文件名，指向DexStringId列表的索引*/</span><br><span class="line">	u4 annotationsOff;	/*注解，指向DexAnnotationsDirectoryItem结构*/</span><br><span class="line">	u4 classDataOff;	/*指向DexClassData结构的偏移*/</span><br><span class="line">	u4 staticValuesOff;	/*指向DexEncodedArray结构的偏移*/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p><img src="/images/Dex文件结构分析15.png" alt=""></p>
+<p>上面的数据结构28个字节，内容的话看注释也能看懂，我们直接上实例，在这里，classIdx是1，也就是LPino;，第二个accessFlags是1，也就是public，第三个superclassIdx是2，也就是父类是java.lang.Object，第四个interfacesOff是0，就是没有，第五个是sourceFileIdx是7，也就是Pino.java，第六个是annotationOff，是0，没有，第七个classData是22D，也就是DexClassData的偏移是22D，我们先来看看DexClassData的结构体<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">struct DexClassData&#123;</span><br><span class="line">	DexClassDataHeader	        header;			/*指定字段与方法的个数*/</span><br><span class="line">	DexField* 			staticFields;		/*静态字段，DexField结构*/</span><br><span class="line">	DexField*			instanceFields；	/*实例字段，DexField结构*/</span><br><span class="line">	DexMethod*			directMethods;		/*直接方法，DexMethod结构*/</span><br><span class="line">	DexMethod*			virtualMethods;		/*虚方法，DexMethod结构*/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里面又涉及到了其他三种结构体<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">struct DexClassDataHeader&#123;</span><br><span class="line">	u4 staticFieldsSize;	/*静态字段个数*/</span><br><span class="line">	u4 instanceFieldsSize;	/*实例字段个数*/</span><br><span class="line">	u4 directMethodsSize;	/*直接方法个数*/</span><br><span class="line">	u4 virtualMethodsSize;  /*虚方法个数*/</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">struct DexField&#123;</span><br><span class="line">	u4 fieldIdx;		/*指向DexFieldId的索引*/</span><br><span class="line">	u4 accessFlags;		/*访问标志*/</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">struct DexMethod&#123;</span><br><span class="line">	u4 methodIdx;		/*指向DexMethodId的索引*/</span><br><span class="line">	u4 accessFlags;		/*访问标志*/</span><br><span class="line">	u4 codeOff;		/*指向DexCode结构的偏移*/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里需要注意的一点的就是这里的u4并不是值4字节，而是值uleb128的类型，具体是什么可以自行百度。</p>
+<p>现在我们再去22D的位置看看<br><img src="/images/Dex文件结构分析16.png" alt=""><br>从这里可以判断姿态字段0个，实例字段0个，直接方法2个，虚方法0个。因为staticFields和instanceFields都是0个，所以直接从directMethods来看了，methodIdx为0，也就是void Pino.<init>()，accessFlags的值为“81 80 04”，这个是uleb128编码的，转换为16进制的话就是10001h，对照一下DexFile.h文件，知道方法是ACC_PUBLIC和ACC_CONSTRUCTOR<br><img src="/images/Dex文件结构分析17.png" alt=""><br>表示这个方法是public的并且是构造方法，然后是codeOff的值是“B0 02”，转换为16进制就是130h。第二个函数的methodIdx的值是1，也就是void Pino.main(java.lang.String[])，accessFlags的值是09h，也就是ACC_PUBLIC和ACC_STATIC，codeOff的值是“CB 02”，转换为16进制就是14Bh，也就是位置偏移在14Bh处。</init></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+      <div>       
+          <div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script type="text/javascript" src="http://jslibs.wuxubj.cn/sweetalert_mini/jquery-1.7.1.min.js"></script>
+  <script src="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.mini.css">
+  <p><span>本文标题:</span><a href="/2018/08/01/Dex文件结构分析/">Dex文件结构分析</a></p>
+  <p><span>文章作者:</span><a href="/" title="访问 Pino-HD 的个人博客">Pino-HD</a></p>
+  <p><span>发布时间:</span>2018年08月01日 - 21:08</p>
+  <p><span>最后更新:</span>2018年08月01日 - 21:08</p>
+  <p><span>原始链接:</span><a href="/2018/08/01/Dex文件结构分析/" title="Dex文件结构分析">https://pino-hd.github.io/2018/08/01/Dex文件结构分析/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://pino-hd.github.io/2018/08/01/Dex文件结构分析/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">署名-非商业性使用-禁止演绎 4.0 国际</a> 转载请保留原文链接及作者。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    clipboard.on('success', $(function(){
+      $(".fa-clipboard").click(function(){
+        swal({   
+          title: "",   
+          text: '复制成功',   
+          html: false,
+          timer: 500,   
+          showConfirmButton: false
+        });
+      });
+    }));  
+</script>
+
+      </div>
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.jpg" alt="Pino-HD 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="Pino-HD 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/移动安全/" rel="tag">
+            <i class="fa fa-tag"></i> 移动安全</a>
+          
+            <a href="/tags/安卓/" rel="tag">
+            <i class="fa fa-tag"></i> 安卓</a>
+          
+            <a href="/tags/Dex文件/" rel="tag">
+            <i class="fa fa-tag"></i> Dex文件</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/22/Android如何修改classes-dex文件后重新放入apk中/" rel="next" title="Android如何修改classes.dex文件后重新放入apk中">
+                <i class="fa fa-chevron-left"></i> Android如何修改classes.dex文件后重新放入apk中
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/08/01/获取Android-App的网络流量/" rel="prev" title="获取Android App的网络流量">
+                获取Android App的网络流量 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="Pino-HD" />
+            
+              <p class="site-author-name" itemprop="name">Pino-HD</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">121</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">86</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/Pino-HD" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.jianshu.com/u/256045bfc368" target="_blank" title="简书"><i class="fa fa-fw fa-heartbeat"></i>简书</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://weibo.com/u/2925327381/home?wvr=5" target="_blank" title="Weibo"><i class="fa fa-fw fa-weibo"></i>Weibo</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://example.com/" title="Title" target="_blank">Title</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#构造Dex文件"><span class="nav-number">1.</span> <span class="nav-text">构造Dex文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dex文件整体结构"><span class="nav-number">2.</span> <span class="nav-text">Dex文件整体结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dex文件分析"><span class="nav-number">3.</span> <span class="nav-text">Dex文件分析</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Pino-HD</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span class="post-meta-item-icon">
+    站点总字数
+    </span>
+    
+    <span title="站点总字数">196k</span>
+  
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span class="post-meta-item-icon">
+    站点阅读时长
+    </span>
+    
+    <span title="站点阅读时长">5:false</span>
+      
+      <span class="post-meta-divider">|</span>
+      <span class="post-meta-item-icon">
+      <i class="fa fa-user-md"> </i>
+      </span>
+      <span id="busuanzi_container_site_uv">
+        本站访客数
+      </span>
+      <span id="busuanzi_value_site_uv"></span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.3.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.3.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.3.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.3.0"></script>
+
+
+
+  
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
     // Popup Window;
     var isfetched = false;
     var isXml = true;
@@ -316,4 +1594,144 @@
         onPopupClose();
       }
     });
-  </script><script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script><script>AV.initialize("tEohukLOYSlckiF5bzuc4FQU-gzGzoHsz","JT5TeK0bdQjQsU4FAh8aHs12")</script><script>function showTime(e){var t=new AV.Query(e),c=[],u=$(".leancloud_visitors");u.each(function(){c.push($(this).attr("id").trim())}),t.containedIn("url",c),t.find().done(function(e){var t=".leancloud-visitors-count";if(0!==e.length){for(var n=0;n<e.length;n++){var o=e[n],i=o.get("url"),s=o.get("time"),r=document.getElementById(i);$(r).find(t).text(s)}for(n=0;n<c.length;n++){i=c[n],r=document.getElementById(i);var l=$(r).find(t);""==l.text()&&l.text(0)}}else u.find(t).text(0)}).fail(function(e,t){console.log("Error: "+t.code+" "+t.message)})}function addCount(i){var e=$(".leancloud_visitors"),s=e.attr("id").trim(),r=e.attr("data-flag-title").trim(),t=new AV.Query(i);t.equalTo("url",s),t.find({success:function(e){if(0<e.length){var t=e[0];t.fetchWhenSave(!0),t.increment("time"),t.save(null,{success:function(e){$(document.getElementById(s)).find(".leancloud-visitors-count").text(e.get("time"))},error:function(e,t){console.log("Failed to save Visitor num, with error message: "+t.message)}})}else{var n=new i,o=new AV.ACL;o.setPublicReadAccess(!0),o.setPublicWriteAccess(!0),n.setACL(o),n.set("title",r),n.set("url",s),n.set("time",1),n.save(null,{success:function(e){$(document.getElementById(s)).find(".leancloud-visitors-count").text(e.get("time"))},error:function(e,t){console.log("Failed to create")}})}},error:function(e){console.log("Error:"+e.code+" "+e.message)}})}$(function(){var e=AV.Object.extend("Counter");1==$(".leancloud_visitors").length?addCount(e):1<$(".post-title-link").length&&showTime(e)})</script></body></html>
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("tEohukLOYSlckiF5bzuc4FQU-gzGzoHsz", "JT5TeK0bdQjQsU4FAh8aHs12");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            
+            counter.save(null, {
+              success: function(counter) {
+                
+                  var $element = $(document.getElementById(url));
+                  $element.find('.leancloud-visitors-count').text(counter.get('time'));
+                
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            
+              var newcounter = new Counter();
+              /* Set ACL */
+              var acl = new AV.ACL();
+              acl.setPublicReadAccess(true);
+              acl.setPublicWriteAccess(true);
+              newcounter.setACL(acl);
+              /* End Set ACL */
+              newcounter.set("title", title);
+              newcounter.set("url", url);
+              newcounter.set("time", 1);
+              newcounter.save(null, {
+                success: function(newcounter) {
+                  var $element = $(document.getElementById(url));
+                  $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+                },
+                error: function(newcounter, error) {
+                  console.log('Failed to create');
+                }
+              });
+            
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

