@@ -4,6 +4,56 @@
 
     
   <url>
+    <loc>https://pino-hd.github.io/2018/09/25/%E5%88%A9%E7%94%A8Python%E5%AE%9E%E7%8E%B0%E6%89%B9%E9%87%8F%E8%87%AA%E5%8A%A8%E5%8C%96SSH%E7%99%BB%E9%99%86%E5%B9%B6%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E5%90%8E%E8%8E%B7%E5%8F%96%E6%95%B0%E6%8D%AE/</loc>
+    <lastmod>2018-10-17T09:30:32.198Z</lastmod>
+    <data>
+        <display>
+        <title>利用Python实现批量自动化SSH登陆并执行命令后获取数据</title>
+        <pubTime>2018-09-25T02:42:22.000Z</pubTime>
+        
+        <tag>CTF</tag>
+         
+        <tag>Python</tag>
+         
+        <tag>SSH</tag>
+         
+        <tag>AWD</tag>
+         
+         
+           
+             
+              <breadCrumb title="CTF" url="https://pino-hd.github.io/categories/CTF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://pino-hd.github.io/2018/10/15/Windows%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%BF%9B%E7%A8%8B%E4%BB%A4%E7%89%8C%E6%9D%83%E9%99%90/</loc>
+    <lastmod>2018-10-15T07:45:50.908Z</lastmod>
+    <data>
+        <display>
+        <title>Windows编程之进程令牌权限</title>
+        <pubTime>2018-10-15T07:19:29.000Z</pubTime>
+        
+        <tag>Windows编程</tag>
+         
+        <tag>进程令牌</tag>
+         
+        <tag>权限</tag>
+         
+         
+           
+             
+              <breadCrumb title="Windows编程" url="https://pino-hd.github.io/categories/Windows%E7%BC%96%E7%A8%8B/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>https://pino-hd.github.io/2018/10/07/%E5%90%8E%E9%97%A8%E7%9A%84%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/</loc>
     <lastmod>2018-10-08T06:57:44.110Z</lastmod>
     <data>
@@ -157,32 +207,6 @@
            
              
               <breadCrumb title="Windows编程" url="https://pino-hd.github.io/categories/Windows%E7%BC%96%E7%A8%8B/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>https://pino-hd.github.io/2018/09/25/%E5%88%A9%E7%94%A8Python%E5%AE%9E%E7%8E%B0%E6%89%B9%E9%87%8F%E8%87%AA%E5%8A%A8%E5%8C%96SSH%E7%99%BB%E9%99%86%E5%B9%B6%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E5%90%8E%E8%8E%B7%E5%8F%96%E6%95%B0%E6%8D%AE/</loc>
-    <lastmod>2018-09-25T02:57:35.264Z</lastmod>
-    <data>
-        <display>
-        <title>利用Python实现批量自动化SSH登陆并执行命令后获取数据</title>
-        <pubTime>2018-09-25T02:42:22.000Z</pubTime>
-        
-        <tag>CTF</tag>
-         
-        <tag>Python</tag>
-         
-        <tag>SSH</tag>
-         
-        <tag>AWD</tag>
-         
-         
-           
-             
-              <breadCrumb title="CTF" url="https://pino-hd.github.io/categories/CTF/"/>
           
         </display>
     </data>
