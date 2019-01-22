@@ -135,7 +135,7 @@
 
   <meta property="og:type" content="website">
 <meta property="og:title" content="Pin0&#39;s Blog">
-<meta property="og:url" content="https://pino-hd.github.io/tags/Mac-OS/index.html">
+<meta property="og:url" content="https://pino-hd.github.io/tags/Mac-Os/index.html">
 <meta property="og:site_name" content="Pin0&#39;s Blog">
 <meta property="og:locale" content="zh-CN">
 <meta name="twitter:card" content="summary">
@@ -146,7 +146,7 @@
 
 
 
-  <link rel="canonical" href="https://pino-hd.github.io/tags/Mac-OS/"/>
+  <link rel="canonical" href="https://pino-hd.github.io/tags/Mac-Os/"/>
 
 
 
@@ -156,7 +156,7 @@
   };
 </script>
 
-  <title>标签: Mac OS | Pin0's Blog</title>
+  <title>标签: Mac Os | Pin0's Blog</title>
   
 
 
@@ -369,7 +369,7 @@
 
     <div id="posts" class="posts-collapse">
       <div class="collection-title">
-        <h1>Mac OS<small>标签</small>
+        <h1>Mac Os<small>标签</small>
         </h1>
       </div>
 
@@ -381,9 +381,9 @@
 
       <h2 class="post-title">
         
-            <a class="post-title-link" href="/2018/06/02/mac下双网卡同时上内网和外网/" itemprop="url">
+            <a class="post-title-link" href="/2018/08/13/Mac下更改pip2-pip3国内源/" itemprop="url">
               
-                <span itemprop="name">mac下双网卡同时上内网和外网</span>
+                <span itemprop="name">Mac下更改pip2/pip3国内源</span>
               
             </a>
         
@@ -391,9 +391,9 @@
 
       <div class="post-meta">
         <time class="post-time" itemprop="dateCreated"
-              datetime="2018-06-02T22:54:13+08:00"
-              content="2018-06-02" >
-          06-02
+              datetime="2018-08-13T13:23:50+08:00"
+              content="2018-08-13" >
+          08-13
         </time>
       </div>
 
@@ -454,7 +454,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">123</span>
+                    <span class="site-state-item-count">124</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -694,7 +694,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">90</span>
+                      
+                    
+                    <span class="site-state-item-count">91</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -768,7 +770,7 @@
     <footer id="footer" class="footer">
       <div class="footer-inner">
         <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love" id="animate">
     <i class="fa fa-user"></i>
   </span>
@@ -1359,6 +1361,55 @@
               newcounter.save(null, {
                 success: function(newcounter) {
                   var $element = $(document.getElementById(url));
+                  $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+                },
+                error: function(newcounter, error) {
+                  console.log('Failed to create');
+                }
+              });
+            
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
+t = $(document.getElementById(url));
                   $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
                 },
                 error: function(newcounter, error) {

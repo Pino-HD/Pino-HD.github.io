@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[MacOS下Python3_SSL_CERTIFICATE_VERIFY_FAILED错误解决方案]]></title>
+    <url>%2F2019%2F01%2F22%2FMacOS%E4%B8%8BPython3-SSL-CERTIFICATE-VERIFY-FAILED%E9%94%99%E8%AF%AF%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%2F</url>
+    <content type="text"><![CDATA[好久没发博客了，最近在Mac上安装Frida的时候，当我执行1pip3 install frida 的时候，会产生SSL: CERTIFICATE_VERIFY_FAILED的错误 这种问题以前在使用requests库的时候访问https网站的时候也出现过，但是那个时候使用的是倒入ssl库来解决的12import sslssl._create_https_context = ssl._create_unverified_context 现在我们可以在我们的Mac终端中执行一句安装命令来彻底解决这个问题 1/Applications/Python\ 3.6/Install\ Certificates.command 之后我们就可以快乐的安装frida了～]]></content>
+      <categories>
+        <category>Mac OS</category>
+      </categories>
+      <tags>
+        <tag>Mac OS</tag>
+        <tag>Python3</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[Windows编程之进程令牌权限]]></title>
     <url>%2F2018%2F10%2F15%2FWindows%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%BF%9B%E7%A8%8B%E4%BB%A4%E7%89%8C%E6%9D%83%E9%99%90%2F</url>
     <content type="text"><![CDATA[进程的权限在很多时候，我们想要对一些系统进程进行一些操作，例如说修改之类的，对于普通用户来说是不行的，因为这种行为比较危险，需要有对于该计算机较高权限的人才能进行这种操作。 但是有的时候，明明我们是管理员，但是还是会出现拒绝访问的提示，是怎么回事呢？原来有的权限默认是没有开通的，既然都没有开通，那么就算你是管理员也肯定不能使用呀，因此就需要我们进行开通就好了。 修改进程的权限想要修改权限，那么首先利用OpenProcessToken函数打开进程的访问令牌 一般使用如下方式：1OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES|TOKEN_QUERY, &amp;hToken); 这里利用GetCurrentProcess函数打开获取自己的进程句柄，然后第二个参数是想要操作的类型，第三个参数是返回的访问令牌的句柄 之后，要获取进程的本地唯一ID，也就是LUID。 说到LUID，我向大家应该都听过GUID，比如在用户组中，每个用户的GUID是唯一的，那么LUID是保证局部唯一，也就是每次进程运行的时候都有个唯一的ID，只有获取了这个LUID，才能在最后进行修改权限 一般利用LookupPrivilegeValue函数进行获取:1LookupPrivilegeValue(NULL, name, &amp;luid); 这里第一个参数是系统名称，一般都是本地系统，就可以直接使用NULL就好了。第二个参数是权限的名称，第三个参数就是获取的luid。 在之后就是修改进程的权限了，利用AdjustTokenPrivilege函数1AdjustTokenPrivilege(hToken, 0, &amp;tp, sizeof(TOKEN_PRIVILEGES), NULL, NULL)； 这里第一个参数是之前返回的进程令牌的句柄，第二个参数是决定权限是修改还是禁用，第三个参数是一个指向TOKEN_PRIVILEGES结构体的指针，第四个就是这个结构体的大小，后两个可空。 当然了，在执行AdjustTokenPrivilege函数之前，需要对TOKEN_PRIVILEGES指针进行赋值，它的结构如下：123456789typedef struct _TOKEN_PRIVILEGES&#123; DWORD PrivilegeCount; LUID_AND_ATTRIBUTE Privilege[];&#125;TOKEN_PRIVILEGES, *PTOKEN_PRIVILEGES;typedef struct LUID_AND_ATTRIBUTE&#123; LUID Luid; DWORD Attributes;&#125;LUID_AND_ATTRIBUTES, *PLUID_AND_ATTRIBUTES PrivilegeCount是指数组元素的个数，然后是一个数组，其中的attribute一般我们想要使用一个权限就设置为SE_PRIVILEGE_ENABLED，luid根据LookupPrivilegeValue来获取 参考百度百科]]></content>
@@ -557,8 +569,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>Linux</tag>
         <tag>小贴士</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -569,8 +581,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>Linux</tag>
         <tag>小贴士</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -605,8 +617,8 @@
         <category>Linux</category>
       </categories>
       <tags>
-        <tag>Linux</tag>
         <tag>小贴士</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -669,8 +681,8 @@
       </categories>
       <tags>
         <tag>提权</tag>
-        <tag>后渗透</tag>
         <tag>Linux</tag>
+        <tag>后渗透</tag>
       </tags>
   </entry>
   <entry>
@@ -894,10 +906,10 @@
         <category>渗透测试</category>
       </categories>
       <tags>
-        <tag>SSH</tag>
         <tag>内网渗透</tag>
         <tag>内网穿透</tag>
         <tag>端口转发</tag>
+        <tag>SSH</tag>
       </tags>
   </entry>
   <entry>
