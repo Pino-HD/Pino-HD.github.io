@@ -2,9 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://pino-hd.github.io/about/index.html</loc>
+    
+    <lastmod>2019-08-22T08:46:36.762Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://pino-hd.github.io/2019/01/22/MacOS%E4%B8%8BPython3-SSL-CERTIFICATE-VERIFY-FAILED%E9%94%99%E8%AF%AF%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/</loc>
     
-    <lastmod>2019-01-22T03:11:46.596Z</lastmod>
+    <lastmod>2019-08-22T08:41:33.144Z</lastmod>
     
   </url>
   
@@ -96,13 +103,6 @@
     <loc>https://pino-hd.github.io/2018/08/23/%E5%88%A9%E7%94%A8IPC%E8%BF%9B%E8%A1%8C%E6%B8%97%E9%80%8F/</loc>
     
     <lastmod>2018-08-23T13:25:27.813Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://pino-hd.github.io/about/index.html</loc>
-    
-    <lastmod>2018-08-14T06:16:21.170Z</lastmod>
     
   </url>
   
